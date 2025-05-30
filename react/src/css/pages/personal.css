@@ -1,0 +1,53 @@
+.permisos {
+  margin-top: 25px;
+}
+.permisos h3 {
+  text-align: center;
+  font-weight: bold;
+  position: relative;
+  top: 10px;
+}
+.permisos .module {
+  list-style-type: disc;
+  position: relative;
+  padding-inline: 10px;
+}
+.permisos .module li {
+  background-color: #069DBF;
+  display: inline-block;
+  box-shadow: 2px 3px 16px rgba(0, 0, 0, 0.377);
+  padding-top: 5px;
+  padding-inline: 6px;
+  color: rgb(255, 255, 255);
+  font-weight: bold;
+  position: relative;
+  top: 23px;
+  border-radius: 2px;
+}
+.permisos .checkbox_container {
+  padding-block: 10px;
+  margin-left: 20px;
+  margin-top: 5px;
+  padding-left: 10px;
+  padding-top: 34px;
+  border-radius: 5px;
+  color: rgb(0, 0, 0);
+  background: #ececec;
+}
+.permisos label input {
+  margin-right: 3px !important;
+}
+.permisos label input:checked + span {
+  color: #069DBF;
+  font-weight: bold;
+}
+.permisos label span {
+  margin-right: 30px;
+}
+.permisos label:hover {
+  cursor: pointer;
+  color: #A64684 !important;
+}
+.permisos b {
+  margin-bottom: 35px !important;
+}/*# sourceMappingURL=personal.css.map */

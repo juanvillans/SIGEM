@@ -1,0 +1,172 @@
+$width_card_form: 289px; 
+$height_card_form: 400px;
+$padding_card_form: 25px;  
+ 
+@mixin card-form($height_card_form: min-content, $width_card_form: 289px) {
+    .card_form {
+        color: white; 
+        width: $width_card_form;   
+        height: $height_card_form;  
+        // background: red;   
+        display: block; 
+        margin: auto;
+        padding: $padding_card_form; 
+        border: none;
+        position: relative;   
+        transition: 0.5s all;
+        border-radius: 5px;
+        opacity: 1; 
+ 
+        &::before,
+        &::after {
+            content: " ";
+            position: absolute;
+            bottom: 11px;
+            height: 11px;
+            width: 90%;
+
+            z-index: -10 !important;
+            // box-shadow: 0 11px 10px rgba(0, 0, 0, 0.6); 
+        }
+
+        &::after {
+            right: 0px;
+            transform: rotate(3deg);
+        }
+
+        &::before {
+            left: 0px;
+            transform: rotate(-3deg);
+        }
+
+        legend {
+            margin-bottom: 23px;
+            text-align: center;
+            width: 100%;
+        }
+        .d-grid {
+            @media (min-width: 400px) {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+
+        input[type="file"] {
+            margin-bottom: 25px;
+            color: #046980;
+            display: block;
+            width: 100%;
+        }
+        input[type="date"]  {
+            color: transparent;
+
+            &.focus_valid {
+                color: white !important;
+            }
+        }
+        ::-webkit-file-upload-button {
+            transition: all 0.4s ease;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            height: 30px;
+            width: 100%;
+            display: block;
+            background-color: green;
+            border: none;
+            color: white;
+
+            &:hover {
+                cursor: pointer;
+                background: $purple;
+                color: #046980;
+            }
+        }
+        .cont_input_label,
+        span {
+            position: relative;
+            display: block;
+            width: 100%;
+            margin-bottom: 30px;
+            
+            &:hover {
+                cursor: text;
+            }
+
+            label {
+                color: rgba(255, 255, 255, 0.63);
+                transform: translateX(10px);
+                position: absolute;
+                padding: 0;
+                display: block;
+                padding-top: 5px;
+                bottom: 7px; 
+                left: 0;
+                font-size: 20px; 
+                transition: all 0.3s ease;    
+                background: transparent;
+                z-index: 1;
+                margin-bottom: 0 !important;
+
+                &:hover {
+                    cursor: text;
+                }
+ 
+                &.focus_valid {
+                    transform: translateY(-25px);
+                    // color: #dfafce;
+                    font-weight: bold;
+                    font-size: 18px;
+                }
+            }  
+        }
+        .d-grid {
+            @media (min-width: 400px) {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+        
+        input:not(
+                input[type="submit"],  
+                input[type="radio"],
+                input[type="file"]
+            ),
+        select {
+            border: 0;
+            display: block;
+            border-bottom: 2px solid #046980;
+            background: transparent;
+            border-radius: 3px;
+            transition: 0.3s all ease;
+            padding: 15px !important;
+            padding-bottom: 5px !important;
+            font-size: 15px;
+            width: 100%;
+
+            &:focus {
+                border-bottom: 2px solid $purple;
+                outline: none;
+            }
+            
+                color: white !important;
+                font-size: 18px;
+            
+        }
+
+        textarea {
+            border: 0;
+            display: block;
+            border-bottom: 2px solid #046980;
+            background: rgb(11, 38, 73);
+            border-radius: 3px;
+            transition: 0.3s all ease;
+            padding: 10px;
+            padding-bottom: 5px;
+            font-size: 17px;
+            width: 100%;
+            outline: none;
+        }
+    }
+}

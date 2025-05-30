@@ -1,0 +1,20 @@
+label.btn_radio {
+    background: #f5f5f5;
+    padding: 3px;
+    padding-top: 5px;
+    border-radius: 4px;
+    &.active {
+        cursor: pointer;
+        background: #D9831A;
+        color: whitesmoke;
+    }
+    &:hover {
+        cursor: pointer;
+        background: #975e198c;
+        color: rgb(255, 255, 255);
+    }
+
+}
+.infoCredit_container {
+    // background: red !important;
+}

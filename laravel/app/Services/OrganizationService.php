@@ -1,0 +1,201 @@
+<?php  
+
+namespace App\Services;
+
+use DB;
+use App\Models\User;
+use App\Models\Entry;
+use App\Models\Output;
+use App\Models\Parish;
+use App\Events\NewActivity;
+use App\Models\Municipality;
+use App\Models\Organization;
+use App\Models\UserDeleteds;
+use App\Services\ApiService;
+use App\Models\HierarchyEntity;
+use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Auth;
+use App\Exceptions\GeneralExceptions;
+
+class OrganizationService extends ApiService
+{   
+
+    protected $model;
+    protected $snakeCaseMap = [
+
+    'authorityFullname' =>'authority_fullname',
+    'authorityCi' => 'authority_ci',
+    'municipalityId' => 'municipality_id',
+    'parishId' => 'parish_id',
+    ];
+
+    public function __construct()
+    {
+        parent::__construct(new Organization);
+    }
+
+    public function getData()
+    {   
+         $organizations = Organization::with('municipality','parish')
+         ->when(request()->input('municipality'),function ($query, $param) {
+                
+            if(isset($param['id'])){
+                
+                $municipalityIDs = $param['id'];
+                $municipalities = $this->parseQuery($municipalityIDs);
+                
+                $query->whereHas('municipality', function($query) use ($municipalities) {
+                    
+                    $query->where('id', $municipalities[0]);
+                    if (count($municipalities) > 1) {
+                        array_shift($municipalities); 
+                        foreach ($municipalities as $municipality) {
+                            $query->orWhere('id', $municipality);
+                        }
+                    } 
+
+                });
+            }
+        })
+        ->when(request()->input('search'), function ($query, $param) {
+           
+            if (!isset($param['all'])) return 0;
+        
+                $search = $param['all'];
+                $string = $this->generateString($search);
+                $query->where('search', 'ILIKE', $string);
+        })
+        ->when(request()->input('orderBy'), function($query, $param) {      
+            $orderDirection = (request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
+                ? request()->input('orderDirection') 
+                : 'desc';
+        
+            switch ($param) {
+                case 'name':
+                    $query->orderBy('name', $orderDirection);
+                    break;
+            }
+        })
+        ->unless(request()->input('orderBy'), function($query) {
+            $query->orderBy('id', 'desc');
+        })
+        ->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
+
+        return $organizations;
+
+    }
+
+    public function create($dataToCreateOrganization)
+    {   
+
+        $municipalityName = null;
+        $parishName = null;
+
+        if(isset($dataToCreateOrganization['municipality_id']))
+            $municipalityName = Municipality::where('id',$dataToCreateOrganization['municipality_id'])->first()->name;
+
+        if(isset($dataToCreateOrganization['parish_id']))
+            $parishName = Parish::where('id',$dataToCreateOrganization['parish_id'])->first()->name;
+
+        $dataToCreateOrganization = $this->transformUpperCase($dataToCreateOrganization);
+        $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
+        $dataToCreateOrganization['code'] = 'nocode';
+
+        $this->model->fill($dataToCreateOrganization);
+        $this->model->save();
+        $this->model->fresh();
+
+        $userID = auth()->user()->id;
+        NewActivity::dispatch($userID, 4, $this->model->id);
+
+
+        return ['message' => 'Creado Exitosamente', 'model' => $this->model];
+    }
+
+    public function update($dataToUpdateOrganization,$organization)
+    {
+
+        $municipalityName = null;
+        $parishName = null;
+
+        if(isset($dataToUpdateOrganization['municipality_id']))
+            $municipalityName = Municipality::where('id',$dataToUpdateOrganization['municipality_id'])->first()->name;
+
+        if(isset($dataToUpdateOrganization['parish_id']))
+            $parishName = Parish::where('id',$dataToUpdateOrganization['parish_id'])->first()->name;
+
+        $dataToUpdateOrganization = $this->transformUpperCase($dataToUpdateOrganization);
+        $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
+        $dataToUpdateOrganization['code'] = 'nocode';
+
+        $organization->fill($dataToUpdateOrganization);
+        $organization->save();
+        $organization->fresh();
+
+        $userID = auth()->user()->id;
+        NewActivity::dispatch($userID, 5, $organization->id);
+
+
+        return ['message' => 'Actualizado Exitosamente'];
+
+    }
+
+    public function delete($organization)
+    {   
+        $entry = Entry::where('organization_id',$organization->id)->first();
+        $output = Output::where('organization_id',$organization->id)->first();
+
+        if(isset($entry->id))
+            throw new GeneralExceptions('Existe una entrada con esta organizacion no puede ser eliminado',406);
+
+         if(isset($output->id))
+            throw new GeneralExceptions('Existe una salida con esta organizacion no puede ser eliminado',406);
+
+        $userID = auth()->user()->id;
+        NewActivity::dispatch($userID, 6, $organization->id);
+        $organization->delete();
+
+
+
+        return ['message' => 'Eliminado con exito'];
+
+    }
+
+
+    public function isCurrentUserDeletingIdMatch($id)
+    {
+        $userID = Auth::id();
+        
+        if($userID == $id)
+            throw new GeneralExceptions('No puede eliminarse asi mismo',500);  
+
+    }
+
+    private function transformUpperCase($array)
+    {
+        return array_map(function($value) 
+        {
+            if (is_string($value)) 
+                return strtoupper($value);
+             
+            else 
+                return $value;
+            
+        }, $array);
+    }
+
+    private function generateSearch($array,$municipalityName,$parishName)
+    {
+        $search = 
+        $array['name'] . ' ' .
+        $array['authority_ci'] . ' ' .
+        $municipalityName . ' ' .
+        $parishName . ' ' .
+        $array['authority_fullname'];
+        
+        return $search;
+    }
+    
+    
+
+}

@@ -1,0 +1,16 @@
+label.btn_radio {
+  background: #f5f5f5;
+  padding: 3px;
+  padding-top: 5px;
+  border-radius: 4px;
+}
+label.btn_radio.active {
+  cursor: pointer;
+  background: #D9831A;
+  color: whitesmoke;
+}
+label.btn_radio:hover {
+  cursor: pointer;
+  background: rgba(151, 94, 25, 0.5490196078);
+  color: rgb(255, 255, 255);
+}/*# sourceMappingURL=pagos.css.map */
