@@ -26,7 +26,7 @@ class InventoryController extends Controller
     }
 
     public function index(Request $request)
-    {   
+    {
         $userEntityCode = auth()->user()->entity_code;
 
         $paginateArray = $this->queryFilter->getPaginateValues($request,'inventory_generals');
@@ -44,30 +44,24 @@ class InventoryController extends Controller
         $canSeeOthers = $userEntityCode == '1'?true:false;
 
         $relation = $request->query('relation') ?? "false";
-        
+
         if($relation == "true")
-        {   
+        {
             $entities = HierarchyEntity::select('name','code')->get();
 
             $organizations = Organization::orderBy('id','desc')->get();
             $categories = $this->configurationProductService->getAllCategories();
-            $typePresentations = $this->configurationProductService->getAllTypePresentations();
-            $typeAdministrations = $this->configurationProductService->getAllTypeAdministrations();
-            $medicaments = $this->configurationProductService->getAllTypeMedicaments();
             $conditions = Condition::orderBy('id','desc')->get();
         }
-        
+
 
         return [
-            
+
             'inventories' => $inventoryCollection,
             'categories' => $categories ?? null,
-            'typePresentations' => $typePresentations ?? null,
-            'typeAdministrations' => $typeAdministrations ?? null,
-            'medicaments' => $medicaments ?? null,
             'entities' => $entities ?? null,
             'conditions' => $conditions ?? null,
-            'total' => $total, 
+            'total' => $total,
             'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'
         ];
@@ -75,14 +69,14 @@ class InventoryController extends Controller
     }
 
     public function detailInventory($productID, $entityCode)
-    {   
+    {
         $inventories = $this->inventoryService->getDetailData($productID,$entityCode);
         return [
-            
+
             'lotsPerOrigin' => $inventories,
             'message' => 'OK'
         ];
-        
+
     }
 
     public function repeatedLoteNumber()
@@ -98,20 +92,20 @@ class InventoryController extends Controller
         // return array_keys($duplicateLoteNumbers);
 
         // $result = Inventory::select('product_id','lote_number')->whereIn('lote_number',array_keys($duplicateLoteNumbers))->with('product')->get()->toArray();
-        
+
         // dd($result);
-        
+
         // foreach($duplicateLoteNumbers as $loteNumber => $timesRepeated)
         // {
         //     $inventories = Inventory::where('lote_number',$loteNumber)->skip(1)->get();
         //     $count = 2;
-        //     foreach ($inventories as $inventory) 
+        //     foreach ($inventories as $inventory)
         //     {
         //         $inventory->update(['lote_number' => $inventory->lote_number . '-' . $count]);
         //         $count++;
         //     }
 
-            
+
         // }
 
         // //////////////////////////////////// another problem
@@ -121,19 +115,19 @@ class InventoryController extends Controller
         foreach($inventories as $inventory){
 
             $entry = Entry::where('entity_code', $inventory->entity_code)->where('lote_number', $inventory->lote_number)->where('product_id', $inventory->product_id)->first();
-            
+
             if(!isset($entry->id))
                 $bads[] =  $inventory->id;
         }
-        
-        
+
+
         Inventory::whereIn('id',$bads)->delete();
         $inventories = Inventory::where('entity_code', '1-2-1')->select('id', 'condition_id', 'stock', 'entity_code','lote_number','product_id')->get();
-        
+
         // Recalculate inventory
         $registers = [];
         foreach($inventories as $inventory){
-            
+
 
             // Asegúrate de inicializar la clave del producto
             if (!isset($registers[$inventory->product_id])) {
@@ -143,7 +137,7 @@ class InventoryController extends Controller
                     'stockBad' => 0,
                     'stockExpired' => 0,
                     'stockPerExpired' => 0
-                    
+
                 ];
 
                 $registers[$inventory->product_id]['total'] += $inventory->stock;
@@ -174,7 +168,7 @@ class InventoryController extends Controller
                 }
             }
 
-            
+
         }
 
         // print_r($registers);
@@ -186,13 +180,13 @@ class InventoryController extends Controller
 
         echo "Listo";
 
-        
+
     }
 
     public function restoreSearch(){
         // concentration_size
         ini_set('memory_limit', '1000M');
-        set_time_limit(120); 
+        set_time_limit(120);
 
         // $inventories = Inventory::with('product.presentation')->get();
         // $entries = Entry::with('product.presentation')->get();

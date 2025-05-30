@@ -20,7 +20,7 @@ import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 
 
 export default function nav(props) {
-  
+
   const [divStyle, setDivStyle] = useState("sismed");
     useEffect(() => {
       const currentUrl = window.location.href;
@@ -29,9 +29,9 @@ export default function nav(props) {
         setDivStyle("test");
       }
     }, []);
-  
+
     console.log(divStyle);
-    
+
   return (
     <nav className={`left_nav ${props.status ? "open" : "closed"} ${divStyle == "test" ? "bg-dark" : ""}`}>
       <div className="w-100  nav_into_container" style={{borderColor: divStyle == "test" ? "bg-green" : ""}}>
@@ -57,7 +57,7 @@ export default function nav(props) {
           {/* {linkes} */}
 
           {props.userData?.permissions[1] && (
-          
+
             <NavLink key={"/dashboard/Organizaciones"} to={"/dashboard/Organizaciones"} title={"Organizaciones"}>
               <AddBusinessIcon />
               <span className="text_link">Organizaciones</span>
@@ -71,9 +71,9 @@ export default function nav(props) {
             </NavLink>
           )}
           {props.userData?.permissions[3] && (
-            <NavLink key={"/dashboard/productos"} to={"/dashboard/productos"} title={"Productos"}>
+            <NavLink key={"/dashboard/productos"} to={"/dashboard/productos"} title={"Equipos Médicos"}>
               <StorageIcon />
-              <span className="text_link"> Productos</span>
+              <span className="text_link"> Equipos Médicos</span>
             </NavLink>
           )}
           {props.userData?.permissions[4] && (

@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Services;
 
@@ -6,20 +6,15 @@ use App\Exceptions\GeneralExceptions;
 use App\Http\Resources\ConfigurationProductCollection;
 use App\Http\Resources\ConfigurationProductResource;
 use App\Models\Category;
-use App\Models\Medicament;
-use App\Models\TypeAdministration;
-use App\Models\TypePresentation;
+
 use DB;
 use Exception;
 
 class ConfigurationProductService
-{	
+{
 	public function __construct()
     {
         $this->categoryModel = new Category;
-        $this->typeAdministrationModel = new TypeAdministration;
-        $this->typePresentationModel = new TypePresentation;
-        $this->medicamentModel = new Medicament;
     }
 
     public function getAllCategories()
@@ -28,27 +23,10 @@ class ConfigurationProductService
         return new ConfigurationProductCollection($categories);
     }
 
-    public function getAllTypePresentations()
-    {
-        $typePresentations = $this->typePresentationModel->orderBy('id','desc')->get();
-        return new ConfigurationProductCollection($typePresentations);
-    }
-    
-    public function getAllTypeAdministrations()
-    {
-        
-        $typeAdministrations = $this->typeAdministrationModel->orderBy('id','desc')->get();
-        return new ConfigurationProductCollection($typeAdministrations);
-    }
 
-    public function getAllTypeMedicaments()
-    {
-        $medicaments = $this->medicamentModel->orderBy('id','desc')->get();
-        return new ConfigurationProductCollection($medicaments);
-    }
 
     public function create($name,$type)
-    {   
+    {
         $model = $this->getModel($type);
 
         if($model == null)
@@ -62,7 +40,7 @@ class ConfigurationProductService
 
     }
 
-    
+
 
     public function update($name,$type,$id)
     {
@@ -84,7 +62,7 @@ class ConfigurationProductService
     }
 
     public function delete($id,$type)
-    {   
+    {
         $model = $this->getModel($type);
         if($model == null)
             throw new GeneralExceptions('Tipo de parametro no reconocido',400);
@@ -95,33 +73,21 @@ class ConfigurationProductService
             throw new GeneralExceptions('Registro no encontrado',404);
 
         if($config->products()->exists()){
-            throw new Exception('Hay productos que contienen este registro, no puede ser eliminado',400);
+            throw new Exception('Hay equipos médicos que contienen esta categoría, no puede ser eliminada',400);
         }
         else{
 
             $config->delete();
         }
-        
+
         return 0;
     }
 
-    
+
     private function getModel($type)
     {
         if($type == 1){
             return new Category;
-        }
-        else if($type == 2)
-        {
-            return new TypePresentation;
-        }
-        else if($type == 3)
-        {
-            return new TypeAdministration;
-        }
-        else if($type == 4)
-        {
-            return new Medicament;
         }
         else
         {

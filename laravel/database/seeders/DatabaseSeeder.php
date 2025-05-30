@@ -32,24 +32,26 @@ use function Laravel\Prompts\search;
 
 class DatabaseSeeder extends Seeder
 {
-  
+
     public function run(): void
     {
         ini_set('memory_limit', '500M');
         DB::transaction(function () {
             try {
                 // php artisan db:seed
+              //  DB::unprepared(file_get_contents(database_path('sql/organizations_respaldocalidad.sql')));
+
                 // $this->restartDatabase('31mar2025');
-                
+
                 // $this->fixProductSearch();
                 // $this->changePasswordUser('25783190');
                 // $this->changeToDetail();
                 // $this->resolveDuplicate(443,442);
-                
+
                 // $this->transportVinculations();
                 // $this->trasnformToDetail();
 
-                
+
                 // Schema::table('products', function (Blueprint $table) {
                 //     $table->dropColumn('product_macro_id');
                 // });
@@ -65,7 +67,7 @@ class DatabaseSeeder extends Seeder
                 throw $e;
             }
         });
-        
+
 
         $this->call([
 
@@ -73,11 +75,8 @@ class DatabaseSeeder extends Seeder
             // UserModuleSeeder::class,
             // HierarchyEntitySeeder::class,
             // UserSeeder::class,
-            // CategorySeeder::class,
-            // TypePresentationSeeder::class,
-            // TypeAdministrationSeeder::class,
-            // MedicamentSeeder::class,
-            // ProductSeeder::class,
+            // EquipmentCategorySeeder::class,
+            // MedicalEquipmentSeeder::class,
             // ConditionSeeder::class,
             // MunicipalitySeeder::class,
             // ParishSeeder::class,
@@ -125,18 +124,18 @@ class DatabaseSeeder extends Seeder
     }
 
     private function resolveDuplicate($badCode, $goodCode){
-        
+
         $entities = HierarchyEntity::get();
 
         $badProduct = Product::where('code',$badCode)->first();
         $goodProduct = Product::where('code', $goodCode)->first();
 
         foreach ($entities as $entity) {
-            
+
             $exists = Entry::where('entity_code', $entity->code)
               ->where('product_id', $badProduct->id)
               ->exists();
-            
+
             if($exists == false)
                 continue;
 
@@ -175,7 +174,7 @@ class DatabaseSeeder extends Seeder
                 $generalGood->minimum_alert = 1;
 
                 if($generalGood->stock_good == 0){
-                    
+
                     $subtractInventory = new SubtractInventory();
                     $subtractInventory->sendNotification($goodProduct,$generalGood);
                 }
@@ -187,7 +186,7 @@ class DatabaseSeeder extends Seeder
 
 
             $generalBad->delete();
-        
+
         }
 
     }
@@ -215,10 +214,10 @@ class DatabaseSeeder extends Seeder
 
     private function fixProductSearch(){
         $products = Product::with('presentation')->get();
-        
+
         foreach($products as $product){
 
-            $product->search = $product->code . ' ' . $product->name . ' ' . $product->presentation->name . ' ' . $product->concentration_size; 
+            $product->search = $product->code . ' ' . $product->name . ' ' . $product->presentation->name . ' ' . $product->concentration_size;
             $product->save();
         }
     }
@@ -228,44 +227,44 @@ class DatabaseSeeder extends Seeder
         $entries = Entry::with('organization','product')->get();
 
         foreach($entries as $entry){
-            
+
             if(!isset($entry->product->name)){
                 $entry->update(['search' =>'MAL PRODUCTO']);
             }
-            
+
             elseif(!isset($entry->organization->name)){
                 $entry->update(['search' =>'MAL ORGANIZACION']);
             }
             else{
-                $string = $entry->authority_fullname . ' ' 
+                $string = $entry->authority_fullname . ' '
                  . $entry->authority_ci . ' '
                  . $entry->entry_code . ' '
                  . $entry->guide . ' '
                  . $entry->organization->name . ' '
                  . $entry->product->name;
-            
+
                  $entry->update(['search' => $string]);
             }
 
-            
+
         }
 
     }
 
     private function fixOutputSearch(){
         $outputs = Output::with('product', 'organization', 'user')->get();
-        
+
         foreach ($outputs as $output) {
-            
+
             if(!isset($output->product->name))
                 Log::info(json_encode($output, JSON_PRETTY_PRINT));
             $search = $output->receiver_fullname . ' ' . $output->receiver_ci . ' ' . $output->output_code . ' ' . $output->guide . ' ' . $output->organization->name . ' ' . $output->product->name;
-            
+
             $output->search = $search;
             $output->save();
         }
-        
-       
+
+
     }
 
     private function showOrganizations($name = null){
@@ -303,7 +302,7 @@ class DatabaseSeeder extends Seeder
         $fechaFin = Carbon::createFromFormat('Y-m-d', '2025-02-05');
 
         foreach ($organizationNames as $value) {
-    
+
             $organizations = Organization::select('id','name','authority_fullname')->where('name',$value)->orderBy('name','asc')->get()->pluck('id')->toArray();
             $outputs = OutputGeneral::whereBetween('created_at', [$fechaInicio, $fechaFin])->whereIn('organization_id',$organizations)->get();
             Log::info($value . ' '. 'Salidas: ' . count($outputs));
@@ -317,13 +316,13 @@ class DatabaseSeeder extends Seeder
         HierarchyEntity::create(
             [
                 'code' => '1-2',
-                'name' => 'Almacén Hospital Universitario Dr. Alfredo Van Grieken', 
+                'name' => 'Almacén Hospital Universitario Dr. Alfredo Van Grieken',
             ]
 
         );
 
         Organization::create([
-            
+
             'name' => 'Almacén Hospital Universitario Dr. Alfredo Van Grieken',
             'code' => '1-2',
             'authority_fullname' => 'MARIA COELLO',
@@ -333,10 +332,10 @@ class DatabaseSeeder extends Seeder
         ]);
     }
 
-    
+
     private function balanceInventoryGeneral(){
         $inventoriesDetail = DB::table('inventories2')->get();
-        
+
         InventoryGeneral::query()->update([
             'stock_expired' => 0,
             'stock_per_expire' => 0,
@@ -348,7 +347,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         foreach ($inventoriesDetail as $inventoriesDetail) {
-            
+
             if($inventoriesDetail->condition_id == 1)
             {
                 InventoryGeneral::where('product_id', $inventoriesDetail->product_id)
@@ -359,7 +358,7 @@ class DatabaseSeeder extends Seeder
                     'entries' => DB::raw('entries + ' . $inventoriesDetail->entries ),
                     'outputs' => DB::raw('outputs + ' . $inventoriesDetail->outputs ),
                 ]);
-                
+
             }
             else{
 
@@ -373,7 +372,7 @@ class DatabaseSeeder extends Seeder
                 ]);
 
             }
-            
+
         }
 
     }

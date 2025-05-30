@@ -48,15 +48,15 @@ Route::get('check-session',[UserController::class,'checkSession']);
 
 
 Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'middleware' => ['auth:sanctum','ability:origin,branch']], function() {
-    
+
     Route::get('notifications', [UserController::class,'notifications']);
 
 // ------------------------------------------------- Notifications ----------------------------------------------
 
-    
+
 // ------------------------------------------------- Logout ----------------------------------------------
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
-    
+
 
 // ------------------------------------------------- Change Password ----------------------------------------------
     Route::post('change-password', [UserController::class,'changePassword']);
@@ -68,7 +68,7 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
 
 // ------------------------------------------------- Users ----------------------------------------------
     Route::middleware('ability:2')->apiResource('users', 'UserController');
-    
+
 
 // ------------------------------------------------- Products ----------------------------------------------
     Route::middleware('ability:3')->apiResource('products', 'ProductController');
@@ -77,11 +77,7 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
     Route::post('config-products/{type}', [ConfigurationProductController::class,'store'])->middleware('ability:3');
     Route::put('config-products/{type}/{id}', [ConfigurationProductController::class,'update'])->middleware('ability:3');
     Route::delete('config-products/{type}/{id}', [ConfigurationProductController::class,'destroy'])->middleware('ability:3');
-    Route::get('products/detail/{product}', [ProductController::class, 'getDetailProduct']);
-    Route::get('products/macros/{product}', [ProductController::class, 'getMacrosProduct']);
-    Route::post('products/detail/assign/{macro}/{micro}', [ProductController::class, 'assignMicroProduct']);
-    Route::post('products/detail/generate/{product}', [ProductController::class, 'generateNewMicroProduct']);
-    Route::delete('products/detail/free/{macro}/{micro}', [ProductController::class, 'freeMicroProduct']);
+
 
 
 
@@ -89,8 +85,8 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
     Route::middleware('ability:4')->apiResource('entries', 'EntryController');
     Route::get('detail-entry/{entryGeneral}',[EntryController::class,'detailEntry'])->middleware('ability:4');
 
-    
-    
+
+
 // ------------------------------------------------- Outputs ----------------------------------------------
     Route::middleware('ability:5')->apiResource('outputs', 'OutputController');
     Route::get('outputs/verify/{ci}',[OutputController::class,'verifyIfExistsPatient'])->middleware('ability:5');

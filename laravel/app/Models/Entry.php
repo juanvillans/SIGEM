@@ -16,7 +16,7 @@ class Entry extends Model
 {
     use HasFactory;
 
-    protected $fillable = 
+    protected $fillable =
     [
         'entity_code',
         'entry_general_id',
@@ -28,10 +28,14 @@ class Entry extends Model
         'guide',
         'lote_number',
         'expiration_date',
+        'area',
+        'serial',
+        'national_asset',
+        'equipment_status',
         'condition_id',
         'authority_fullname',
         'authority_ci',
-        'arrival_time',      
+        'arrival_time',
         'day',
         'month',
         'year',

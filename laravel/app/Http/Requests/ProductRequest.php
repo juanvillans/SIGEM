@@ -26,26 +26,22 @@ class ProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            
+
             'minimumStock' => ['required'],
-            'name' => ['required','string','max:100',
+            'equipment_name' => ['required','string','max:100',
             Rule::unique('products')->where(function ($query) {
                     return $query
-                    ->where('name', $this->name)
-                    ->where('type_presentation_id', $this->typePresentationId)
-                    ->where('type_administration_id', $this->typeAdministrationId)
-                    ->where('medicament_id', $this->medicamentId)
-                    ->where('category_id', $this->categoryId)
-                    ->where('unit_per_package', $this->unitPerPackage)
-                    ->where('concentration_size', $this->concentrationSize);
+                    ->where('equipment_name', $this->equipment_name)
+                    ->where('brand', $this->brand)
+                    ->where('model', $this->model)
+                    ->where('category_id', $this->categoryId);
                 })->ignore($this->product ?? null)
             ],
+            'brand' => ['required','string','max:100'],
+            'model' => ['required','string','max:100'],
+            'consumables' => ['nullable','array'],
+            'consumables.*' => ['string','max:255'],
             'categoryId' => ['required',Rule::exists('categories', 'id')],
-            'typePresentationId' => ['required',Rule::exists('type_presentations', 'id')],
-            'typeAdministrationId' => ['required',Rule::exists('type_presentations', 'id')],
-            'medicamentId' => ['required',Rule::exists('medicaments', 'id')],
-            'unitPerPackage' => ['required'],
-            'concentrationSize' => ['required'],
 
         ];
     }

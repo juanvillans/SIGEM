@@ -15,12 +15,12 @@ use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductCollection;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
-use App\Models\ProductRelation;
+
 use App\Services\ConfigurationProductService;
 use Exception;
 
 class ProductController extends Controller
-{   
+{
     private $productService;
     private $queryFilter;
     private $configurationProductService;
@@ -35,7 +35,7 @@ class ProductController extends Controller
     }
 
     public function index(Request $request)
-    {   
+    {
         $products = $this->productService->getData();
 
         $productCollection = new ProductCollection($products);
@@ -43,44 +43,38 @@ class ProductController extends Controller
         $total = $products->total();
 
         $relation = $request->query('relation') ?? "false";
-        
+
         if($relation == "true")
-        {   
-            
+        {
+
             $categories = $this->configurationProductService->getAllCategories();
-            $typePresentations = $this->configurationProductService->getAllTypePresentations();
-            $typeAdministrations = $this->configurationProductService->getAllTypeAdministrations();
-            $medicaments = $this->configurationProductService->getAllTypeMedicaments();
         }
-        
+
 
         return [
             'products' => $productCollection,
             'categories' => $categories ?? null,
-            'typePresentations' => $typePresentations ?? null,
-            'typeAdministrations' => $typeAdministrations ?? null,
-            'medicaments' => $medicaments ?? null,
-            'total' => $total, 
+            'total' => $total,
             'message' => 'OK'
         ];
 
     }
 
     public function store(ProductRequest $request)
-    {   
+    {
        DB::beginTransaction();
 
         try {
-            
+
             $dataToCreateProduct = $this->productService->convertToSnakeCase($request);
             $response = $this->productService->create($dataToCreateProduct);
 
             DB::commit();
 
             return ['message' => $response['message'] ];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
 
             return response()->json([
@@ -88,7 +82,7 @@ class ProductController extends Controller
             'message' => $e->getMessage()
             ], 500);
 
-            
+
         }
     }
 
@@ -106,9 +100,9 @@ class ProductController extends Controller
             DB::commit();
 
             return ['message' => $response['message']];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
 
             return response()->json([
@@ -119,7 +113,7 @@ class ProductController extends Controller
     }
 
     public function destroy(Product $product)
-    {   
+    {
         DB::beginTransaction();
 
         try {
@@ -127,13 +121,13 @@ class ProductController extends Controller
             $response = $this->productService->delete($product);
             DB::commit();
 
-            
+
             return ['message' => $response['message']];
 
         }catch (Exception $e) {
-            
+
             DB::rollback();
-            
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
@@ -144,13 +138,13 @@ class ProductController extends Controller
     }
 
     public function getStock(Request $request)
-    {   
+    {
 
         $request->validate([
             'inventories' => 'required|array',
             'inventories.*.inventoryDetailID' => 'required'
         ]);
-        
+
         $inventoryIds = array_column($request->input('inventories'), 'inventoryDetailID');
         $userEntityCode = auth()->user()->entity_code;
 
@@ -166,115 +160,6 @@ class ProductController extends Controller
         return $stock;
     }
 
-    // -------------------------- Handle Macros to Micros
 
-    public function getDetailProduct(Product $product){
-
-        $microProduct = Product::whereHas('macros', function($query) use ($product) {
-            $query->where('product_macro_id', $product->id);
-        })
-        ->with(['category', 'administration', 'presentation', 'medicament'])
-        ->first();
-    
-    return [
-        'detail' => $microProduct
-            ? new ProductResource($microProduct)
-            : null
-    ];
-    }
-
-    public function generateNewMicroProduct(Product $product){
-        
-        DB::beginTransaction();
-
-        try {
-            
-            $this->productService->generateNewMicroProduct($product);
-
-            DB::commit();
-
-            return ['message' => 'Creado y asignado exitosamente' ];
-            
-        } catch (Exception $e) {
-            
-            DB::rollback();
-
-            return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-            ], 500);
-            
-        }
-    }
-
-    public function assignMicroProduct(Product $macro, Product $micro){
-        
-        DB::beginTransaction();
-
-        try {
-            
-            if($macro->id == $micro->id )
-                throw new Exception('Los productos asignados no pueden ser los mismos', 500);
-
-            $this->productService->assignMicroProduct($macro, $micro);
-
-            DB::commit();
-
-            return ['message' => "Asignado exitosamente" ];
-            
-        } catch (Exception $e) {
-            
-            DB::rollback();
-
-            return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-            ], 500);
-            
-        }
-    }
-
-    public function freeMicroProduct(Product $macro, Product $micro){
-        
-        DB::beginTransaction();
-
-        try {
-            
-
-            $this->productService->freeMicroProduct($macro, $micro);
-
-            DB::commit();
-
-            return ['message' => "Producto liberado exitosamente" ];
-            
-        } catch (Exception $e) {
-            
-            DB::rollback();
-
-            return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-            ], 500);
-            
-        }
-    }
-
-    // -------------------------- Handle Micros to Macros
-
-    public function getMacrosProduct(Product $product){
-       
-        $response = Product::whereHas('micros', function($query) use ($product) {
-            $query->where('product_micro_id', $product->id);
-        })
-        ->with(['category', 'administration', 'presentation', 'medicament'])
-        ->get();
-        
-        if( $response->isNotEmpty() )
-            return ['macros' => new ProductCollection($response)];
-        
-        return ['macros' => null];
-
-        
-    }
 
 }

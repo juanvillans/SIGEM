@@ -25,7 +25,7 @@ import api from "../api/axios";
 export default function Config_products(props) {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    document.title = "SISMED | Configuración de productos";
+    document.title = "SIGEM | Configuración de equipos médicos";
     getData()
   }, []);
 
@@ -77,19 +77,19 @@ export default function Config_products(props) {
       // const code = Data[dataForDeleteUser.indx].code;
       await axios.delete(`dashboard/config-products/${selectedOption}/${id_user}`).then((response) => {
        getData(selectedOption)
-      
+
         setAlert({
           open: true,
           status: "Exito",
         });
-       
+
         fnEmptyRows([])
-        
+
         dataForDeleteUser.setSelectedRows([]);
       });
     } catch (error) {
       console.log('error');
-      
+
       setAlert({
         open: true,
         status: "Error",
@@ -171,7 +171,7 @@ export default function Config_products(props) {
         <IconButton
           title="Eliminar"
           onClick={() => {
-            
+
             setModalConfirm({
               isOpen: true,
               modalInfo: "¿Quiere eliminar este registro?",
@@ -245,8 +245,8 @@ export default function Config_products(props) {
               open: true,
               status: "Exito",
             });
-            
-            
+
+
             setData((prev) =>{
               return {...prev, [selectedOption]: Data[selectedOption].map((user) => (user.id === newUserEdit.id ? newUserEdit : user))}
             });
@@ -264,7 +264,7 @@ export default function Config_products(props) {
         localStorage.removeItem("isLoggedIn")
         localStorage.removeItem("apiToken")
         location.href = "../"
-      } 
+      }
       setAlert({
         open: true,
         status: "Error",
@@ -329,7 +329,7 @@ export default function Config_products(props) {
       />
     );
   }, [selectedOption, Data]);
-  
+
 
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
@@ -383,8 +383,8 @@ export default function Config_products(props) {
             onSubmit={handleSubmit}
             className=" md:w-[500px] gap-4 grid grid-cols-2 "
           >
-           
-          
+
+
             <Input
               label={"Nombre"}
               required
@@ -393,7 +393,7 @@ export default function Config_products(props) {
               onChange={handleChange}
               value={newUserData?.name}
             />
-          
+
             <Button3D
               className="mt-2 col-span-2"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}
@@ -404,7 +404,7 @@ export default function Config_products(props) {
         }
       ></Modal>
 
-      
+
       {tabla}
 
       <Alert
