@@ -18,7 +18,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import Input from "../components/Input";
 import InputWhite from "../components/InputWhite";
 import MicIcon from '@mui/icons-material/Mic';
-import { IconButton, TextField, Autocomplete, MenuItem } from "@mui/material";
+import { IconButton, TextField, MenuItem, Autocomplete, Box } from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
 import Alert from "../components/Alert";
@@ -29,7 +29,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import useDebounce from "../components/useDebounce";
 // import { Suspense } from "react";
 import CryptoJS from "crypto-js";
-import { Box } from "@mui/material";
 let tableSearchText = "";
 function getCurrentTime() {
   const now = new Date();
@@ -110,7 +109,11 @@ export default function Entradas(props) {
     categories: [],
     Medicaments: [],
     organizations: [],
-    conditions: [],
+    conditions: [
+      { id: 1, name: "OPERATIVO" },
+      { id: 2, name: "INOPERATIVO" },
+      { id: 3, name: "PENDIENTE DE VALIDACIÓN" }
+    ],
     entitiesObject: {},
   });
 
@@ -223,13 +226,7 @@ export default function Entradas(props) {
         filter: false,
       },
     },
-    {
-      name: "guide",
-      label: "nro. guia",
-      options: {
-        filter: false,
-      },
-    },
+
     {
       name: "arrivalDate",
       label: "Fecha",
@@ -285,35 +282,9 @@ export default function Entradas(props) {
       },
     },
 
-    {
-      name: "authorityFullname",
-      label: "Encargado de recibir",
-      options: {
-        // display: "excluded",
-        filter: false,
-      },
-    },
-    {
-      name: "authorityCi",
-      label: "C.I de encargado de recibir",
-      options: {
-        filter: false,
-      },
-    },
 
-    {
-      name: "status",
-      label: "Estado",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[11] || [],
-        sort: false,
-        filterOptions: {
-          names: ["Recibidos", "Cancelado"],
-        },
-      },
-    },
+
+
     {
       name: "userFullName",
       label: "Registrado por",
@@ -411,9 +382,7 @@ export default function Entradas(props) {
 
   const [productsSearched, setProductsSearched] = useState([]);
   const [searchProductText, setSearchProductText] = useState("");
-  const [typeProduct, setTypeProduct] = useState(
-    props?.userData?.entityCode == 1 ? "*" : "2"
-  );
+  // Eliminado: typeProduct ya no es necesario para equipos médicos
 
   const [isListening, setIsListening] = useState(false);
 
@@ -434,7 +403,7 @@ export default function Entradas(props) {
       setSearchProductText(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 
       setIsListening(false);
-      handleSearchForSelect(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""), typeProduct)
+      handleSearchForSelect(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
       if (isSearchHidden == "hidden") {
         setIsSearchHidden("absolute");
       }
@@ -455,13 +424,15 @@ export default function Entradas(props) {
   }, [startListening]);
 
   const handleSearchForSelect = useDebounce(
-    async (
-      searchText,
-      paramTypeProduct = props.userData?.entityCode == 1 ? "*" : "2"
-    ) => {
+    async (searchText) => {
+      if (searchText.trim() == "") {
+        setProductsSearched([]);
+        return;
+      }
+
       try {
         const response = await axios.get(
-          `dashboard/products?search[all]=${searchText}&rowsPerPage=15&products[typeProduct]=${paramTypeProduct}`
+          `dashboard/products?search[all]=${searchText}&rowsPerPage=15`
         );
         const responseSearch = response.data.products;
         if (responseSearch.length > 0) {
@@ -469,55 +440,14 @@ export default function Entradas(props) {
         } else {
           setProductsSearched("No se encontró ningún producto");
         }
-
-        // Realiza las acciones necesarias con la respuesta de la solicitud
       } catch (error) {
-        // Maneja los errores de la solicitud
-        // console.error(error);
+        console.error("Error fetching products:", error);
+        setProductsSearched("Error al buscar productos");
       }
     },
     350
   );
-  const [person, setPerson] = useState({
-    authorityFullname: "",
-    authorityCi: "",
-  });
-  // const [nameOptions, setNameOptions] = useState();
-
-  const [authorityptions, setAuthorityptions] = useState(
-    JSON.parse(localStorage.getItem("authorities")) || [
-      { authorityFullname: "", authorityCi: "" },
-    ]
-  );
-
-  const handleInputChange = (event, value) => {
-    setNewRegister((prev) => ({
-      ...prev,
-      authorityFullname: value,
-      authorityCi: "",
-    }));
-
-    // Aquí puedes realizar alguna acción adicional según tus necesidades cuando el texto del nombre cambie
-  };
-
-  const handleOptionSelect = (event, value) => {
-    if (value) {
-      setNewRegister((prev) => ({
-        ...prev,
-        authorityFullname: value.authorityFullname,
-        authorityCi: value.authorityCi,
-      }));
-
-      // Aquí puedes realizar alguna acción adicional según tus necesidades cuando se seleccione una opción
-    } else {
-      // Si no se selecciona una opción, puedes reiniciar el nombre completo y cédula en el estado
-      setNewRegister((prev) => ({
-        ...prev,
-        authorityFullname: "",
-        authorityCi: "",
-      }));
-    }
-  };
+  // Funciones de autoridades eliminadas - no necesarias para equipos médicos
   const [totalData, setTotalData] = useState(0);
   // const [filterObject, setFilterObject] = useState({})
 
@@ -871,14 +801,16 @@ export default function Entradas(props) {
         res.entities.forEach((obj) => {
           entitiesObject[obj.name] = obj.name;
         });
-        setGeneralData({
+        setGeneralData((prev) => ({
           ...res,
           entitiesObject,
           entries: "",
-        });
+          // Mantener condiciones por defecto si no vienen del servidor
+          conditions: res.conditions && res.conditions.length > 0 ? res.conditions : prev.conditions,
+        }));
+        setRelation(false);
       }
       setIsLoading(false);
-      setRelation(false);
     });
   };
   const [submitStatus, setSubmitStatus] = useState("Crear entrada");
@@ -922,13 +854,7 @@ export default function Entradas(props) {
         total: 0,
       }));
       setOpen(false);
-      const objAutority = {
-        ...authorityptions,
-        [NewRegister.authorityCi]: {
-          authorityFullname: NewRegister.authorityFullname,
-          authorityCi: NewRegister.authorityCi,
-        },
-      };
+      // Guardado de autoridades eliminado - no necesario para equipos médicos
 
       const newOrg = {
         name: NewRegister.organizationObject.name,
@@ -953,7 +879,7 @@ export default function Entradas(props) {
         }
       }
 
-      localStorage.setItem("authorities", JSON.stringify(objAutority));
+      // localStorage de autoridades eliminado
       localStorage.setItem("organizationsEntries", JSON.stringify(orgObjects));
       setOrganizationsEntries(orgObjects);
 
@@ -1084,24 +1010,9 @@ export default function Entradas(props) {
                 setNewRegister({
                   code: "",
                   id: "",
-                  name: "",
-                  categoryId: "",
-                  medicamentId: "",
                   organizationId: "",
-                  typePresentationId: "",
-                  typeAdministrationId: "",
                   arrivalDate: "",
                   arrivalTime: "",
-                  guide: "",
-                  authorityFullname: "",
-                  authorityCi: "",
-                  authorityObj: { authorityFullname: "", authorityCi: "" },
-                  unitPerPackage: "",
-                  concentrationSize: "",
-                  categoryObj: { name: "", id: "" },
-                  medicamentObj: { name: "N/A", id: 1 },
-                  typePresentationObj: { name: "N/A", id: 1 },
-                  typeAdministrationObj: { name: "N/A", id: 1 },
                   products: [],
                 });
               }
@@ -1239,7 +1150,7 @@ export default function Entradas(props) {
                   // Color={"white"}
                   onChange={(e) => {
                     setProductsSearched("Buscando...");
-                    handleSearchForSelect(e.target.value, typeProduct);
+                    handleSearchForSelect(e.target.value);
                     setSearchProductText(e.target.value);
                     if (isSearchHidden == "hidden") {
                       setIsSearchHidden("absolute");
@@ -1247,7 +1158,6 @@ export default function Entradas(props) {
                     if (e.target.value.trim() == "") {
                       setIsSearchHidden("hidden");
                     }
-                    // document.addEventListener("click", handleClickOutside);
                   }}
                   onFocus={(e) => {
                     setIsSearchHidden("absolute");
@@ -1274,66 +1184,7 @@ export default function Entradas(props) {
                   }}
                 />
 
-                <div>
-                  <div
-                    className="flex gap-2"
-                    onClick={() => {
-                      setIsSearchHidden("absolute");
-                    }}
-                  >
-                    <button
-                      type="button"
-                      className={`px-3 py-1 rounded-md ${
-                        typeProduct == "1"
-                          ? "bg-blue1 text-white font-bold "
-                          : "hover:bg-ligther bg-grey bg-opacity-10"
-                      }`}
-                      onClick={() => {
-                        setProductsSearched("Buscando...");
-                        document.querySelector("#searchInput").focus();
-                        // setIsSearchHidden("absolute");
-                        setTypeProduct("1");
-                        handleSearchForSelect(searchProductText, 1); // Call with updated typeProduct
-                      }}
-                    >
-                      Mayor
-                    </button>
-                    <button
-                      type="button"
-                      className={`px-3 py-1 rounded-md ${
-                        typeProduct == "2"
-                          ? "bg-blue1 text-white font-bold "
-                          : "hover:bg-ligther bg-grey bg-opacity-10"
-                      }`}
-                      onClick={() => {
-                        setProductsSearched("Buscando...");
-                        document.querySelector("#searchInput").focus();
-                        setTypeProduct("2");
-                        // setIsSearchHidden("absolute");
-                        handleSearchForSelect(searchProductText, 2); // Call with updated typeProduct
-                      }}
-                    >
-                      Detal
-                    </button>
-                    <button
-                      type="button"
-                      className={`px-3 py-1 rounded-md ${
-                        typeProduct == "*"
-                          ? "bg-blue1 text-white font-bold "
-                          : "hover:bg-ligther bg-grey bg-opacity-10"
-                      }`}
-                      onClick={() => {
-                        setProductsSearched("Buscando...");
-                        document.querySelector("#searchInput").focus();
-                        // setIsSearchHidden("absolute");
-                        setTypeProduct("*");
-                        handleSearchForSelect(searchProductText, "*"); // Call with updated typeProduct
-                      }}
-                    >
-                      Todos
-                    </button>
-                  </div>
-                </div>
+                {/* Filtros de tipo de producto eliminados - no necesarios para equipos médicos */}
                 <div
                   ref={searchRef}
                   className={`bg-ligther shadow-2xl  absolute left-0 max-h-96 overflow-auto  rounded-lg  border-t-0 top-[73px] z-50   ${isSearchHidden}`}
@@ -1341,15 +1192,11 @@ export default function Entradas(props) {
                   <table className=" ">
                     <thead>
                       <tr className="header  pb-0 text-left  bg-ligther text-dark text-xs">
-                        <th className="py-2">Mayor/Detal</th>
                         <th className="py-2">Cód.</th>
-                        <th className="py-2">Nombre</th>
-                        <th className="py-2">Uni. x env.</th>
-                        <th className="py-2">presentación</th>
-                        <th className="py-2">Concentración / tamaño</th>
-                        <th className="py-2">Administración</th>
-                        <th className="py-2">T. de medicamento</th>
-                        <th className="py-2">Categoria</th>
+                        <th className="py-2">Nombre del equipo</th>
+                        <th className="py-2">Marca</th>
+                        <th className="py-2">Modelo</th>
+                        <th className="py-2">Consumibles</th>
                       </tr>
                     </thead>
                     {typeof productsSearched == "string" ? (
@@ -1371,11 +1218,11 @@ export default function Entradas(props) {
                                   products: [
                                     {
                                       loteNumber: "_" + createHashFromTime(),
-                                      quantity: "",
-                                      expirationDate: "",
+                                      serial: "",
+                                      bienNacional: "",
                                       description: "Sin novedad",
                                       conditionId: 1,
-                                      conditionName: "Buen estado",
+                                      conditionName: "Operativo",
                                       ...product,
                                       key: "",
                                     },
@@ -1389,41 +1236,15 @@ export default function Entradas(props) {
                                 }, 100);
                               }}
                             >
-                              <td className="p-2 px-6">
-                                {product.type_product == 1 ? (
-                                  <span className="text-green font-semibold">
-                                    Mayor
-                                  </span>
-                                ) : (
-                                  "Detal"
-                                )}
-                              </td>
                               <td className="p-2 px-6">{product.code}</td>
-                              <td className="p-2 px-6"> {product.name}</td>
+                              <td className="p-2 px-6">{product.equipment_name}</td>
+                              <td className="p-2 px-6">{product.brand}</td>
+                              <td className="p-2 px-6">{product.model}</td>
                               <td className="p-2 px-6">
-                                {product.unitPerPackage > 1 ? (
-                                  <span className="text-green font-semibold">
-                                    {product.unitPerPackage}
-                                    <small>x</small>{" "}
-                                  </span>
-                                ) : (
-                                  <span>{product.unitPerPackage}</span>
-                                )}
-                              </td>
-                              <td className="p-2 px-6">
-                                {product.typePresentationName}
-                              </td>
-                              <td className="p-2 px-6">
-                                {product.concentrationSize}
-                              </td>
-                              <td className="p-2 px-6">
-                                {product.typeAdministrationName}
-                              </td>
-                              <td className="p-2 px-6">
-                                {product.medicamentName}
-                              </td>
-                              <td className="p-2 px-6">
-                                {product.categoryName}
+                                {product.consumables && product.consumables.length > 0
+                                  ? product.consumables.slice(0, 2).join(", ") + (product.consumables.length > 2 ? "..." : "")
+                                  : "N/A"
+                                }
                               </td>
                             </tr>
                           );
@@ -1443,40 +1264,10 @@ export default function Entradas(props) {
                       Nro Lote
                     </th>
                     <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Cantidad
+                      Serial
                     </th>
-                    <th className="noPadding uppercase items-center flex justify-between text-dark text-left p-2 bg-th font-medium">
-                      F. de vencimiento
-                      <button
-                        type="button"
-                        title="Colocar todos en no vence"
-                        className="text-xs inline bg-light mx-1 h-fit mt-1 py-2 px-1 rounded-md hover:bg-blue1 hover:text-white"
-                        onClick={(e) => {
-                          if (
-                            window.confirm(
-                              "Esto colocará todas las fechas de vencimieto en 09/09/9999"
-                            )
-                          ) {
-                            setNewRegister((prev) => {
-                              const updatedProducts = prev.products.map(
-                                (pro) => {
-                                  return {
-                                    ...pro,
-                                    expirationDate: "9999-09-09",
-                                  };
-                                }
-                              );
-
-                              return {
-                                ...prev,
-                                products: updatedProducts,
-                              };
-                            });
-                          }
-                        }}
-                      >
-                        N.V
-                      </button>
+                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                      Bien Nacional
                     </th>
                     <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
                       Estado
@@ -1516,7 +1307,6 @@ export default function Entradas(props) {
                               name={`loteNumber_${i}`}
                               required
                               id={`loteNumber_${i}`}
-                              // data-index={i + 100}
                               size="small"
                               type={"text"}
                               onClick={(e) => {
@@ -1525,60 +1315,34 @@ export default function Entradas(props) {
                               onChange={handleChange}
                             />
                           </td>
-                          <td className="p-2   border-b border-opacity-80 border-light">
+                          <td className="p-2   border-b border-opacity-80 min-w-[120px]  border-light">
                             <Input
-                              size="small"
-                              // data-index={i}
-                              label={"Cantidad"}
+                              label={"Serial"}
+                              key={`serial_${i}`}
+                              value={NewRegister.products[i]?.serial}
+                              name={`serial_${i}`}
                               required
-                              key={`quantity_${i}`}
-                              id={`quantity_${i}`}
-                              value={NewRegister.products[i]?.quantity}
-                              name={`quantity_${i}`}
-                              min={1}
+                              id={`serial_${i}`}
+                              size="small"
+                              type={"text"}
+                              inputProps={{ maxLength: 30 }}
+                              placeholder="Hasta 30 caracteres"
                               onChange={handleChange}
-                              type={"number"}
                             />
                           </td>
-
-                          <td className="p-2  border-b border-opacity-80 border-light">
-                            <div className="flex">
-                              <Input
-                                size="small"
-                                // data-index={i}
-                                required={true}
-                                shrink="true"
-                                type={"date"}
-                                label={"F. de vencimiento"}
-                                key={`expirationDate_${i}`}
-                                value={NewRegister.products[i]?.expirationDate}
-                                name={`expirationDate_${i}`}
-                                onChange={handleChange}
-                              />
-
-                              <button
-                                type="button"
-                                title="No vence"
-                                key={`expirationDateCheckbox_${i}`}
-                                name={`expirationDate_${i}`}
-                                id="nv"
-                                className="text-xs inline bg-light mx-1 h-fit mt-1 py-2 px-1 rounded-md hover:bg-blue1 hover:text-white"
-                                onClick={(e) => {
-                                  setNewRegister((prev) => {
-                                    const updatedProducts = [...prev.products];
-                                    updatedProducts[i]["expirationDate"] =
-                                      "9999-09-09";
-
-                                    return {
-                                      ...prev,
-                                      products: updatedProducts,
-                                    };
-                                  });
-                                }}
-                              >
-                                N.V
-                              </button>
-                            </div>
+                          <td className="p-2   border-b border-opacity-80 min-w-[100px]  border-light">
+                            <Input
+                              label={"Bien Nacional"}
+                              key={`bienNacional_${i}`}
+                              value={NewRegister.products[i]?.bienNacional}
+                              name={`bienNacional_${i}`}
+                              required
+                              id={`bienNacional_${i}`}
+                              size="small"
+                              type={"text"}
+                              placeholder="Código alfanumérico"
+                              onChange={handleChange}
+                            />
                           </td>
                           <td className="p-2   border-b border-opacity-80 border-light">
                             <Input
@@ -1622,23 +1386,15 @@ export default function Entradas(props) {
                           </td>
                           <td className="p-2   border-b border-opacity-80 border-light">
                             <p>
-                              <b>{product.name}</b>{" "}
-                              {product.unitPerPackage > 1 ? (
-                                <span className="text-green font-semibold">
-                                  {product.unitPerPackage}
-                                  <small>x</small>{" "}
-                                </span>
-                              ) : (
-                                <span>{product.unitPerPackage}</span>
-                              )}{" "}
-                              {product.typePresentationName != "N/A"
-                                ? product.typePresentationName
-                                : ""}{" "}
-                              {product.concentrationSize != "N/A" && (
-                                <b style={{ color: "#187CBA" }}>
-                                  {" "}
-                                  {product.concentrationSize}
-                                </b>
+                              <b>{product.equipment_name}</b><br/>
+                              <span className="text-sm text-gray-600">
+                                {product.brand} - {product.model}
+                              </span>
+                              {product.consumables && product.consumables.length > 0 && (
+                                <div className="text-xs text-blue-600 mt-1">
+                                  Consumibles: {product.consumables.slice(0, 2).join(", ")}
+                                  {product.consumables.length > 2 && "..."}
+                                </div>
                               )}
                             </p>
                           </td>
@@ -1667,17 +1423,7 @@ export default function Entradas(props) {
               </table>
             </div>
 
-            <TextField
-              label="Nro guia"
-              value={NewRegister.guide}
-              name="guide"
-              onChange={(e) => {
-                handleChange(e);
-              }}
-              required
-              type="number"
-              key={5724}
-            />
+            {/* Campo de número de guía eliminado - no necesario para equipos médicos */}
 
             <Autocomplete
               options={organizations}
@@ -1743,30 +1489,7 @@ export default function Entradas(props) {
               name={"arrivalTime"}
               onChange={handleChange}
             />
-            <Autocomplete
-              options={Object.values(authorityptions)}
-              getOptionLabel={(option) => option.authorityFullname}
-              value={NewRegister}
-              inputValue={NewRegister?.authorityFullname || ""}
-              onChange={handleOptionSelect}
-              onInputChange={handleInputChange}
-              renderInput={(params) => (
-                <TextField
-                  required
-                  {...params}
-                  label="Nombre del encargado de recibir"
-                />
-              )}
-            />
-
-            <TextField
-              label="Cédula del encargado"
-              value={NewRegister.authorityCi}
-              name="authorityCi"
-              onChange={handleChange}
-              required
-              key={574}
-            />
+            {/* Campos del encargado eliminados - no necesarios para equipos médicos */}
             {/* <Input
               label={"Nro de lote"}
               required

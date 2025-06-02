@@ -7,19 +7,12 @@ import MUIDataTable from "mui-datatables";
 import axios from "../api/axios";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import SettingsIcon from "@mui/icons-material/Settings";
+
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
-import Select from "@mui/material/Select";
-// import Chip from '@material-ui/core/Chip';
 import {
   IconButton,
-  TextField,
-  Autocomplete,
-  MenuItem,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
@@ -27,7 +20,7 @@ import Alert from "../components/Alert";
 import Input from "../components/Input";
 import Button3D from "../components/Button3D";
 import CircularProgress from "@mui/material/CircularProgress";
-import { NavLink } from "react-router-dom";
+
 import useDebounce from "../components/useDebounce";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
@@ -41,13 +34,33 @@ export default function Products_crud(props) {
   }, []);
 
   const [data, setData] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const searchRef = useRef(null);
+  const [isSearchHidden, setIsSearchHidden] = useState("hidden");
+  const [productsSearched, setProductsSearched] = useState([]);
+
   const [open, setOpen] = useState(false);
   const [modalConfirm, setModalConfirm] = useState({
     isOpen: false,
     modalInfo: false,
   });
+  const handleSearchForSelect = useDebounce(async (searchText, type) => {
+    try {
+      const response = await axios.get(
+        `dashboard/products?search[all]=${searchText}&rowsPerPage=15&products[typeProduct]=${type}`
+      );
+      const responseSearch = response.data.products;
+      if (responseSearch.length > 0) {
+        setProductsSearched(responseSearch);
+      } else {
+        setProductsSearched("No se encontró ningún producto Detal");
+      }
 
+      // Realiza las acciones necesarias con la respuesta de la solicitud
+    } catch (error) {
+      // Maneja los errores de la solicitud
+      // console.error(error);
+    }
+  }, 350);
   const [newProduct, setnewProduct] = useState({
     code: "",
     id: "",
@@ -55,9 +68,11 @@ export default function Products_crud(props) {
     brand: "",
     model: "",
     consumables: [],
-    minimumStock: 100,
-    categoryId: "",
-    categoryObj: { name: "", id: "" },
+  });
+
+  const [vinculatedProducts, setVinculatedProducts] = useState({
+    mayor: [],
+    detal: null,
   });
 
   const [relation, setRelation] = useState(true);
@@ -71,7 +86,7 @@ export default function Products_crud(props) {
     total: 0,
     filterList: [],
   });
-
+  const [searchProductText, setSearchProductText] = useState("");
 
   const columns = [
     {
@@ -81,7 +96,6 @@ export default function Products_crud(props) {
         filter: false,
       },
     },
-
     {
       name: "equipment_name",
       label: "Nombre del equipo",
@@ -114,19 +128,6 @@ export default function Products_crud(props) {
         customBodyRender: (value) => {
           if (!value || value.length === 0) return "N/A";
           return value.slice(0, 2).join(", ") + (value.length > 2 ? "..." : "");
-        },
-      },
-    },
-
-    {
-      name: "categoryName",
-      label: "Categoria",
-      options: {
-        filter: true,
-        filterList: parametersURL?.filterList[8] || [],
-        sort: true,
-        filterOptions: {
-          names: categories ? categories.map((ent) => ent.name) : [""],
         },
       },
     },
@@ -235,9 +236,17 @@ export default function Products_crud(props) {
         return;
       }
       if (arrValues.length > 0) {
-        if (changedColumn === "categoryName") {
+        if (changedColumn === "equipment_name") {
           filterObject[changedColumn] =
-            `&category[name]=` +
+            `&equipment_name=` +
+            encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"));
+        } else if (changedColumn == "brand") {
+          filterObject[changedColumn] =
+            `&brand=` +
+            encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"));
+        } else if (changedColumn == "model") {
+          filterObject[changedColumn] =
+            `&model=` +
             encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"));
         }
       } else {
@@ -308,13 +317,11 @@ export default function Products_crud(props) {
     rowsPerPageOptions: [10, 25, 50, 100],
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => (
       <div>
-
         <IconButton
           title="Copiar"
           onClick={async () => {
             await editIconClick(
               selectedRows,
-
               "Crear"
             );
             setIsButtonDisabled(true);
@@ -351,7 +358,31 @@ export default function Products_crud(props) {
       </div>
     ),
   };
+  const getMicroProduct = async (selectedRows, type) => {
+    const indx = selectedRows.data[0].dataIndex;
+    const dataOfIndx = data[indx];
+    try {
+      axios
+        .get(`dashboard/products/${type}/${dataOfIndx.id}`)
+        .then((response) => {
+          setOpenMicroVinculate(true);
+          if (type == "macros") {
+            setVinculatedProducts({
+              mayor: response.data.macros || null,
+              detal: dataOfIndx,
+              selectedType: type,
+            });
+          } else {
+            setVinculatedProducts({
+              mayor: [dataOfIndx],
+              detal: response.data.detail || null,
+              selectedType: type,
+            });
 
+          }
+        });
+    } catch (error) {}
+  };
   function editIconClick(
     selectedRows,
 
@@ -359,10 +390,23 @@ export default function Products_crud(props) {
   ) {
     const indx = selectedRows.data[0].dataIndex;
     const dataOfIndx = data[indx];
+    oldTypeProduct = dataOfIndx.type_product
     setnewProduct({
       ...dataOfIndx,
       id: submitText == "Crear" ? "" : dataOfIndx.id,
       categoryObj: { name: dataOfIndx.categoryName, id: dataOfIndx.categoryId },
+      medicamentObj: {
+        name: dataOfIndx.medicamentName,
+        id: dataOfIndx.medicamentId,
+      },
+      typePresentationObj: {
+        name: dataOfIndx.typePresentationName,
+        id: dataOfIndx.typePresentationId,
+      },
+      typeAdministrationObj: {
+        name: dataOfIndx.typeAdministrationName,
+        id: dataOfIndx.typeAdministrationId,
+      },
     });
     setOpen(true);
     setSubmitStatus(submitText);
@@ -370,11 +414,25 @@ export default function Products_crud(props) {
 
   const handleAutoComplete = (newValue, name) => {
     if (newValue != null) {
-      setnewProduct((prev) => ({
-        ...prev,
-        [name + "Id"]: newValue.id,
-        [name + "Obj"]: newValue,
-      }));
+      if (name == "category" && newValue.id != 1) {
+        setnewProduct((prev) => ({
+          ...prev,
+          [name + "Id"]: newValue.id,
+          categoryObj: newValue,
+          medicamentId: 1,
+          typePresentationId: 1,
+          typeAdministrationId: 1,
+          medicamentObj: { name: "N/A", id: 1 },
+          typePresentationObj: { name: "N/A", id: 1 },
+          typeAdministrationObj: { name: "N/A", id: 1 },
+        }));
+      } else {
+        setnewProduct((prev) => ({
+          ...prev,
+          [name + "Id"]: newValue.id,
+          [name + "Obj"]: newValue,
+        }));
+      }
     }
   };
 
@@ -386,7 +444,10 @@ export default function Products_crud(props) {
 
       setData(response.data.products);
       if (relation == true) {
+        setTypePresentations(response.data.typePresentations);
+        setTypeAdministrations(response.data.typeAdministrations);
         setCategories(response.data.categories);
+        setMedicaments(response.data.medicaments);
       }
       setIsLoading(false);
       setRelation(false);
@@ -394,14 +455,16 @@ export default function Products_crud(props) {
   };
 
   const [submitStatus, setSubmitStatus] = useState("Crear");
-
+  const [submitStatusVinculate, setSubmitStatusVinculate] = useState(
+    "Guardar vinculación"
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (submitStatus === "Cargando...") {
       return;
     }
-    const search = `${newProduct.code} ${newProduct.equipment_name} ${newProduct.brand} ${newProduct.model} ${newProduct.categoryObj?.name || ''}`;
+    const search = `${newProduct.code} ${newProduct.name} ${newProduct.typePresentationObj.name} ${newProduct.concentrationSize} `;
     try {
       setnewProduct((prev) => ({
         ...prev,
@@ -424,6 +487,13 @@ export default function Products_crud(props) {
         setSubmitStatus("Crear");
       }
       if (submitStatus === "Editar") {
+
+
+        if (newProduct.hasRelation.micros + newProduct.hasRelation.macros > 0 && oldTypeProduct != null && oldTypeProduct != newProduct.type_product) {
+          if (!window.confirm(`Este producto es ${oldTypeProduct == 1 ? "Mayor y tiene" : "Detal y tiene"} 1 o más productos ${oldTypeProduct == 2 ? "Mayores" : "Detales"} vinculados. Al editar el tipo de producto se eliminarán las vinculaciones`)) {
+            return;
+        }
+        }
         setSubmitStatus("Cargando...");
         await axios
           .put(`/dashboard/products/${newProduct.id}`, {
@@ -451,14 +521,21 @@ export default function Products_crud(props) {
       setnewProduct({
         code: "",
         id: "",
-        equipment_name: "",
-        brand: "",
-        model: "",
-        consumables: [],
+        name: "",
         categoryId: "",
+        medicamentId: 1,
+        typePresentationId: 1,
+        typeAdministrationId: 1,
+        unitPerPackage: 1,
+        concentrationSize: "",
         categoryObj: { name: "", id: "" },
+        medicamentObj: { name: "N/A", id: 1 },
+        typePresentationObj: { name: "N/A", id: 1 },
+        typeAdministrationObj: { name: "N/A", id: 1 },
         minimumStock: 100,
+        type_product: "",
       });
+      oldTypeProduct = null
     } catch (error) {
 
       setAlert({
@@ -472,11 +549,137 @@ export default function Products_crud(props) {
     }
   };
 
+  const saveVinculation = async (mayor, detal) => {
+    // e.preventDefault();
+    if (submitStatusVinculate === "Cargando...") {
+      return;
+    }
+    setSubmitStatus("Cargando...");
 
+    try {
+      await axios
+        .post(`/dashboard/products/detail/assign/${mayor.id}/${detal.id}`)
+        .then((response) => {
+          // const client = response.data.client;
+          setAlert({
+            open: true,
+            status: "Exito",
+            message: "Productos vinculados!",
+          });
+        });
 
+        if ( vinculatedProducts.selectedType == "macros") {
+          setVinculatedProducts((prev) => {
+            if (prev.mayor == null) {
+              return {
+                ...prev,
+                mayor: [{ ...mayor }],
+              };
+            } else {
+              return {
+                ...prev,
+                mayor: [
+                  { ...mayor },
+                  ...prev.mayor,
+                ],
+              };
+            }
+          });
+        } else {
+          setVinculatedProducts((prev) => ({
+            ...prev,
+            detal: {
+              ...detal,
+            },
+          }));
+        }
+    } catch (error) {
+      setAlert({
+        open: true,
+        status: "Error",
+        message: error.response.data.errors
+          ? Object.values(error.response.data.errors)[0][0]
+          : error.response?.data?.message || "Algo salió mal",
+      });
+    }
+    setSubmitStatusVinculate("Guardar vinculación");
+  };
 
+  const removeVinculation = async (mayor_id, detal_id) => {
+    try {
+      await axios
+        .delete(`/dashboard/products/detail/free/${mayor_id}/${detal_id}`)
+        .then((response) => {
+          // const client = response.data.client;
+          setAlert({
+            open: true,
+            status: "Exito",
+            message: "El producto se desvinculó",
+          });
 
+          if (vinculatedProducts.selectedType == "macros") {
+            setVinculatedProducts((prev) => ({
+              ...prev,
+               mayor: prev.mayor.filter(obj => obj.id != mayor_id),
+            }));
+          } else {
+            setVinculatedProducts((prev) => ({
+              ...prev,
+              detal: null,
+            }));
 
+          }
+        });
+    } catch (error) {
+      setAlert({
+        open: true,
+        status: "Error",
+        message: error.response.data.errors
+          ? Object.values(error.response.data.errors)[0][0]
+          : error.response?.data?.message || "Algo salió mal",
+      });
+    }
+  };
+
+  const autoVinculation = async (e) => {
+    e.preventDefault();
+    if (
+      !window.confirm(
+        `Esto creará un producto idéntico pero con la unidad por envase en uno, será un producto detal y se vinculará automáticamente.`
+      )
+    ) {
+      return;
+    }
+    if (submitStatusVinculate === "Cargando...") {
+      return;
+    }
+    setSubmitStatus("Cargando...");
+    try {
+      await axios
+        .post(
+          `/dashboard/products/detail/generate/${vinculatedProducts.mayor[0].id}`
+        )
+        .then((response) => {});
+      setAlert({
+        open: true,
+        status: "Exito",
+        message:
+          "Se creó un producto idéntico pero con unidad por envase en 1 y se vinculó",
+      });
+      setParametersURL({
+        page: 1,
+        rowsPerPage: 25,
+        search: "",
+        orderBy: "",
+        orderDirection: "",
+        filter: "",
+        filterList: [],
+        total: 0,
+      });
+      setOpenMicroVinculate(false);
+      setVinculatedProducts({ mayor: [], detal: null });
+    } catch (error) {}
+  };
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -523,19 +726,13 @@ export default function Products_crud(props) {
                 brand: "",
                 model: "",
                 consumables: [],
-                categoryId: "",
-                categoryObj: { name: "", id: "" },
-                minimumStock: 100,
               });
             }
             setOpen(true);
             setSubmitStatus("Crear");
           }}
         />
-        <NavLink to={"/dashboard/productos/config_products"}>
-          <SettingsIcon className="mx-2" />
-          Configuración de equipos médicos
-        </NavLink>
+
       </div>
 
       <Modal
@@ -613,80 +810,6 @@ export default function Products_crud(props) {
                 </button>
               </div>
             </div>
-
-            {/* <label className="">
-              <span>Categoria</span>
-              <Input
-                id=""
-                select
-                name="categoryId"
-                value={newProduct.categoryId}
-                onChange={handleChange}
-
-                // value={user_type_selected}
-              >
-                {categories?.map((option) => (
-                  <MenuItem key={option.id} value={option.id}>
-                    {option.name}
-                  </MenuItem>
-                ))}
-              </Input>
-            </label> */}
-            {/* <Autocomplete
-              value={newProduct?.categoryObj}
-              options={categories}
-              name="categoryId"
-              getOptionLabel={(option) => option.name}
-              // defaultValue={[Medicaments[0]]}
-              filterSelectedOptions
-              renderInput={(params) => (
-                <TextField
-                  required
-                  {...params}
-                  variant="outlined"
-                  label="Categoria"
-                  placeholder="Favorites"
-                />
-              )}
-              onChange={(event, newValue) =>
-                handleAutoComplete(newValue, "category")
-              }
-            /> */}
-
-            <FormControl fullWidth>
-              <InputLabel
-                id="demo-simple-select-label"
-                className="px-1 bg-white"
-              >
-                Categoria *
-              </InputLabel>
-              <Select
-                required
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                name="categoryId"
-                value={newProduct.categoryId}
-                onChange={handleChange}
-              >
-                {categories?.map((option) => (
-                  <MenuItem key={option.id} value={option.id}>
-                    {option.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Input
-              key={7}
-              label={"Alertar cuando hayan menos de:"}
-              type="number"
-              required
-              name={"minimumStock"}
-              value={newProduct?.minimumStock}
-              onChange={(e) => {
-                if (e.target.value >= 0) handleChange(e);
-              }}
-            />
 
             <Button3D
               className="mt-2 col-span-2"

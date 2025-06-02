@@ -26,12 +26,6 @@ class Inventory extends Model
         'lote_number',
         'expiration_date',
         'stock',
-        'area',
-        'serial',
-        'national_asset',
-        'equipment_status',
-        'last_maintenance_status',
-        'missing_consumables',
         'condition_id',
         'origin_id',
         'search',
@@ -39,11 +33,7 @@ class Inventory extends Model
         'outputs'
     ];
 
-    protected $casts = [
-        'missing_consumables' => 'array',
-    ];
-
-
+  
 
     public function product()
     {

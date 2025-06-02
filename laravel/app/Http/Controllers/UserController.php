@@ -287,14 +287,14 @@ class UserController extends Controller
         $code = 200;
         $notifications = null;
         
-        if($accessToken){
+        if($accessToken && $accessToken->tokenable){
             $user = $accessToken->tokenable;
-            $notifications =  $user
-            ->unReadNotifications()
-            ->count();
+            $notifications = $user
+                ->unReadNotifications()
+                ->count();
         }
         else{
-            // El token es invalido
+            // El token es invalido o el usuario no existe
             $message = 'Token inválido';
             $code = 401;
         }
@@ -346,17 +346,23 @@ class UserController extends Controller
 
         $token = $request->bearerToken();
         $accessToken = PersonalAccessToken::findToken($token);
+
+        if (!$accessToken || !$accessToken->tokenable) {
+            return response()->json(['message' => 'Token inválido'], 401);
+        }
+
         $user = $accessToken->tokenable;
-        
+
         $perPage = 15; // Número de elementos por página
         $page = $request->input('page', 1);
         Log::info('Page value: ' . $page);
+
         $user->unReadNotifications
-        ->markAsRead();
+            ->markAsRead();
 
         $notifications = $user
-        ->notifications()
-        ->paginate($perPage, ['*'], 'page', $page);
+            ->notifications()
+            ->paginate($perPage, ['*'], 'page', $page);
 
         return response(['data' => $notifications]);
     }

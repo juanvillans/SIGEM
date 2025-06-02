@@ -26,11 +26,9 @@ class EntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'arrivalDate' => ['required','string'], 
+            'arrivalDate' => ['required','string'],
             'arrivalTime'=> ['required','string'],
-            'authorityCi'=> ['required'],
-            'authorityFullname'=> ['required'],
-            'guide'=> ['required'],
+            // Campos de guía y autoridad eliminados - no necesarios para equipos médicos
         ];
     }
 

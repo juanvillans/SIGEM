@@ -14,7 +14,7 @@ class EntryResource extends JsonResource
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
-    {
+    {   
 
         return [
             "id"=> $this->id,
@@ -22,19 +22,24 @@ class EntryResource extends JsonResource
             "fullName" => $this->user->name . ' ' . $this->user->last_name,
             "entryCode" => $this->entry_code,
             "productId"=> $this->product->id,
-            "equipmentName"=> $this->product->equipment_name,
-            "brand"=> $this->product->brand,
-            "model"=> $this->product->model,
+            "productName"=> $this->product->name,
             "productCode"=> $this->product->code,
-            "categoryId"=> $this->product->category?->id,
-            "categoryName"=> $this->product->category?->name,
-            "area"=> $this->area,
-            "serial"=> $this->serial,
-            "nationalAsset"=> $this->national_asset,
-            "status"=> $this->status,
+            "unitPerPackage"=> $this->product->unit_per_package,
+            "concentrationSize"=> $this->product->concentration_size,
+            "categoryId"=> $this->product->category->id,
+            "categoryName"=> $this->product->category->name,
+            "typePresentationId" => $this->product->presentation->id,
+            "typePresentationName" => $this->product->presentation->name,
+            "typeAdministrationId" => $this->product->administration->id,
+            "typeAdministrationName" => $this->product->administration->name,
+            "medicamentId" => $this->product->medicament->id,
+            "medicamentName" => $this->product->medicament->name,
+            "quantity"=> $this->quantity,
             "organizationId"=> $this->organization->id,
             "organizationName"=> $this->organization->name,
             "guide"=> $this->guide,
+            "loteNumber"=> $this->lote_number,
+            "expirationDate"=> $this->expiration_date,
             "conditionId"=> $this->condition_id,
             "conditionName"=> $this->condition->name,
             "authorityFullname"=> $this->authority_fullname,

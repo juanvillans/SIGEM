@@ -14,10 +14,9 @@ class ConditionSeeder extends Seeder
     {
         $fields = [
 
-            ['name' => 'BUEN ESTADO'],
-            ['name' => 'DEFECTUOSO'],
-            ['name' => 'VENCIDO'],
-            ['name' => 'POR VENCER'],
+            ['name' => 'OPERATIVO'],
+            ['name' => 'INOPERATIVO'],
+            ['name' => 'PENDIENTE DE VALIDACIÓN'],
 
 
         ];

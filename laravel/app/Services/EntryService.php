@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Services;
 
@@ -25,33 +25,24 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 
 class EntryService extends ApiService
-{   
+{
 
     protected $snakeCaseMap = [
-
         'arrivalDate' => 'created_at',
         'productId' => 'product_id',
         'organizationId' => 'organization_id',
         'loteNumber' => 'lote_number',
-        'expirationDate' => 'expiration_date',
+        'serial' => 'serial',
+        'bienNacional' => 'bien_nacional',
         'conditionId' => 'condition_id',
-        'authorityFullname' => 'authority_fullname',
-        'authorityCi' => 'authority_ci',      
-        'categoryId' => 'category_id',
-        'typePresentationId' => 'type_presentation_id',
-        'typeAdministrationId' => 'type_administration_id',
-        'medicamentId' => 'medicament_id',
-        'unitPerPackage' => 'unit_per_package',
-        'concentrationSize' => 'concentration_size',
         'arrivalTime' => 'arrival_time',
         'organizationName' => 'organization_name',
-
-
+        // Campos de autoridad y guía eliminados - no necesarios para equipos médicos
     ];
 
     private Inventory $inventoryModel;
     private Organization $organizationModel;
-    private HierarchyEntity $entityModel; 
+    private HierarchyEntity $entityModel;
     private OrganizationService $organizationService;
     private $wantSeeOtherEntity;
     private $codeToSee;
@@ -69,16 +60,16 @@ class EntryService extends ApiService
     }
 
     public function getData()
-    {  
-        
+    {
+
         $userEntityCode = auth()->user()->entity_code;
 
-        
+
         $entries = EntryGeneral::with('organization','entries','user')
         ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
-                
+
             $entity = $param;
-            
+
             if (!$userEntityCode == '1') {
                 $query->where('entity_code', $userEntityCode);
             } else {
@@ -97,13 +88,13 @@ class EntryService extends ApiService
                 $query->where(function ($query) use ($statuses){
 
                     $query->where('status',$statuses[0]);
-                    
+
                     if(count($statuses) > 1)
-                    {   
+                    {
                         array_shift($statuses);
-    
+
                         foreach($statuses as $status)
-                        {   
+                        {
                             $query->orWhere('status',$status);
                         }
                     }
@@ -112,13 +103,13 @@ class EntryService extends ApiService
             }
 
             if (isset($param['organizationId'])) {
-                
+
                 $organizationID = $param['organizationId'];
 
                 $query->where(function ($query) use ($organizationID) {
-                    
+
                     $query->where('organization_id', $organizationID);
-               
+
                 });
             }
 
@@ -127,17 +118,17 @@ class EntryService extends ApiService
                 $day = $param['day'];
 
                 $days = $this->parseQuery($day);
-                
+
                 $query->where(function ($query) use ($days){
 
                     $query->where('day',$days[0]);
-                    
+
                     if(count($days) > 1){
 
                         array_shift($days);
 
                         foreach($days as $day)
-                        {   
+                        {
                             $query->orWhere('day',$day);
                         }
                     }
@@ -149,19 +140,19 @@ class EntryService extends ApiService
             if(isset($param['month']))
             {
                 $month = $param['month'];
-                
+
                 $months = $this->parseQuery($month);
 
                 $query->where(function ($query) use ($months){
 
                     $query->where('month',$months[0]);
-                    
+
                     if(count($months) > 1){
 
                         array_shift($months);
 
                         foreach($months as $month)
-                        {   
+                        {
                             $query->orWhere('month',$month);
                         }
                     }
@@ -179,12 +170,12 @@ class EntryService extends ApiService
                 $query->where(function ($query) use ($years){
 
                     $query->where('year',$years[0]);
-                    
-                    if(count($years) > 1){   
+
+                    if(count($years) > 1){
                         array_shift($years);
 
                         foreach($years as $year)
-                        {   
+                        {
                             $query->orWhere('year',$year);
                         }
                     }
@@ -192,7 +183,7 @@ class EntryService extends ApiService
                 });
             }
 
-            
+
         })
         ->when(request()->input('search'), function($query,$param)
         {
@@ -202,22 +193,22 @@ class EntryService extends ApiService
             $search = $param['all'];
 
             $query->where(function ($query) use ($search) {
-                
+
                 $string = $this->generateString($search);
-            
+
                 $query->whereHas('entries', function($query) use ($string) {
                     $query->where('search', 'ILIKE', $string);
                 });
-            
+
                 $query->orWhereHas('entries.product', function ($query) use ($string) {
                     $query->where('search', 'ILIKE', $string);
                 });
-            
+
                 $query->orWhereHas('organization', function ($query) use ($string) {
                     $query->where('search', 'ILIKE', $string);
                 });
             });
-            
+
 
         })
         ->when(request()->input('organization'), function($query,$param)
@@ -232,11 +223,11 @@ class EntryService extends ApiService
                 {
                     $query->where('name',$organizations[0]);
                     if(count($organizations) > 1)
-                    {   
+                    {
                         array_shift($organizations);
 
                         foreach($organizations as $organization)
-                        {   
+                        {
                             $query->orWhere('name',$organization);
                         }
                     }
@@ -260,23 +251,23 @@ class EntryService extends ApiService
             else if($param == 'guide')
             {
                 $query->orderBy('guide',$orderDirection);
- 
+
             }
 
             else if($param == 'arrivalDate')
-            {   
+            {
 
                 $query->orderBy('created_at',$orderDirection);
             }
-            
+
             else if($param == 'arrivalTime')
-            {   
+            {
                 $query->orderBy('arrival_time',$orderDirection);
             }
 
             else if($param == 'organizationName')
-            {   
-                
+            {
+
                 $query->orderByRaw(
                     '(SELECT "name" FROM "organizations" WHERE "organizations"."id" = "entry_generals"."organization_id" LIMIT 1) ' . $orderDirection
                 );
@@ -284,7 +275,7 @@ class EntryService extends ApiService
         })
         ->unless(request()->input('entity'), function($query) {
             $entity = auth()->user()->entity_code;
-            $query->where('entity_code', $entity);  
+            $query->where('entity_code', $entity);
         })
         ->unless(request()->input('orderBy'), function($query, $param)
         {
@@ -298,7 +289,7 @@ class EntryService extends ApiService
 
 
     public function create($data)
-    {   
+    {
 
         if(count($data['products']) == 0)
             throw new GeneralExceptions('Debe seleccionar al menos un producto',400);
@@ -309,9 +300,9 @@ class EntryService extends ApiService
         $newRegistersToInventory = [];
         $date = $this->splitDate($data['created_at']);
 
-   
 
-        
+
+
         $newEntryCode = $this->generateNewEntryCode($entityCode);
 
 
@@ -321,27 +312,27 @@ class EntryService extends ApiService
             'status' => 1,
             'guide' => $data['guide'],
             'arrival_time' => $data['arrival_time'],
-            'organization_id' => $data['organization_id'],   
-            'authority_fullname' => $data['authority_fullname'],   
+            'organization_id' => $data['organization_id'],
+            'authority_fullname' => $data['authority_fullname'],
             'authority_ci' => $data['authority_ci'],
-            'user_id' => $userId,   
-            'day' => $date['day'],   
-            'month' => $date['month'],   
-            'year' => $date['year'],   
+            'user_id' => $userId,
+            'day' => $date['day'],
+            'month' => $date['month'],
+            'year' => $date['year'],
 
         ]);
-        
+
         $newEntryGeneral->save();
-        
+
         $products = $data['products'];
-        
+
 
         foreach ($products as $product)
-        {   
+        {
             if(!isset($product['loteNumber']))
                 throw new Exception('El número de lote es requerido',422);
-            
-            
+
+
             $search = $this->generateSearch(['product' => $product, 'data' => $data, 'entryCode' => $newEntryCode]);
 
             $newEntryDetail = Entry::create([
@@ -350,14 +341,16 @@ class EntryService extends ApiService
                 'entry_code' => $newEntryCode,
                 'user_id' => $userId,
                 'product_id' => $product['id'],
-                'quantity' => $product['quantity'],
+                'quantity' => 1, // Siempre 1 para equipos médicos
                 'organization_id' => $data['organization_id'],
-                'guide' => $data['guide'],
+                'guide' => 'N/A', // No se requiere guía para equipos médicos
                 'lote_number' => $product['loteNumber'],
-                'expiration_date' => $product['expirationDate'],
+                'serial' => $product['serial'] ?? '',
+                'bien_nacional' => $product['bienNacional'] ?? '',
+                'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
                 'condition_id' => $product['conditionId'],
-                'authority_fullname' => $data['authority_fullname'],
-                'authority_ci' => $data['authority_ci'],
+                'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
+                'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
                 'day' => $date['day'],
                 'month' => $date['month'],
                 'year' => $date['year'],
@@ -387,9 +380,9 @@ class EntryService extends ApiService
         $userId = auth()->user()->id;
         $date = $this->splitDate($data['created_at']);
 
-   
 
-        
+
+
         $newEntryCode = $this->generateNewEntryCode($entityCode);
 
 
@@ -399,32 +392,32 @@ class EntryService extends ApiService
             'status' => 1,
             'guide' => $data['guide'],
             'arrival_time' => $data['arrival_time'],
-            'organization_id' => $data['organization_id'],   
-            'authority_fullname' => $data['authority_fullname'],   
+            'organization_id' => $data['organization_id'],
+            'authority_fullname' => $data['authority_fullname'],
             'authority_ci' => $data['authority_ci'],
-            'user_id' => $userId,   
-            'day' => $date['day'],   
-            'month' => $date['month'],   
-            'year' => $date['year'],   
+            'user_id' => $userId,
+            'day' => $date['day'],
+            'month' => $date['month'],
+            'year' => $date['year'],
 
         ]);
-        
+
         $newEntryGeneral->save();
-        
+
         $products = $data['products'];
 
         foreach ($products as $product)
-        {   
+        {
             if(!isset($product['loteNumber']))
                 throw new Exception('El número de lote es requerido',422);
-            
+
             $search = $this->generateSearch(['product' => $product, 'data' => $data, 'entryCode' => $newEntryCode]);
 
             Log::info('producto');
             Log::info($product);
 
             if(array_key_exists('entry_id', $product))
-            {   
+            {
                 Log::info('si existia');
                 Log::info($product);
 
@@ -438,14 +431,16 @@ class EntryService extends ApiService
                     'entry_code' => $newEntryCode,
                     'user_id' => $userId,
                     'product_id' => $product['id'],
-                    'quantity' => $product['quantity'],
+                    'quantity' => 1, // Siempre 1 para equipos médicos
                     'organization_id' => $data['organization_id'],
-                    'guide' => $data['guide'],
+                    'guide' => 'N/A', // No se requiere guía para equipos médicos
                     'lote_number' => $product['loteNumber'],
-                    'expiration_date' => $product['expirationDate'],
+                    'serial' => $product['serial'] ?? '',
+                    'bien_nacional' => $product['bienNacional'] ?? '',
+                    'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
                     'condition_id' => $product['conditionId'],
-                    'authority_fullname' => $data['authority_fullname'],
-                    'authority_ci' => $data['authority_ci'],
+                    'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
+                    'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
                     'day' => $date['day'],
                     'month' => $date['month'],
                     'year' => $date['year'],
@@ -456,7 +451,7 @@ class EntryService extends ApiService
                 ]);
 
                 $inventory = Inventory::where('entry_id', $entrySearched->id)->first();
-                
+
                 if($inventory->outputs > $entrySearched->quantity)
                     throw new Exception('El producto: ' . $product['name'] . ' con lote: ' . $product['loteNumber'] . ' No puede actualizarse ya que quedaria en negativo',422);
 
@@ -474,14 +469,16 @@ class EntryService extends ApiService
                 'entry_code' => $newEntryCode,
                 'user_id' => $userId,
                 'product_id' => $product['id'],
-                'quantity' => $product['quantity'],
+                'quantity' => 1, // Siempre 1 para equipos médicos
                 'organization_id' => $data['organization_id'],
-                'guide' => $data['guide'],
+                'guide' => 'N/A', // No se requiere guía para equipos médicos
                 'lote_number' => $product['loteNumber'],
-                'expiration_date' => $product['expirationDate'],
+                'serial' => $product['serial'] ?? '',
+                'bien_nacional' => $product['bienNacional'] ?? '',
+                'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
                 'condition_id' => $product['conditionId'],
-                'authority_fullname' => $data['authority_fullname'],
-                'authority_ci' => $data['authority_ci'],
+                'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
+                'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
                 'day' => $date['day'],
                 'month' => $date['month'],
                 'year' => $date['year'],
@@ -507,10 +504,10 @@ class EntryService extends ApiService
 
         $entries = Entry::where('entry_general_id',$entrGeneralID)->get();
 
-        foreach ($entries as $entry) 
+        foreach ($entries as $entry)
         {
             $inventory = Inventory::where('entry_id', $entry->id)->first();
-                
+
             if($inventory->outputs > 0)
                 throw new Exception('El producto con lote: ' . $inventory->lote_number . ' No puede eliminarse ya que quedaria en negativo',422);
 
@@ -528,7 +525,7 @@ class EntryService extends ApiService
         ] = array_values($dataToGenerateSearch);
 
 
-        $string = $data['authority_fullname'] . ' ' 
+        $string = $data['authority_fullname'] . ' '
              . $data['authority_ci'] . ' '
              . $entryCode . ' '
              . $data['guide'] . ' '
@@ -550,13 +547,13 @@ class EntryService extends ApiService
         'code' => $newEntryCode,
         'guide' => $entryToConfirm->guide,
         'arrival_time' => $arrivalTime,
-        'organization_id' => $entryToConfirm->entryDetails[0]->organization_id,   
-        'authority_fullname' => $entryToConfirm->authority_fullname,   
+        'organization_id' => $entryToConfirm->entryDetails[0]->organization_id,
+        'authority_fullname' => $entryToConfirm->authority_fullname,
         'authority_ci' => $entryToConfirm->authority_ci,
-        'user_id' => $user->id,   
-        'day' => date('d'),   
-        'month' => date('m'),   
-        'year' => date('Y'),   
+        'user_id' => $user->id,
+        'day' => date('d'),
+        'month' => date('m'),
+        'year' => date('Y'),
         'status' => 1,
 
        ]);
@@ -567,7 +564,7 @@ class EntryService extends ApiService
 
 
         $entryCreated = Entry::create([
-               
+
                 'user_id' => $user->id,
                 'entity_code' => $user->entity_code,
                 'entry_general_id' => $newEntryGeneral->id,
@@ -587,13 +584,13 @@ class EntryService extends ApiService
                 'lote_number' => $entry->lote_number,
                 'arrival_time' => $arrivalTime,
                 'search' => $entry->search,
-            
+
         ]);
 
         EntryDetailCreated::dispatch($entryCreated);
 
 
-       
+
        }
 
        return 0;
@@ -602,14 +599,14 @@ class EntryService extends ApiService
     }
 
     // private function generateSearch($dataToGenerateSearch)
-    // {   
+    // {
     //     [
     //         $product,
     //         $newEntryCode,
     //     ] = array_values($dataToGenerateSearch);
 
 
-    //     $string = $product['receiver_fullname'] . ' ' 
+    //     $string = $product['receiver_fullname'] . ' '
     //          . $product['receiver_ci'] . ' '
     //          . $newEntryCode . ' '
     //          . $product['guide'] . ' '
@@ -624,10 +621,10 @@ class EntryService extends ApiService
         ->where('entry_general_id',$entryGeneral->id)
         ->get();
 
-        return new EntryDetailCollection($entries);        
+        return new EntryDetailCollection($entries);
 
     }
-    
+
     public function splitDate($date)
     {
         $dateParsed = Carbon::parse($date);
@@ -652,11 +649,11 @@ class EntryService extends ApiService
         $register->decrement('entries',$entryData->quantity);
     }
 
-    
+
 
 
     private function createOrganizationMap($organizations)
-    {   
+    {
         $response = [];
         foreach ($organizations as $organization)
         {
@@ -667,7 +664,7 @@ class EntryService extends ApiService
     }
 
     private function createOrganizationMapToName($organizations)
-    {   
+    {
         $response = [];
         foreach ($organizations as $organization)
         {
@@ -682,13 +679,13 @@ class EntryService extends ApiService
         $response = [];
         foreach ($entities as $entity)
         {
-            $response[$entity->code] = $entity->name;    
+            $response[$entity->code] = $entity->name;
         }
 
         return $response;
     }
 
-    
+
 
 
 
@@ -699,13 +696,13 @@ class EntryService extends ApiService
        ->whereHas('entryGeneral', function($query){
 
            $query->where('status','!=',2)->first();
-       
+
         })->first();
 
          if(isset($entry->id) == true)
             throw new GeneralExceptions('El número de lote: ' .$loteNumber.' ya se encuentra en el inventario',422);
 
-        return 0; 
+        return 0;
     }
 
     public function generateNewEntryCode($entityCode){

@@ -13,14 +13,14 @@ use App\Models\HierarchyEntity;
 use App\Models\Inventory;
 use App\Models\Organization;
 use App\Services\CancellationService;
-use App\Services\ConfigurationProductService;
+
 use App\Services\EntryService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class EntryController extends Controller
-{   
+{
     private $entryService;
     private $cancellationService;
 
@@ -33,65 +33,65 @@ class EntryController extends Controller
     }
 
     public function index(Request $request)
-    {      
+    {
 
-        $entries = $this->entryService->getData();    
+        $entries = $this->entryService->getData();
 
         $entryCollection = new EntryCollection($entries);
 
         $total = $entries->total();
 
         $relation = $request->query('relation') ?? "false";
-        
+
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 
-        
+
         if($relation == "true")
-        {   
+        {
             $entities = HierarchyEntity::select('name','code')->get();
             $conditions = Condition::orderBy('id','desc')->get();
             $years  = Entry::orderBy('year','desc')->distinct()->pluck('year');
 
         }
-        
+
 
         return [
-            
+
             'entries' => $entryCollection,
             'conditions' => $conditions ?? null,
             'entities' => $entities ?? null,
             'years' => $years ?? null,
             'total' => $total,
-            'canSeeOthers' => $canSeeOthers, 
+            'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'
         ];
 
     }
 
     public function store(EntryRequest $request)
-    {   
+    {
         DB::beginTransaction();
-        
+
         try {
-            
+
             $dataToCreateEntries = $this->entryService->convertToSnakeCase($request);
             $response = $this->entryService->create($dataToCreateEntries);
 
             DB::commit();
 
             return ['message' => $response['message'] ];
-            
+
         } catch (Exception $e) {
-            
-            DB::rollback();    
-            
+
+            DB::rollback();
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
             ], 500);
 
-            
-            
+
+
         }
     }
 
@@ -105,7 +105,7 @@ class EntryController extends Controller
             $this->cancellationService->handleEntryCancellation($request->id);
 
             $dataToCreateEntries = $this->entryService->convertToSnakeCase($request);
-            
+
             $response = $this->entryService->update($dataToCreateEntries);
 
             DB::commit();
@@ -113,10 +113,10 @@ class EntryController extends Controller
 
             return ['message' => $response['message']];
 
-            
+
         } catch (Exception $e) {
-            
-            DB::rollback();    
+
+            DB::rollback();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -126,19 +126,19 @@ class EntryController extends Controller
     }
 
     public function changeLoteNumber()
-    {      
+    {
         $entries = Entry::all();
         foreach($entries as $entry)
-        {   
+        {
             $randomString = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);
             $inventory = Inventory::where('lote_number',$entry->lote_number)->first();
-            
+
             $inventory->lote_number = $randomString;
             $inventory->save();
 
             $entry->lote_number = $randomString;
             $entry->save();
-            
+
         }
 
         return 'ok';
@@ -148,12 +148,12 @@ class EntryController extends Controller
 
         $entries = $this->entryService->getDetailData($entryGeneral);
         return [
-            
+
             'products' => $entries,
             'message' => 'OK'
         ];
-    }   
+    }
 
 
-    
+
 }

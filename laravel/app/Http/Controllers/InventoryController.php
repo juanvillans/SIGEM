@@ -12,7 +12,7 @@ use App\Models\Inventory;
 use App\Models\InventoryGeneral;
 use App\Models\Organization;
 use App\Models\Output;
-use App\Services\ConfigurationProductService;
+
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
 
@@ -22,7 +22,6 @@ class InventoryController extends Controller
     {
         $this->inventoryService = new InventoryService;
         $this->queryFilter = new InventoryQueryFilter;
-        $this->configurationProductService = new ConfigurationProductService;
     }
 
     public function index(Request $request)
@@ -43,24 +42,8 @@ class InventoryController extends Controller
 
         $canSeeOthers = $userEntityCode == '1'?true:false;
 
-        $relation = $request->query('relation') ?? "false";
-
-        if($relation == "true")
-        {
-            $entities = HierarchyEntity::select('name','code')->get();
-
-            $organizations = Organization::orderBy('id','desc')->get();
-            $categories = $this->configurationProductService->getAllCategories();
-            $conditions = Condition::orderBy('id','desc')->get();
-        }
-
-
         return [
-
             'inventories' => $inventoryCollection,
-            'categories' => $categories ?? null,
-            'entities' => $entities ?? null,
-            'conditions' => $conditions ?? null,
             'total' => $total,
             'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'

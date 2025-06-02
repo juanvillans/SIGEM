@@ -55,7 +55,7 @@ export default function Inventario(props) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "SIGEM | Inventario de Equipos Médicos";
+    document.title = "SISMED | Inventario";
   }, []);
 
   // 559 573 719 724
@@ -251,11 +251,25 @@ export default function Inventario(props) {
         },
       },
     },
-
+    {
+      name: "medicamentName",
+      label: "Tipo de medicamento",
+      options: {
+        display: "excluded",
+        filter: true,
+        filterList: parametersURL?.filterList[11] || [],
+        sort: true,
+        filterOptions: {
+          names: generalData.medicaments
+            ? generalData.medicaments.map((ent) => ent.name)
+            : [""],
+        },
+      },
+    },
 
     {
       name: "stockExpired",
-      label: "Inoperativos",
+      label: "Vencidos",
       options: {
         filter: false,
         customBodyRender: (value, tableMeta) => {

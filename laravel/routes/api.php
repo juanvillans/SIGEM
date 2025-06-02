@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\CancellationController;
-use App\Http\Controllers\ConfigurationProductController;
+
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\EntryToConfirmedController;
 use App\Http\Controllers\HierarchyController;
@@ -73,10 +73,7 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
 // ------------------------------------------------- Products ----------------------------------------------
     Route::middleware('ability:3')->apiResource('products', 'ProductController');
     Route::post('products/get-stock',[ProductController::class,'getStock'])->middleware('ability:3,5');
-    Route::get('config-products', [ConfigurationProductController::class,'index'])->middleware('ability:3');
-    Route::post('config-products/{type}', [ConfigurationProductController::class,'store'])->middleware('ability:3');
-    Route::put('config-products/{type}/{id}', [ConfigurationProductController::class,'update'])->middleware('ability:3');
-    Route::delete('config-products/{type}/{id}', [ConfigurationProductController::class,'destroy'])->middleware('ability:3');
+
 
 
 

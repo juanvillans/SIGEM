@@ -19,7 +19,7 @@ export default function Home() {
 
   const [divStyle, setDivStyle] = useState("sismed");
   console.log(divStyle);
-
+  
   useEffect(() => {
     const currentUrl = window.location.href;
     // Check if the URL contains "test-front." or "sismed."
@@ -115,7 +115,7 @@ export default function Home() {
           //     });
           //   }
           // }
-
+          
           // // Call this function when the user logs in or interacts with your app
           // requestNotificationPermission();
           const data = response.data;
@@ -218,7 +218,7 @@ export default function Home() {
           >
             <div>
               <p className="text-center  font-yesevaOne text-lg uppercase ">
-                Inicia sesión
+                Inicia sesión 
               </p>
               <span className="mx-auto w-4 block mt-2 bg-dark h-0.5 mb-2"></span>
             </div>
@@ -264,7 +264,7 @@ export default function Home() {
         <nav className="flex  md:flex-row gap-6 justify-between pt-4 md:items-center">
           <div className="flex flex-col md:flex-row gap-3 items-center logoAndText">
             <img src={logo_secretaria} className="w-10 md:w-24" alt="" />
-            <p className="font-yesevaOne font-bold">SIGEM</p>
+            <p className="font-yesevaOne font-bold">SISMED</p>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3 ">
@@ -280,13 +280,13 @@ export default function Home() {
         </nav>
         <main className="mt-7 md:mt-20 text-blue1 w-1/2 max-w-lg min-w-[300px]">
           <h1 className="text-xl md:text-3xl font-semibold ">
-
-            {divStyle == "test" ? ("TEST") : "SIGEM - SISTEMA DE INVENTARIOS Y GESTIÓN DE EQUIPOS MÉDICOS" }
+            
+            {divStyle == "test" ? ("TEST") : "SISTEMA DE SUMINISTROS MÉDICOS" }
           </h1>
           <h1>{import.meta.env.REACT_APP_API_URL} </h1>
           <p className="max-w-[360px] my-2 md:text-xl ">
             El sistema que utiliza tecnología de punta para monitorear y
-            gestionar en tiempo real los equipos médicos electrónicos de las instituciones
+            gestionar en tiempo real los inventarios de las instituciones
             hospitalarias del estado Falcón.
             <b className=""> Dirigido por: Secretaría de Salud</b>
           </p>

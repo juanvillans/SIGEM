@@ -16,22 +16,18 @@ use App\Http\Resources\ProductCollection;
 use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 
-use App\Services\ConfigurationProductService;
+
 use Exception;
 
 class ProductController extends Controller
 {
     private $productService;
     private $queryFilter;
-    private $configurationProductService;
-
 
     public function __construct()
     {
         $this->productService = new ProductService;
         $this->queryFilter = new ProductsQueryFilter;
-        $this->configurationProductService = new ConfigurationProductService;
-
     }
 
     public function index(Request $request)
@@ -42,18 +38,8 @@ class ProductController extends Controller
 
         $total = $products->total();
 
-        $relation = $request->query('relation') ?? "false";
-
-        if($relation == "true")
-        {
-
-            $categories = $this->configurationProductService->getAllCategories();
-        }
-
-
         return [
             'products' => $productCollection,
-            'categories' => $categories ?? null,
             'total' => $total,
             'message' => 'OK'
         ];
@@ -160,6 +146,6 @@ class ProductController extends Controller
         return $stock;
     }
 
-
+    // Métodos de vinculación eliminados - no necesarios para equipos médicos
 
 }
