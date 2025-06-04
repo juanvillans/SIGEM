@@ -12,7 +12,17 @@ class ModuleSeeder extends Seeder
      */
     public function run(): void
     {
-		  DB::unprepared(file_get_contents(database_path('sql/modules.sql')));
+		  $modules = [
+            'name' => 'Modulo de Organizaciones',
+            'name' => 'Modulo de Usuarios',
+            'name' => 'Modulo de Productos',
+            'name' => 'Modulo de Entradas',
+            'name' => 'Modulo de Inventario',
+            'name' => 'Modulo de salidas y pedidos a mi almacen',
+            'name' => 'Modulo de entradas por confirmar',
+            'name' => 'Modulo de solicitud de productos',
+            'name' => 'Modulo de mantenimiento  ',
+          ];
 
     }
 }

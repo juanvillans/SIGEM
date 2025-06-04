@@ -12,18 +12,30 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('entry_generals', function (Blueprint $table) {
+
             $table->id();
             $table->string('entity_code');
             $table->foreign('entity_code')
                   ->references('code')
                   ->on('hierarchy_entities')
-                  ->constrained()
                   ->onDelete("restrict")
                   ->onUpdate("cascade");
 
-            $table->integer('code')->unique();
-            $table->integer('status')->default(1);
+            $table->integer('code');
+            $table->string('area')->nullable();
+            $table->foreignId('product_id');
+            $table->integer('quantity');
+            $table->string('serial_number', 30);
+            $table->string('national_code', 30);
+            $table->foreignId('organization_id')->nullable();
+            $table->foreignId('machine_status_id');
+            $table->foreignId('user_id');
+            $table->json('components');
             $table->timestamps();
+            $table->string('arrival_time');
+            $table->integer('status');
+
+
         });
     }
 

@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class HierarchyEntitySeeder extends Seeder
 {
@@ -13,12 +13,11 @@ class HierarchyEntitySeeder extends Seeder
      */
     public function run(): void
     {
-        $fields = 
+        $fields =
         [
-            ['name' => 'Secretaría de Salud', 'code' => '1'],
-            ['name' => '1X10', 'code' => '1-1'],
-         ];   
+            ['name' => 'Electro Medicina', 'code' => '1'],
+         ];
 
-         DB::table('hierarchy_entities')->insert($fields); 
+         DB::table('hierarchy_entities')->insert($fields);
     }
 }

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-           
+
             $table->id();
             $table->string('entity_code');
             $table->foreign('entity_code')
@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('search',1000)->nullable();
+            $table->integer('status')->default(1)->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });

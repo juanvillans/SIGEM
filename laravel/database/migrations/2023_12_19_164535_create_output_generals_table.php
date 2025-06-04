@@ -21,15 +21,23 @@ return new class extends Migration
                   ->onDelete("restrict")
                   ->onUpdate("cascade");
 
-            $table->integer('code')->unique();
-            // 1 => En Proceso
-            // 2 => Cancelado
-            // 3 => Confirmado
-            $table->integer('status')->default(1);
+            $table->integer('code');
+            $table->string('area')->nullable();
+            $table->foreignId('user_id');
+            $table->foreignId('product_id');
+            $table->foreignId('machine_status_id');
+            $table->integer('quantity');
+            $table->foreignId('organization_id')->nullable();
+            $table->foreignId('municipality_id')->nullable();
+            $table->foreignId('parish_id')->nullable();
+            $table->string('serial_number');
+            $table->string('description',200);
+            $table->integer('status');
+            $table->string('departure_time');
             $table->timestamps();
         });
 
-        
+
     }
 
     /**

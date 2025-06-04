@@ -21,17 +21,26 @@ return new class extends Migration
                   ->onDelete("restrict")
                   ->onUpdate("cascade");
             $table->foreignId('product_id');
-            $table->integer('stock_expired')->default(0);
-            $table->integer('stock_per_expire')->default(0);
-            $table->integer('stock_bad')->default(0);
-            $table->integer('stock_good')->default(0);
-            $table->integer('stock')->default(0);
-            $table->bigInteger('entries')->default(0)->nullable();
-            $table->bigInteger('outputs')->default(0)->nullable(); 
+            $table->string('serial_number', 30);
+            $table->string('national_code', 30);
+            $table->foreignId('machine_status_id');
+            $table->foreignId('organization_id');
+            $table->json('components');
+            $table->string('area');
+            $table->integer('quantity');
+            $table->unsignedInteger('last_type_maintenance_id')->nullable();
+            $table->foreign('last_type_maintenance_id')
+                  ->references('id')
+                  ->on('type_maintenances')
+                  ->onDelete("restrict")
+                  ->onUpdate("cascade");
+
             $table->string('search',1000)->nullable();
-            $table->integer('minimum_alert')->default(0);
 
         });
+
+        // Sin inventario detallado
+        // Estados de operativo-no operativo- mantenimiento
     }
 
     /**

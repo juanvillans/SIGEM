@@ -2,13 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class TypeActivitySeeder extends Seeder
 {
-    
+
 
     public function run(): void
     {
@@ -29,7 +29,10 @@ class TypeActivitySeeder extends Seeder
             ['description' => 'Actualizar producto'],
             ['description' => 'Eliminar producto'],
             ['description' => 'Modificar Inventario'],
-        ];        
+            ['description' => 'Asignar mantenimiento '],
+            ['description' => 'Actualizar mantenimiento'],
+            ['description' => 'Eliminar mantenimiento'],
+        ];
 
         DB::table('type_activities')->insert($rows);
     }

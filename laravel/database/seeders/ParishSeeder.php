@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use DB;
 use App\Models\Parish;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class ParishSeeder extends Seeder
@@ -16,11 +16,6 @@ class ParishSeeder extends Seeder
     {
 		DB::unprepared(file_get_contents(database_path('sql/parishes.sql')));
 
-        $parishes = Parish::all();
 
-        foreach ($parishes as $parish) 
-        {
-            $parish->update(['name' => mb_strtoupper($parish->name,'UTF-8')]);
-        }
     }
 }
