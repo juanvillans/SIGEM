@@ -26,21 +26,21 @@ class ProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'equipmentName' => [
+            'machine' => [
                 'required',
                 'string',
                 'max:100',
                 Rule::unique('products')->where(function ($query) {
                     return $query
-                        ->where('equipment_name', $this->equipmentName)
+                        ->where('machine', $this->machine)
                         ->where('brand', $this->brand)
                         ->where('model', $this->model);
                 })->ignore($this->product ?? null)
             ],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'consumables' => ['nullable', 'array'],
-            'consumables.*' => ['string', 'max:255'],
+            'required_components' => ['nullable', 'array'],
+            'required_components.*' => ['string', 'max:255'],
         ];
     }
 

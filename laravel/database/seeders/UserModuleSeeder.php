@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 class UserModuleSeeder extends Seeder
 {
     /**
@@ -24,5 +24,7 @@ class UserModuleSeeder extends Seeder
             ['module_id' => 9, 'user_id' => 1],
 
           ];
+
+          DB::table('user_modules')->insert($user_modules);
     }
 }

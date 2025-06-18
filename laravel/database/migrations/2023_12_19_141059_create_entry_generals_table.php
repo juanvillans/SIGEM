@@ -24,10 +24,10 @@ return new class extends Migration
             $table->integer('code');
             $table->string('area')->nullable();
             $table->foreignId('product_id');
-            $table->integer('quantity');
+            $table->integer('quantity')->default(1);
             $table->string('serial_number', 30);
             $table->string('national_code', 30);
-            $table->foreignId('organization_id')->nullable();
+            $table->foreignId('organization_id');
             $table->foreignId('machine_status_id');
             $table->foreignId('user_id');
             $table->json('components');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use App\Models\Entry;
 use App\Models\Output;
 use App\Models\Product;
@@ -10,14 +11,14 @@ use Illuminate\Http\Request;
 use App\Models\InventoryGeneral;
 use App\Services\ProductService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Filters\ProductsQueryFilter;
 use App\Http\Requests\ProductRequest;
-use App\Http\Resources\ProductCollection;
-use App\Http\Requests\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 
 
-use Exception;
+use App\Http\Resources\ProductCollection;
+use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -48,24 +49,24 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-       DB::beginTransaction();
 
         try {
 
-            $dataToCreateProduct = $this->productService->convertToSnakeCase($request);
+            $dataToCreateProduct = $request->validated();
             $response = $this->productService->create($dataToCreateProduct);
-
-            DB::commit();
 
             return ['message' => $response['message'] ];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al crear producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
 
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage()
+            'message' => 'Error al crear producto: ' .$e->getMessage()
             ], 500);
 
 
@@ -75,21 +76,21 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product)
     {
 
-       $dataToUpdateProduct = $this->productService->convertToSnakeCase($request);
-
-       DB::beginTransaction();
-
 
         try {
 
-            $response = $this->productService->update($dataToUpdateProduct,$product);
-            DB::commit();
+            $dataToUpdateProduct = $request->validated();
+
+            $response = $this->productService->update($dataToUpdateProduct, $product);
 
             return ['message' => $response['message']];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al actualizar producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
 
             return response()->json([
                 'status' => false,
@@ -100,19 +101,20 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        DB::beginTransaction();
 
         try {
 
             $response = $this->productService->delete($product);
-            DB::commit();
 
 
             return ['message' => $response['message']];
 
         }catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al eliminar producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $product->toArray(),
+            ]);
 
             return response()->json([
             'status' => false,

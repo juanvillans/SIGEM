@@ -46,7 +46,7 @@ export default function Alert(props) {
 
   return (
     <div
-      className={`px-5 py-3 w-72 z-50 duration-500 text-white rounded-md fixed top-3 ${classes}`}
+      className={` bg-green px-5 py-3 w-72 z-50 duration-500 text-white rounded-md fixed top-3 ${classes}`}
       style={{ background: bgColor, zIndex: '1000' }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

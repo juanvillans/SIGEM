@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Services;
 
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
 
 class UserService extends ApiService
-{	
+{
 	private User $userModel;
     private HierarchyEntity $hierarchyModel;
     private $wantSeeOtherEntity;
@@ -32,11 +32,10 @@ class UserService extends ApiService
         $this->userModel = new User;
         $this->userDeletedModel = new UserDeleteds;
         $this->hierarchyModel = new HierarchyEntity;
-        parent::__construct(new User);
     }
 
     public function getData($paginateArray, $queryArray, $userEntityCode)
-    {   
+    {
         $this->wantSeeOtherEntity = false;
         $this->codeToSee = $userEntityCode;
 
@@ -46,9 +45,9 @@ class UserService extends ApiService
     ->leftJoin('modules', 'user_modules.module_id', '=', 'modules.id')
     ->groupBy('users.id', 'hierarchy_entities.name')
     ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
-                
+
         $entity = $param;
-        
+
         if ($userEntityCode != '1') {
             $query->where('entity_code', $userEntityCode);
         } else {
@@ -58,28 +57,28 @@ class UserService extends ApiService
     })
     ->unless(request()->input('entity'), function($query) {
         $entity = auth()->user()->entity_code;
-        $query->where('entity_code', $entity);  
+        $query->where('entity_code', $entity);
     });
-    
+
          $users = $users->where('status',1);
 
             foreach ($queryArray as $table => $array )
-            {       
+            {
 
                 if($table == 'search')
                     $table = 'users';
-                
+
                 $users = $users->where(function ($query) use ($table, $array) {
 
                 foreach ($array as $params)
-                {   
-                    
-                    
+                {
+
+
                         if(isset($params[3]))
-                            $query->orWhere($table.'.'.$params[0],$params[1],$params[2]);    
+                            $query->orWhere($table.'.'.$params[0],$params[1],$params[2]);
                         else
-                            $query->where($table.'.'.$params[0],$params[1],$params[2]);    
-                    
+                            $query->where($table.'.'.$params[0],$params[1],$params[2]);
+
 
                 }
 
@@ -87,7 +86,7 @@ class UserService extends ApiService
             }
 
 
-    
+
 
         $users = $users->orderBy($paginateArray['orderBy'],$paginateArray['orderDirection'])
         ->paginate($paginateArray['rowsPerPage'], ['*'], 'page', $paginateArray['page']);
@@ -97,10 +96,10 @@ class UserService extends ApiService
     }
 
     public function createUser($dataToCreateUser)
-    {   
+    {
 
         // $password = $this->userModel->generateNewRandomPassword();
-        $entity = $this->hierarchyModel->where('code',$dataToCreateUser['entity_code'])->first();    
+        $entity = $this->hierarchyModel->where('code',$dataToCreateUser['entity_code'])->first();
         $dataToCreateUser['username'] = $dataToCreateUser['ci'];
 
         $search = $dataToCreateUser['name'] . ' ' . $dataToCreateUser['last_name'] . ' ' . $entity->name . ' ' . $dataToCreateUser['charge'] . ' ' . $dataToCreateUser['username'] . ' ' . $dataToCreateUser['ci'] . ' ' . $dataToCreateUser['phone_number'] . ' ' . $dataToCreateUser['address'] . ' ' . $dataToCreateUser['email'];
@@ -115,7 +114,7 @@ class UserService extends ApiService
         $this->userModel->fresh();
 
         $userWithFormat = new UserResource($this->userModel);
-        
+
         //Envio de correo
         //Username  = ostisaludfalcon@gmail.com
         //Password = Ostifalcon01
@@ -132,11 +131,11 @@ class UserService extends ApiService
     }
 
     public function updateUser($dataToUpdateUser,$user)
-    {   
-        
-        $entity = $this->hierarchyModel->where('code',$dataToUpdateUser['entity_code'])->first();    
+    {
+
+        $entity = $this->hierarchyModel->where('code',$dataToUpdateUser['entity_code'])->first();
         $dataToUpdateUser['username'] = $dataToUpdateUser['ci'];
-        
+
 
         $search = $dataToUpdateUser['name'] . ' ' . $dataToUpdateUser['last_name'] . ' ' . $entity->name . ' ' . $dataToUpdateUser['charge'] . ' ' . $dataToUpdateUser['username'] . ' ' . $dataToUpdateUser['ci'] . ' ' . $dataToUpdateUser['phone_number'] . ' ' . $dataToUpdateUser['address'] . ' ' . $dataToUpdateUser['email'];
 
@@ -181,8 +180,8 @@ class UserService extends ApiService
         NewActivity::dispatch($userId,$typeActivityId,$id);
 
         $user->update([
-            'status' => 2, 
-            'ci' => $user->ci.'-deleted-'.$user->id, 
+            'status' => 2,
+            'ci' => $user->ci.'-deleted-'.$user->id,
             'username' => $user->username.'-deleted-'.$user->id,
             'ci' => $user->ci.'-deleted-'.$user->id,
             'email' => $user->email.'-deleted-'.$user->id,
@@ -195,16 +194,16 @@ class UserService extends ApiService
     public function isCurrentUserDeletingIdMatch($id)
     {
         $userID = Auth::id();
-        
+
         if($userID == $id)
-            throw new GeneralExceptions('No puede eliminarse asi mismo',500);  
+            throw new GeneralExceptions('No puede eliminarse asi mismo',500);
 
     }
 
     public function getPermissions($id)
     {
-        $user = $this->model->where('id',$id)->with('modules')->first();
-        
+        $user = User::where('id',$id)->with('modules')->first();
+
         return $user->modules->toArray();
     }
 
@@ -216,26 +215,26 @@ class UserService extends ApiService
         $format = [];
         foreach ($permissionsArray as $module)
         {
-            $format[$module['id']] = $module['name'];    
+            $format[$module['id']] = $module['name'];
         }
         $format = json_decode(json_encode($format));
         return $format;
     }
 
     private function transformToStringPermissions($permissions)
-    {   
+    {
         $result = [];
         foreach ($permissions as $permission)
         {
-            $result[] = strval($permission);    
+            $result[] = strval($permission);
         }
 
         return $result;
     }
-    
+
     public function forgotPassword($password)
     {
-        
+
     }
 
 }

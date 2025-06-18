@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('user_modules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('module_id');
-            $table->foreignId('user_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('module_id');
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('module_id')->references('id')->on('modules')->onDelete('cascade');
 
         });
     }

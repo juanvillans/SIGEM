@@ -9,6 +9,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RelationController;
 use App\Http\Controllers\RequestProductController;
 use App\Http\Controllers\UserController;
 use App\Models\EntryToConfirmed;
@@ -61,6 +62,7 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
 // ------------------------------------------------- Change Password ----------------------------------------------
     Route::post('change-password', [UserController::class,'changePassword']);
 
+    Route::get('relation',RelationController::class);
 
 // ------------------------------------------------- Organizations ----------------------------------------------
     Route::middleware('ability:1,5')->apiResource('organizations', 'OrganizationController');

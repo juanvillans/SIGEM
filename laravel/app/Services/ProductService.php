@@ -2,43 +2,41 @@
 
 namespace App\Services;
 
-use DB;
+use Exception;
 use App\Models\Product;
+use App\Enums\TypeActivity;
 use App\Events\NewActivity;
 use App\Services\ApiService;
 use App\Models\HierarchyEntity;
 use App\Models\InventoryGeneral;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
-use Exception;
 
 class ProductService extends ApiService
 {
 
-    protected $snakeCaseMap = [
-        'equipmentName' => 'equipment_name',
-    ];
-
-    private $productModel;
-    public function __construct()
-    {
-        $this->productModel = new Product;
-        parent::__construct(new Product);
-    }
-
+    protected $snakeCaseMap = [];
 
     public function getData()
     {
         $products = Product::query()
-        ->select(['id', 'code', 'equipment_name', 'brand', 'model', 'consumables', 'search'])
+        ->select(['id', 'code', 'machine', 'brand', 'model', 'required_components'])
         ->when(request()->input('search'), function($query,$param)
         {
-            if(!isset($param['all']))
+            $query->where(function($query) use ($param) {
+
+                if(!isset($param['all']))
                 return 0;
 
-            $search = $param['all'];
-            $string = $this->generateString($search);
+                $search = $param['all'];
+                $string = $this->generateString($search);
 
-            $query->where('search', 'ILIKE', $string);
+                $query->where('machine', 'ILIKE', $string)
+                ->orWhere('brand','ILIKE', $string)
+                ->orWhere('model','ILIKE', $string)
+                ->orWhereJsonContains('required_components',$search);
+            });
 
         })
         ->when(request()->input('equipment_name'), function($query,$param)
@@ -117,75 +115,129 @@ class ProductService extends ApiService
 
     }
 
-    public function create($data)
-    {
-        $lastProduct = $this->productModel->orderBy('code','desc')->first();
-        $code = $lastProduct->code ?? 0;
-        $code+=1;
+    private function generateProductCode():int{
 
-        $data['code'] = $code;
+        return DB::transaction(function () {
 
-        // Convertir consumables a JSON si es un array
-        if (isset($data['consumables']) && is_array($data['consumables'])) {
-            $data['consumables'] = json_encode($data['consumables']);
+        try{
+
+            $productModel = new Product;
+            $latestProduct = $productModel->lockForUpdate()->orderBy('code', 'desc')->first();
+            $code = $latestProduct ? $latestProduct->code : 0;
+
+            return $code + 1;
+
+        }catch(Exception $e){
+
+            Log::error('ProductService -  Error al crear codigo de producto: '. $e->getMessage(), [
+                'data' => [$latestProduct?? null, $code ?? null ],
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
         }
 
-        $data = $this->transformUpperCase($data);
-
-        // Generar string de búsqueda para equipos médicos
-        $searchString = $code . ' ' .
-                       ($data['equipment_name'] ?? '') . ' ' .
-                       ($data['brand'] ?? '') . ' ' .
-                       ($data['model'] ?? '');
-        $data['search'] = trim($searchString);
-
-        $this->productModel->fill($data);
-        $this->productModel->save();
+    });
+}
 
 
-        $userId = auth()->user()->id;
+    public function create($data)
+    {
 
-        NewActivity::dispatch($userId,13,$this->productModel->id);
 
-        return ['message' => 'Equipo médico creado exitosamente'];
+        $data['code'] = $this->generateProductCode();
+
+        return DB::transaction(function () use($data){
+
+            try {
+
+                $data = $this->transformUpperCase($data);
+                $data['required_components'] = $this->transformUpperCase($data['required_components']);
+
+                $productCreated = Product::create($data);
+
+                $userId = auth()->user()->id;
+
+                NewActivity::dispatch($userId,TypeActivity::CREAR_PRODUCTO->value,$productCreated->id);
+
+                return ['message' => 'Equipo médico creado exitosamente'];
+
+            } catch (Exception $e) {
+
+                Log::error('ProductService -  Error al crear producto: '. $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+
+            }
+
+        });
 
     }
 
-    public function update($dataToUpdateProduct,$product)
+    public function update($data, $product)
     {
-        // Convertir consumables a JSON si es un array
-        if (isset($dataToUpdateProduct['consumables']) && is_array($dataToUpdateProduct['consumables'])) {
-            $dataToUpdateProduct['consumables'] = json_encode($dataToUpdateProduct['consumables']);
-        }
 
-        $dataToUpdateProduct = $this->transformUpperCase($dataToUpdateProduct);
+        return DB::transaction(function () use($data, $product){
 
-        // Actualizar string de búsqueda para equipos médicos
-        $searchString = $product->code . ' ' .
-                       ($dataToUpdateProduct['equipment_name'] ?? $product->equipment_name) . ' ' .
-                       ($dataToUpdateProduct['brand'] ?? $product->brand) . ' ' .
-                       ($dataToUpdateProduct['model'] ?? $product->model);
-        $dataToUpdateProduct['search'] = trim($searchString);
+        try {
 
-        $product->fill($dataToUpdateProduct);
-        $product->save();
+        $data = $this->transformUpperCase($data);
+        $data['required_components'] = $this->transformUpperCase($data['required_components']);
+
+
+        $product->update($data);
 
         $userId = auth()->user()->id;
-        NewActivity::dispatch($userId,14,$product->id);
+        NewActivity::dispatch($userId, TypeActivity::ACTUALIZAR_PRODUCTO->value,$product->id);
 
         return ['message' => 'Equipo médico actualizado exitosamente'];
+
+        } catch (Exception $e) {
+
+            Log::error('ProductService -  Error al actualizar producto: '. $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+
+        }
+
+    });
 
     }
 
     public function delete($product)
     {
-        $userId = auth()->user()->id;
-        NewActivity::dispatch($userId,15,$product->id);
+        return DB::transaction(function () use($product){
 
-        $this->validateIfExistsInventory($product->id);
+        try {
 
-        $product->delete();
-        return ['message' => 'Equipo médico eliminado exitosamente'];
+            $userId = auth()->user()->id;
+            $productIDDeleted = $product->id;
+
+            $this->validateIfExistsInventory($product->id);
+
+            $product->delete();
+            NewActivity::dispatch($userId,TypeActivity::ELIMINAR_PRODUCTO->value,$productIDDeleted);
+
+            return ['message' => 'Equipo médico eliminado exitosamente'];
+
+        } catch (Exception $e) {
+
+            Log::error('ProductService -  Error al eliminar producto: '. $e->getMessage(), [
+                'data' => $product->toArray(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+
+        }
+    });
+
     }
 
     protected function handleParams($mainTableParams,$entity)

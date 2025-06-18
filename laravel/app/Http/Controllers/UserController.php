@@ -45,7 +45,7 @@ class UserController extends Controller
     }
 
     public function index(Request $request)
-    {   
+    {
         $queryArray = $this->queryFilter->transformParamsToQuery($request);
 
         $paginateArray = $this->queryFilter->getPaginateValues($request,'users');
@@ -62,14 +62,14 @@ class UserController extends Controller
 
         $hierarchies = [];
 
-        
+
         if($canSeeOthers)
         {
             $hierarchies = new HierarchyCollection(HierarchyEntity::all());
 
         }
         else
-        {   
+        {
             $hierarchy = new HierarchyResource(HierarchyEntity::where('code',$userEntityCode)->first());
             array_push($hierarchies, $hierarchy);
         }
@@ -82,21 +82,21 @@ class UserController extends Controller
 
     }
 
-    
+
     public function store(CreateUserRequest $request)
-    {   
+    {
          DB::beginTransaction();
 
         try {
-            
+
             $dataToCreateUser = $this->userService->convertToSnakeCase($request);
             $response = $this->userService->createUser($dataToCreateUser);
 
             DB::commit();
             return ['message' => $response['message'] ];
-            
+
         } catch (GeneralExceptions $e) {
-            
+
             DB::rollback();
 
             if(null !== $e->getCustomCode())
@@ -107,7 +107,7 @@ class UserController extends Controller
                 ], $e->getCustomCode());
 
             }
-            
+
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -133,9 +133,9 @@ class UserController extends Controller
 
             return ['message' => $response['message']];
 
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
 
             return response()->json([
@@ -143,25 +143,25 @@ class UserController extends Controller
                 'message' => $e->getMessage()
                 ], $e->getCode());
         }
-        
+
     }
 
     public function destroy($id)
-    {   
+    {
         DB::beginTransaction();
 
         try {
 
             $this->userService->isCurrentUserDeletingIdMatch($id);
             $response = $this->userService->deleteUser($id);
-            
+
             DB::commit();
             return ['message' => $response['message']];
 
         }catch (GeneralExceptions $e) {
-            
+
             DB::rollback();
-            
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
@@ -192,16 +192,16 @@ class UserController extends Controller
                 'message' => 'OK',
                 'token' => $token,
                 'userData' => [
-                    'name' => $user->name, 
-                    'lastName' => $user->last_name, 
+                    'name' => $user->name,
+                    'lastName' => $user->last_name,
                     'entityCode' => $user->entity_code,
-                    'entityName' => $user->hierarchy->name, 
-                    'username' => $user->username, 
-                    'ci' => $user->ci, 
-                    'address' => $user->address, 
+                    'entityName' => $user->hierarchy->name,
+                    'username' => $user->username,
+                    'ci' => $user->ci,
+                    'address' => $user->address,
                     'phoneNumber' => $user->phone_number,
                     'permissions' => $permissionsWithFormat
-                ] 
+                ]
             ], 200);
 
         }catch (GeneralExceptions $e)
@@ -214,7 +214,7 @@ class UserController extends Controller
                 ], 401);
 
             }
-            
+
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -225,12 +225,12 @@ class UserController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        
+
         return response()->json(['message' => 'Session eliminada']);
     }
 
     public function changePassword(UpdatePasswordRequest $request)
-    {   
+    {
         $data = [
             'oldPassword' => $request->oldPassword,
             'newPassword' => $request->newPassword,
@@ -244,16 +244,16 @@ class UserController extends Controller
                 'status' => true,
                 'message' => 'Contraseña cambiada',
             ], 200);
-            
+
         } catch (GeneralExceptions $e) {
-            
+
             if ($e->getCustomCode() == 401) {
                 return response()->json([
                     'status' => false,
                     'message' => $e->getMessage()
                 ], 401);
             }
-            
+
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -278,7 +278,7 @@ class UserController extends Controller
     }
 
     public function checkSession(Request $request)
-    {   
+    {
 
 
         $token = $request->bearerToken();
@@ -286,7 +286,7 @@ class UserController extends Controller
         $message = 'Token válido';
         $code = 200;
         $notifications = null;
-        
+
         if($accessToken && $accessToken->tokenable){
             $user = $accessToken->tokenable;
             $notifications = $user
@@ -303,7 +303,7 @@ class UserController extends Controller
     }
 
     public function forgotPassword(Request $request)
-    {   
+    {
 
        $response =  $this->loginService->forgotPassword($request->ci);
 
@@ -315,28 +315,28 @@ class UserController extends Controller
     public function checkTokenPassword($token)
     {
         try {
-            
+
             $response = $this->loginService->checkTokenPassword($token);
 
             return response(["Message" => 'Token checked', 'status' => $response['status'], 'personal_name'=> $response['personalName']], Response::HTTP_OK);
-            
+
         } catch (GeneralExceptions $e) {
-          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);        
-            
+          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+
         }
     }
 
     public function restorePassword(Request $request)
     {
         try {
-                
+
                 $this->loginService->restorePassword($request);
                 return response(["Message" => 'Contraseña actualizada correctamente'], Response::HTTP_OK);
-                            
-        }catch (GeneralExceptions $e) 
+
+        }catch (GeneralExceptions $e)
         {
-            
-          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);        
+
+          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
 
         }
 

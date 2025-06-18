@@ -19,7 +19,7 @@ class Module extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_modules', 'module_id', 'user_id');
+        return $this->belongsToMany(User::class, 'user_modules');
     }
 
 }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Entry;
 use App\Models\HierarchyEntity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,35 +17,41 @@ class EntryGeneral extends Model
         'id',
         'entity_code',
         'code',
-        'status',
-        'guide',
-        'arrival_time',
+        'area',
+        'product_id',
+        'quantity',
+        'serial_number',
+        'national_code',
         'organization_id',
-        'authority_fullname',
-        'authority_ci',
+        'machine_status_id',
         'user_id',
-        'day',
-        'month',
-        'year',
+        'components',
+        'arrival_time',
+        'status',
+        'updated_at',
 
     ];
 
-    
+    protected $casts = [
+        'components' => 'array',
+    ];
+
+
     public function entity()
     {
         return $this->belongsTo(HierarchyEntity::class, 'entity_code', 'code');
     }
 
-    
-    public function entries()
-    {
-        return $this->hasMany(Entry::class, 'entry_general_id', 'id');
+    public function product(){
+        return $this->belongsTo(Product::class);
     }
 
     public function organization(){
-    
         return $this->belongsTo(Organization::class);
-    
+    }
+
+    public function machineStatus(){
+        return $this->belongsTo(MachineStatus::class);
     }
 
     public function user(){

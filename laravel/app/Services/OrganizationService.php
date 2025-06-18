@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Services;
 
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
 
 class OrganizationService extends ApiService
-{   
+{
 
     protected $model;
     protected $snakeCaseMap = [
@@ -29,47 +29,44 @@ class OrganizationService extends ApiService
     'parishId' => 'parish_id',
     ];
 
-    public function __construct()
-    {
-        parent::__construct(new Organization);
-    }
+
 
     public function getData()
-    {   
+    {
          $organizations = Organization::with('municipality','parish')
          ->when(request()->input('municipality'),function ($query, $param) {
-                
+
             if(isset($param['id'])){
-                
+
                 $municipalityIDs = $param['id'];
                 $municipalities = $this->parseQuery($municipalityIDs);
-                
+
                 $query->whereHas('municipality', function($query) use ($municipalities) {
-                    
+
                     $query->where('id', $municipalities[0]);
                     if (count($municipalities) > 1) {
-                        array_shift($municipalities); 
+                        array_shift($municipalities);
                         foreach ($municipalities as $municipality) {
                             $query->orWhere('id', $municipality);
                         }
-                    } 
+                    }
 
                 });
             }
         })
         ->when(request()->input('search'), function ($query, $param) {
-           
+
             if (!isset($param['all'])) return 0;
-        
+
                 $search = $param['all'];
                 $string = $this->generateString($search);
                 $query->where('search', 'ILIKE', $string);
         })
-        ->when(request()->input('orderBy'), function($query, $param) {      
+        ->when(request()->input('orderBy'), function($query, $param) {
             $orderDirection = (request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
-                ? request()->input('orderDirection') 
+                ? request()->input('orderDirection')
                 : 'desc';
-        
+
             switch ($param) {
                 case 'name':
                     $query->orderBy('name', $orderDirection);
@@ -86,7 +83,7 @@ class OrganizationService extends ApiService
     }
 
     public function create($dataToCreateOrganization)
-    {   
+    {
 
         $municipalityName = null;
         $parishName = null;
@@ -141,7 +138,7 @@ class OrganizationService extends ApiService
     }
 
     public function delete($organization)
-    {   
+    {
         $entry = Entry::where('organization_id',$organization->id)->first();
         $output = Output::where('organization_id',$organization->id)->first();
 
@@ -165,37 +162,37 @@ class OrganizationService extends ApiService
     public function isCurrentUserDeletingIdMatch($id)
     {
         $userID = Auth::id();
-        
+
         if($userID == $id)
-            throw new GeneralExceptions('No puede eliminarse asi mismo',500);  
+            throw new GeneralExceptions('No puede eliminarse asi mismo',500);
 
     }
 
     private function transformUpperCase($array)
     {
-        return array_map(function($value) 
+        return array_map(function($value)
         {
-            if (is_string($value)) 
+            if (is_string($value))
                 return strtoupper($value);
-             
-            else 
+
+            else
                 return $value;
-            
+
         }, $array);
     }
 
     private function generateSearch($array,$municipalityName,$parishName)
     {
-        $search = 
+        $search =
         $array['name'] . ' ' .
         $array['authority_ci'] . ' ' .
         $municipalityName . ' ' .
         $parishName . ' ' .
         $array['authority_fullname'];
-        
+
         return $search;
     }
-    
-    
+
+
 
 }

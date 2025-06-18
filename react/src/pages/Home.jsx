@@ -104,20 +104,7 @@ export default function Home() {
       await api.post("/login", user).then((response) => {
         if (response.data.status) {
           setSubmitStatus("Iniciando...");
-          // function requestNotificationPermission() {
-          //   if (Notification.permission === "granted") {
-          //     console.log("Permission already granted.");
-          //   } else if (Notification.permission !== "denied") {
-          //     Notification.requestPermission().then((permission) => {
-          //       if (permission === "granted") {
-          //         console.log("Notification permission granted.");
-          //       }
-          //     });
-          //   }
-          // }
-          
-          // // Call this function when the user logs in or interacts with your app
-          // requestNotificationPermission();
+        
           const data = response.data;
           const token = response.data.token;
           localStorage.setItem("apiToken", token);
@@ -264,14 +251,14 @@ export default function Home() {
         <nav className="flex  md:flex-row gap-6 justify-between pt-4 md:items-center">
           <div className="flex flex-col md:flex-row gap-3 items-center logoAndText">
             <img src={logo_secretaria} className="w-10 md:w-24" alt="" />
-            <p className="font-yesevaOne font-bold">SISMED</p>
+            <p className="font-yesevaOne font-bold">SIGEM</p>
           </div>
 
           <div className="flex flex-col md:flex-row gap-3 ">
             <Button3D
               color="red"
               text="INICIAR"
-              fClick={(e) => {
+              onClick={(e) => {
                 setOpen(true);
                 setloginTypeUser("Secretaria");
               }}
@@ -281,13 +268,13 @@ export default function Home() {
         <main className="mt-7 md:mt-20 text-blue1 w-1/2 max-w-lg min-w-[300px]">
           <h1 className="text-xl md:text-3xl font-semibold ">
             
-            {divStyle == "test" ? ("TEST") : "SISTEMA DE SUMINISTROS MÉDICOS" }
+            {divStyle == "test" ? ("TEST") : "SISTEMA DE GESTIÓN DE EQUIPOS MÉDICOS" }
           </h1>
           <h1>{import.meta.env.REACT_APP_API_URL} </h1>
           <p className="max-w-[360px] my-2 md:text-xl ">
-            El sistema que utiliza tecnología de punta para monitorear y
-            gestionar en tiempo real los inventarios de las instituciones
-            hospitalarias del estado Falcón.
+            Plataforma tecnológica avanzada para el control, mantenimiento y 
+            trazabilidad de equipos médicos en las instituciones de salud del 
+            estado Falcón. 
             <b className=""> Dirigido por: Secretaría de Salud</b>
           </p>
           <div></div>

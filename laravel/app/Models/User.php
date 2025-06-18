@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     public function modules()
     {
-        return $this->belongsToMany(Module::class, 'user_modules', 'user_id', 'module_id');
+        return $this->belongsToMany(Module::class, 'user_modules');
     }
 
     public function findForUsername($username)
@@ -58,14 +58,14 @@ class User extends Authenticatable
     }
 
     public function getPermissions($user)
-    {   
+    {
         $permissions = [];
 
         $modules = $user->modules;
 
-        foreach ($modules as $module) 
+        foreach ($modules as $module)
         {
-            $permissions[] = strval($module->id);       
+            $permissions[] = strval($module->id);
         }
 
         $permissions[] = $user->entity_code == '1'?'origin':'branch';
@@ -75,9 +75,9 @@ class User extends Authenticatable
 
     public function verifiIfExistsID($id)
     {
-        if (!self::where('id', $id)->exists()) 
+        if (!self::where('id', $id)->exists())
         {
-            throw new GeneralExceptions('El id no existe',404);  
+            throw new GeneralExceptions('El id no existe',404);
 
         }
     }

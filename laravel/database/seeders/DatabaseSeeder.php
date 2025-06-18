@@ -19,10 +19,10 @@ class DatabaseSeeder extends Seeder
 
             $this->call([
 
-            ModuleSeeder::class,
-            UserModuleSeeder::class,
             HierarchyEntitySeeder::class,
+            ModuleSeeder::class,
             UserSeeder::class,
+            UserModuleSeeder::class,
             MachineStatusSeeder::class,
             MunicipalitySeeder::class,
             ParishSeeder::class,

@@ -2,22 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\GeneralExceptions;
-use App\Filters\EntriesQueryFilter;
-use App\Http\Requests\EntryRequest;
-use App\Http\Resources\EntryCollection;
-use App\Models\Condition;
-use App\Models\Entry;
-use App\Models\EntryGeneral;
-use App\Models\HierarchyEntity;
-use App\Models\Inventory;
-use App\Models\Organization;
-use App\Services\CancellationService;
-
-use App\Services\EntryService;
 use Exception;
+use App\Models\Entry;
+use App\Models\Condition;
+use App\Models\Inventory;
+use App\Models\EntryGeneral;
+use App\Models\Organization;
 use Illuminate\Http\Request;
+use App\Services\EntryService;
+use App\Models\HierarchyEntity;
 use Illuminate\Support\Facades\DB;
+use App\Filters\EntriesQueryFilter;
+
+use App\Http\Requests\EntryRequest;
+use Illuminate\Support\Facades\Log;
+use App\Exceptions\GeneralExceptions;
+use App\Services\CancellationService;
+use App\Http\Resources\EntryCollection;
 
 class EntryController extends Controller
 {
@@ -46,21 +47,11 @@ class EntryController extends Controller
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 
 
-        if($relation == "true")
-        {
-            $entities = HierarchyEntity::select('name','code')->get();
-            $conditions = Condition::orderBy('id','desc')->get();
-            $years  = Entry::orderBy('year','desc')->distinct()->pluck('year');
-
-        }
 
 
         return [
 
             'entries' => $entryCollection,
-            'conditions' => $conditions ?? null,
-            'entities' => $entities ?? null,
-            'years' => $years ?? null,
             'total' => $total,
             'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'
@@ -70,24 +61,23 @@ class EntryController extends Controller
 
     public function store(EntryRequest $request)
     {
-        DB::beginTransaction();
 
         try {
 
-            $dataToCreateEntries = $this->entryService->convertToSnakeCase($request);
-            $response = $this->entryService->create($dataToCreateEntries);
-
-            DB::commit();
+            $response = $this->entryService->create($request->validated());
 
             return ['message' => $response['message'] ];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al crear entrada: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
 
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage()
+            'message' => 'Error al crear entrada: ' .$e->getMessage()
             ], 500);
 
 

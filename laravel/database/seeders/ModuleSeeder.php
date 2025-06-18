@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 class ModuleSeeder extends Seeder
 {
     /**
@@ -13,16 +13,18 @@ class ModuleSeeder extends Seeder
     public function run(): void
     {
 		  $modules = [
-            'name' => 'Modulo de Organizaciones',
-            'name' => 'Modulo de Usuarios',
-            'name' => 'Modulo de Productos',
-            'name' => 'Modulo de Entradas',
-            'name' => 'Modulo de Inventario',
-            'name' => 'Modulo de salidas y pedidos a mi almacen',
-            'name' => 'Modulo de entradas por confirmar',
-            'name' => 'Modulo de solicitud de productos',
-            'name' => 'Modulo de mantenimiento  ',
+            ['name' => 'Modulo de Organizaciones'],
+            ['name' => 'Modulo de Usuarios'],
+            ['name' => 'Modulo de Productos'],
+            ['name' => 'Modulo de Entradas'],
+            ['name' => 'Modulo de Inventario'],
+            ['name' => 'Modulo de salidas y pedidos a mi almacen'],
+            ['name' => 'Modulo de entradas por confirmar'],
+            ['name' => 'Modulo de solicitud de productos'],
+            ['name' => 'Modulo de mantenimiento  '],
           ];
+
+          DB::table('modules')->insert($modules);
 
     }
 }

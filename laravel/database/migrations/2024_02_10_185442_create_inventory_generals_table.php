@@ -35,7 +35,7 @@ return new class extends Migration
                   ->onDelete("restrict")
                   ->onUpdate("cascade");
 
-            $table->string('search',1000)->nullable();
+            $table->timestamps();
 
         });
 

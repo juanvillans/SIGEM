@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Events\EntryCreated;
 use App\Events\ProductsRequested;
 use App\Events\NewActivity;
 use App\Events\EntryDetailCreated;
@@ -51,8 +52,8 @@ class EventServiceProvider extends ServiceProvider
         OutputDetailCreated::class => [
             SubtractInventory::class,
         ],
-        
-        EntryDetailCreated::class => [
+
+        EntryCreated::class => [
             AddInventory::class,
         ],
 
@@ -72,9 +73,9 @@ class EventServiceProvider extends ServiceProvider
 
         NewActivity::class => [
             TrackActivity::class,
-        ],      
-        
-        
+        ],
+
+
     ];
 
     /**

@@ -2234,7 +2234,8 @@ export default function Salidas(props) {
                 </p>
               </>
             )}
-
+ 
+  
             <Button3D
               className="mt-2 col-span-3"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}

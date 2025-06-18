@@ -3,10 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rule;
 
 class EntryRequest extends FormRequest
 {
@@ -26,16 +22,81 @@ class EntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'arrivalDate' => ['required','string'],
-            'arrivalTime'=> ['required','string'],
-            // Campos de guía y autoridad eliminados - no necesarios para equipos médicos
+
+            'area' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
+            'product_id' => [
+                'required',
+                'integer',
+                'exists:products,id'
+            ],
+            'quantity' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+            'serial_number' => [
+                'required',
+                'string',
+                'max:30'
+            ],
+            'national_code' => [
+                'required',
+                'string',
+                'max:30'
+            ],
+            'organization_id' => [
+                'required',
+                'integer',
+                'exists:organizations,id'
+            ],
+            'machine_status_id' => [
+                'required',
+                'integer',
+                'exists:machine_statuses,id'
+            ],
+            'components' => [
+                'required',
+                'array'
+            ],
+            'arrival_time' => [
+                'required',
+                'string',
+                'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/' // Formato HH:MM
+            ],
+
+            'arrival_date' => [
+                'required',
+                'string',
+            ],
         ];
     }
 
-    protected function failedValidation(Validator $validator)
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages()
     {
-        throw new HttpResponseException(response()->json(['errors' => $validator->errors()], 422));
+        return [
+            'product_id.required' => 'El producto es requerido',
+            'product_id.exists' => 'El producto especificado no existe',
+            'serial_number.required' => 'El número de serie es requerido',
+            'national_code.required' => 'El código nacional es requerido',
+            'organization_id.required' => 'La organizacion de origen es requerido',
+            'machine_status_id.required' => 'El estado del equipo es requerido',
+            'components.required' => 'Los componentes son requeridos',
+            'arrival_time.required' => 'La hora de llegada es requerida',
+            'arrival_time.regex' => 'El formato de hora debe ser HH:MM',
+        ];
     }
+
+
+
+
 }
 
-            

@@ -16,13 +16,11 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'productId' => $this->id,
             'code' => $this->code,
-            'equipment_name' => $this->equipment_name,
+            'machine' => $this->machine,
             'brand' => $this->brand,
             'model' => $this->model,
-            'consumables' => $this->consumables ? json_decode($this->consumables, true) : [],
-            'search' => $this->search,
+            'required_components' => $this->required_components ?: [],
         ];
     }
 }

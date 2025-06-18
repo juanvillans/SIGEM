@@ -2,27 +2,25 @@
 
 namespace App\Services;
 
+use Exception;
+use Carbon\Carbon;
+use App\Models\Entry;
+use App\Models\Inventory;
+use App\Enums\TypeActivity;
+use App\Events\NewActivity;
 use App\Events\EntryCreated;
+use App\Models\EntryGeneral;
+use App\Models\Organization;
+use App\Models\HierarchyEntity;
 use App\Events\EntryDetailCreated;
 use App\Events\EntryDetailDeleted;
 use App\Events\EntryDetailUpdated;
-use App\Events\InventoryLoteCreated;
-use App\Events\NewActivity;
-use App\Exceptions\GeneralExceptions;
-use App\Http\Resources\EntryCollection;
-use App\Http\Resources\EntryDetailCollection;
-use App\Http\Resources\EntryResource;
-use App\Models\Entry;
-use App\Models\EntryGeneral;
-use App\Models\HierarchyEntity;
-use App\Models\Inventory;
-use App\Models\Organization;
-use App\Models\Product;
-use App\Services\OrganizationService;
-use Carbon\Carbon;
-use DB;
-use Exception;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Exceptions\GeneralExceptions;
+use App\Services\OrganizationService;
+use App\Http\Resources\EntryDetailCollection;
+
 
 class EntryService extends ApiService
 {
@@ -40,24 +38,6 @@ class EntryService extends ApiService
         // Campos de autoridad y guía eliminados - no necesarios para equipos médicos
     ];
 
-    private Inventory $inventoryModel;
-    private Organization $organizationModel;
-    private HierarchyEntity $entityModel;
-    private OrganizationService $organizationService;
-    private $wantSeeOtherEntity;
-    private $codeToSee;
-
-
-    public function __construct()
-    {
-        parent::__construct(new Entry);
-        $this->inventoryModel = new Inventory;
-        $this->organizationModel = new Organization;
-        $this->entityModel = new HierarchyEntity;
-        $this->organizationService = new OrganizationService;
-
-
-    }
 
     public function getData()
     {
@@ -65,7 +45,7 @@ class EntryService extends ApiService
         $userEntityCode = auth()->user()->entity_code;
 
 
-        $entries = EntryGeneral::with('organization','entries','user')
+        $entries = EntryGeneral::with('organization','user', 'product', 'machineStatus')
         ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
 
             $entity = $param;
@@ -273,9 +253,10 @@ class EntryService extends ApiService
                 );
             }
         })
-        ->unless(request()->input('entity'), function($query) {
-            $entity = auth()->user()->entity_code;
-            $query->where('entity_code', $entity);
+        ->unless(request()->input('entity'), function($query) use($userEntityCode) {
+
+            // $entity = auth()->user()->entity_code;
+            $query->where('entity_code', $userEntityCode);
         })
         ->unless(request()->input('orderBy'), function($query, $param)
         {
@@ -291,83 +272,41 @@ class EntryService extends ApiService
     public function create($data)
     {
 
-        if(count($data['products']) == 0)
-            throw new GeneralExceptions('Debe seleccionar al menos un producto',400);
+        $user = auth()->user();
 
-        $entityCode = auth()->user()->entity_code;
-        $userId = auth()->user()->id;
-        $newEntries = [];
-        $newRegistersToInventory = [];
-        $date = $this->splitDate($data['created_at']);
+        return DB::transaction(function () use($data, $user) {
 
+            try {
 
+                $newEntryCode = $this->generateNewEntryCode($user->entity_code);
 
+                $data['code'] = $newEntryCode;
+                $data['entity_code'] = $user->entity_code;
+                $data['status'] = 1;
+                $data['updated_at'] = Carbon::parse($data['arrival_date']);
+                $data['user_id'] = $user->id;
 
-        $newEntryCode = $this->generateNewEntryCode($entityCode);
+                $newEntryGeneral = EntryGeneral::create($data);
 
+                EntryCreated::dispatch($newEntryGeneral);
 
-        $newEntryGeneral = EntryGeneral::create([
-            'entity_code' => $entityCode,
-            'code' => $newEntryCode,
-            'status' => 1,
-            'guide' => $data['guide'],
-            'arrival_time' => $data['arrival_time'],
-            'organization_id' => $data['organization_id'],
-            'authority_fullname' => $data['authority_fullname'],
-            'authority_ci' => $data['authority_ci'],
-            'user_id' => $userId,
-            'day' => $date['day'],
-            'month' => $date['month'],
-            'year' => $date['year'],
+                NewActivity::dispatch($user->id, TypeActivity::CREAR_ENTRADA->value, $newEntryGeneral->id);
 
-        ]);
-
-        $newEntryGeneral->save();
-
-        $products = $data['products'];
+                return ['message' => 'Entrada creada exitosamente'];
 
 
-        foreach ($products as $product)
-        {
-            if(!isset($product['loteNumber']))
-                throw new Exception('El número de lote es requerido',422);
+            } catch (Exception $e) {
 
-
-            $search = $this->generateSearch(['product' => $product, 'data' => $data, 'entryCode' => $newEntryCode]);
-
-            $newEntryDetail = Entry::create([
-                'entity_code' => $entityCode,
-                'entry_general_id' => $newEntryGeneral->id,
-                'entry_code' => $newEntryCode,
-                'user_id' => $userId,
-                'product_id' => $product['id'],
-                'quantity' => 1, // Siempre 1 para equipos médicos
-                'organization_id' => $data['organization_id'],
-                'guide' => 'N/A', // No se requiere guía para equipos médicos
-                'lote_number' => $product['loteNumber'],
-                'serial' => $product['serial'] ?? '',
-                'bien_nacional' => $product['bienNacional'] ?? '',
-                'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
-                'condition_id' => $product['conditionId'],
-                'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
-                'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
-                'day' => $date['day'],
-                'month' => $date['month'],
-                'year' => $date['year'],
-                'description' => $product['description'],
-                'arrival_time' => $data['arrival_time'],
-                'created_at' => $data['created_at'],
-                'search' => $search,
+                Log::error('ProductService -  Error al crear entrada: '. $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
             ]);
 
-            EntryDetailCreated::dispatch($newEntryDetail);
+            throw $e;
 
-        }
+            }
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 7, $newEntryGeneral->id);
-
-        return ['message' => 'Entradas creadas exitosamente'];
+        });
 
     }
 
