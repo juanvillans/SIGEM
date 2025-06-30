@@ -19,6 +19,8 @@ import useDebounce from "../components/useDebounce";
 import CryptoJS from "crypto-js";
 import Input from "../components/Input";
 import CheckableList from "../components/CheckableList";
+import CheckIcon from '@mui/icons-material/Check';
+import InputWhite from "../components/InputWhite";
 
 
 
@@ -150,7 +152,6 @@ export default function Entradas(props) {
     arrival_date: new Date().toISOString().split("T")[0],
     status: 1,
   });
-
   useEffect(() => {
     if (NewRegister?.product_id) {
       localStorage.setItem("entryForm", JSON.stringify(NewRegister));
@@ -171,9 +172,6 @@ export default function Entradas(props) {
     },
   });
 
-  function handleSelectRow(row) {
-    selectedRowRquest = row;
-  }
 
   const columns = [
     {
@@ -235,14 +233,7 @@ export default function Entradas(props) {
       label: "Fecha",
       options: {
         filter: false,
-        customBodyRender: (value) => {
-          const [year, month, day] = value?.split("-") || "n/a";
-          return (
-            <p>
-              {day}-{month}-{year}
-            </p>
-          );
-        },
+        
       },
     },
     {
@@ -253,21 +244,21 @@ export default function Entradas(props) {
       },
     },
     {
-      name: "product.equipment_name",
+      name: "product_name",
       label: "Equipo",
       options: {
         filter: false,
       },
     },
     {
-      name: "product.brand",
+      name: "product_brand",
       label: "Marca",
       options: {
         filter: false,
       },
     },
     {
-      name: "product.model",
+      name: "product_model",
       label: "Modelo",
       options: {
         filter: false,
@@ -288,14 +279,90 @@ export default function Entradas(props) {
       },
     },
     {
-      name: "machine_status.name",
+      name: "machine_status_name",
       label: "Estado",
       options: {
         filter: false,
       },
     },
+  {
+  name: "components",
+  label: "Componentes",
+  options: {
+    filter: false,
+    customBodyRender: (value, tableMeta) => {
+      // Si no hay componentes o el objeto está vacío
+      if (!value || Object.keys(value).length === 0) return "N/A";
+
+      // Convertir el objeto en un array de componentes FALTANTES (false)
+      const missingComponents = Object.entries(value)
+        .filter(([_, isIncluded]) => !isIncluded) // Filtra los que tienen false
+        .map(([component]) => component); // Extrae solo el nombre
+
+      // Caso 1: No hay componentes faltantes
+      if (missingComponents.length === 0) {
+        return (
+          <span className="text-white p-auto font-bold text-xs px-2 py-1 rounded bg-green">
+              Incluidos
+            <CheckIcon className="pb-1"></CheckIcon>
+          </span>
+        );
+      }
+
+      // Caso 2: Hay componentes faltantes
+      return (
+        <div className="relative group">
+          <div className="flex flex-wrap gap-1 max-w-[300px]">
+            {/* Mostrar los primeros 3 faltantes (color amarillo) */}
+            <p className="text-xs py-1 ">Faltan:</p>
+            {missingComponents.slice(0, 3).map((comp, i) => (
+              
+              <span 
+                key={i} 
+                className="bg-orange text-white text-center text-xs px-2 py-1 rounded"
+              >
+                {comp}
+              </span>
+            ))}
+
+            {/* Botón "Más" si hay más de 3 faltantes */}
+            {missingComponents.length > 3 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById(`missing-components-${tableMeta.rowIndex}`)
+                    .classList.toggle('hidden');
+                }}
+                className="text-xs p-1 rounded border border-gray-300 text-grey"
+              >
+                +{missingComponents.length - 3} faltantes
+              </button>
+            )}
+          </div>
+
+          {/* Popup con TODOS los faltantes (solo visible al hacer clic) */}
+          <div
+            id={`missing-components-${tableMeta.rowIndex}`}
+            className="hidden absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md p-2 border border-grey"
+          >
+            <div className="flex flex-wrap gap-1">
+              {missingComponents.map((comp, i) => (
+                <span 
+                  key={i} 
+                  className="bg-orange text-white text-xs px-2 py-1 rounded mb-1"
+                >
+                  {comp}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    },
+  },
+},
     {
-      name: "user.full_name",
+      name: "user_name",
       label: "Registrado por",
       options: {
         filter: false,
@@ -435,7 +502,7 @@ export default function Entradas(props) {
 
   const deleteRegister = async (obj) => {
     try {
-      await axios.post(`/dashboard/cancellation/1`, obj).then((response) => {
+      await axios.delete(`/dashboard/entries/${obj.ID}`).then((response) => {
         setParametersURL((prev) => ({
           ...prev,
           page: 1,
@@ -583,23 +650,15 @@ export default function Entradas(props) {
               <IconButton
                 title="Copiar"
                 onClick={() => {
-                  if (selectedRowRquest.id) {
-                    editIconClick(selectedRowRquest, "Crear entrada", true);
-                  } else {
-                    window.alert("Seleccione una fila");
-                  }
+                    editIconClick(dataTable[selectedRows.data[0].dataIndex], "Crear entrada", true);
                 }}
-              >
+                >
                 <ContentCopyIcon />
               </IconButton>
               <IconButton
                 title="Editar"
                 onClick={() => {
-                  if (selectedRowRquest.id) {
-                    editIconClick(selectedRowRquest, "Editar entrada", false);
-                  } else {
-                    window.alert("Seleccione una fila");
-                  }
+                    editIconClick(dataTable[selectedRows.data[0].dataIndex], "Editar entrada", false);
                 }}
               >
                 <EditIcon />
@@ -607,30 +666,20 @@ export default function Entradas(props) {
               <IconButton
                 title="Eliminar"
                 onClick={() => {
+                      
                   setModalConfirm({
                     isOpen: true,
                     modalInfo: (
                       <>
                         <p className="mb-2">
-                          Especifique porqué cancelará esta entrada
+                          Está seguro que cancelará esta entrada?
                         </p>
-                        <InputWhite
-                          key={8329}
-                          id={"cancelDescription"}
-                          name={"cancelDescription"}
-                          Color={"white"}
-                          required
-                          multiline
-                        />
+                    
                       </>
                     ),
                     aceptFunction: () => {
-                      let cancelDescription =
-                        document.querySelector("#cancelDescription").value;
-
                       deleteRegister({
                         ID: dataTable[selectedRows.data[0].dataIndex].id,
-                        cancelDescription,
                       });
                     },
                   });
@@ -656,21 +705,58 @@ export default function Entradas(props) {
       }
     },
   };
+    console.log({NewRegister})
 
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
-    const copySelectedRowRquest = structuredClone(selectedRowRquest);
-
+    const copySelectedRowRquest = structuredClone(selectedRows);
+    console.log('ROW_SELECTED')
+    console.log(copySelectedRowRquest)
     if (isJustForCopy) {
       copySelectedRowRquest.serial_number = "_"+createHashFromTime();
       copySelectedRowRquest.national_code = "_"+createHashFromTime();
+
+      copySelectedRowRquest.components = copySelectedRowRquest.product.required_components.reduce((acc, component) => ({
+      ...acc,
+      [component]: true
+    }), {});
+
     }
+    else{
+       copySelectedRowRquest.components = copySelectedRowRquest?.components || {};
+    }
+
+    setOrganizations([{
+          id: copySelectedRowRquest.organization_id,
+          name: copySelectedRowRquest.organization_name,
+    }]);
 
     setNewRegister({
       ...copySelectedRowRquest,
       code: isJustForCopy ? "" : copySelectedRowRquest.code,
+      product: {
+        brand: copySelectedRowRquest.product_brand, 
+        name: copySelectedRowRquest.product_name, 
+        model: copySelectedRowRquest.product_model, 
+        id: copySelectedRowRquest.product_id,
+        required_components: copySelectedRowRquest.product_required_components,
+        serial_number: copySelectedRowRquest.serial_number,
+        national_code: copySelectedRowRquest.national_code,
+
+      },
+      organizationObject:{
+        organizationId: copySelectedRowRquest.organization_id,
+          name: copySelectedRowRquest?.organization_name,
+          code: copySelectedRowRquest?.organization_code,
+      },
+      organization_id:copySelectedRowRquest.organization_id,
+      organizationName: copySelectedRowRquest.organization_name,
+      arrival_date: new Date(copySelectedRowRquest.arrival_date).toISOString().split("T")[0],
     });
     setSubmitStatus(submitText);
     setOpen(true);
+
+    
+
   }
 
   const getData = async (url) => {

@@ -85,34 +85,42 @@ class EntryController extends Controller
         }
     }
 
-    public function update(EntryRequest $request, $id)
+    public function update(EntryRequest $request, EntryGeneral $entry)
     {
-        DB::beginTransaction();
-
 
         try {
 
-            $this->cancellationService->handleEntryCancellation($request->id);
-
-            $dataToCreateEntries = $this->entryService->convertToSnakeCase($request);
-
-            $response = $this->entryService->update($dataToCreateEntries);
-
-            DB::commit();
-
+            $response = $this->entryService->update($request->validated(), $entry);
 
             return ['message' => $response['message']];
 
 
         } catch (Exception $e) {
 
-            DB::rollback();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
                 ], 500);
         }
 
+    }
+
+    public function destroy(EntryGeneral $entry){
+
+        try {
+
+            $response = $this->entryService->delete($entry);
+
+            return ['message' => $response['message']];
+
+
+        } catch (Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+                ], 500);
+        }
     }
 
     public function changeLoteNumber()

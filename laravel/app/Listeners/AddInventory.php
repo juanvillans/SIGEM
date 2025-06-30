@@ -36,6 +36,7 @@ class AddInventory
                 'components' => $entry->components,
                 'area' => $entry->area,
                 'quantity' => $entry->quantity,
+                'entry_general_id' => $entry->id,
             ]);
 
     }

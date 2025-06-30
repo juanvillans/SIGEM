@@ -59,7 +59,6 @@ class EntryRequest extends FormRequest
                 'exists:machine_statuses,id'
             ],
             'components' => [
-                'required',
                 'array'
             ],
             'arrival_time' => [

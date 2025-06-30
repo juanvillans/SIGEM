@@ -1,16 +1,6 @@
 <?php
 
 namespace App\Enums;
-
-/**
- *
- *            ['name' => 'Operativo'],
-            ['name' => 'Inoperativo'],
-            ['name' => 'En mantenimiento'],
-            ['name' => 'Pendiente'],
- */
-
-
 enum MachineStatus: int
 {
     case OPERATIVO = 1;

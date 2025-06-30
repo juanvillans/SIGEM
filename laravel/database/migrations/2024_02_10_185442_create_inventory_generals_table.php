@@ -28,6 +28,12 @@ return new class extends Migration
             $table->json('components');
             $table->string('area');
             $table->integer('quantity');
+            $table->unsignedInteger('entry_general_id');
+            $table->foreign('entry_general_id')
+            ->references('id')
+            ->on('entry_generals')
+            ->onDelete('cascade')
+            ->onUpdate('cascade');
             $table->unsignedInteger('last_type_maintenance_id')->nullable();
             $table->foreign('last_type_maintenance_id')
                   ->references('id')

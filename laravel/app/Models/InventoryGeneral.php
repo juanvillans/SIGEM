@@ -29,6 +29,7 @@ class InventoryGeneral extends Model
         'components',
         'area',
         'quantity',
+        'entry_general_id',
         'last_type_maintenance_id'
     ];
 

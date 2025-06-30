@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InventoryMoveStatus;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Entry;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
 use App\Services\OrganizationService;
 use App\Http\Resources\EntryDetailCollection;
-
+use App\Models\InventoryGeneral;
 
 class EntryService extends ApiService
 {
@@ -297,7 +298,7 @@ class EntryService extends ApiService
 
             } catch (Exception $e) {
 
-                Log::error('ProductService -  Error al crear entrada: '. $e->getMessage(), [
+                Log::error('EntryService -  Error al crear entrada: '. $e->getMessage(), [
                 'data' => $data,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -310,149 +311,68 @@ class EntryService extends ApiService
 
     }
 
-    public function update($data){
+    public function update($data, $entryGeneral){
 
-        if(count($data['products']) == 0)
-            throw new GeneralExceptions('Debe seleccionar al menos un producto',400);
+        try {
 
-        $entityCode = auth()->user()->entity_code;
-        $userId = auth()->user()->id;
-        $date = $this->splitDate($data['created_at']);
+            $this->delete($entryGeneral);
+
+            $this->create($data);
+
+            $user = auth()->user();
+            NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_ENTRADA->value, $entryGeneral->id);
+
+            return ['message' => 'Entradas Actualizada exitosamente'];
 
 
+        } catch (Exception $e) {
 
-
-        $newEntryCode = $this->generateNewEntryCode($entityCode);
-
-
-        $newEntryGeneral = EntryGeneral::create([
-            'entity_code' => $entityCode,
-            'code' => $newEntryCode,
-            'status' => 1,
-            'guide' => $data['guide'],
-            'arrival_time' => $data['arrival_time'],
-            'organization_id' => $data['organization_id'],
-            'authority_fullname' => $data['authority_fullname'],
-            'authority_ci' => $data['authority_ci'],
-            'user_id' => $userId,
-            'day' => $date['day'],
-            'month' => $date['month'],
-            'year' => $date['year'],
-
+            Log::error('EntryService -  Error al actualizar entrada: '. $e->getMessage(), [
+            'data' => $data,
+            'trace' => $e->getTraceAsString()
         ]);
 
-        $newEntryGeneral->save();
-
-        $products = $data['products'];
-
-        foreach ($products as $product)
-        {
-            if(!isset($product['loteNumber']))
-                throw new Exception('El número de lote es requerido',422);
-
-            $search = $this->generateSearch(['product' => $product, 'data' => $data, 'entryCode' => $newEntryCode]);
-
-            Log::info('producto');
-            Log::info($product);
-
-            if(array_key_exists('entry_id', $product))
-            {
-                Log::info('si existia');
-                Log::info($product);
-
-                $entrySearched = Entry::where('id',$product['entry_id'])->first();
-                $oldEntry = $entrySearched->toArray();
-
-
-                $entrySearched->update([
-                    'entity_code' => $entityCode,
-                    'entry_general_id' => $newEntryGeneral->id,
-                    'entry_code' => $newEntryCode,
-                    'user_id' => $userId,
-                    'product_id' => $product['id'],
-                    'quantity' => 1, // Siempre 1 para equipos médicos
-                    'organization_id' => $data['organization_id'],
-                    'guide' => 'N/A', // No se requiere guía para equipos médicos
-                    'lote_number' => $product['loteNumber'],
-                    'serial' => $product['serial'] ?? '',
-                    'bien_nacional' => $product['bienNacional'] ?? '',
-                    'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
-                    'condition_id' => $product['conditionId'],
-                    'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
-                    'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
-                    'day' => $date['day'],
-                    'month' => $date['month'],
-                    'year' => $date['year'],
-                    'description' => $product['description'],
-                    'arrival_time' => $data['arrival_time'],
-                    'created_at' => $data['created_at'],
-                    'search' => $search,
-                ]);
-
-                $inventory = Inventory::where('entry_id', $entrySearched->id)->first();
-
-                if($inventory->outputs > $entrySearched->quantity)
-                    throw new Exception('El producto: ' . $product['name'] . ' con lote: ' . $product['loteNumber'] . ' No puede actualizarse ya que quedaria en negativo',422);
-
-                    EntryDetailUpdated::dispatch($entrySearched, $oldEntry);
-
-            }
-            else{
-
-                Log::info('no existia');
-                Log::info($product);
-
-            $newEntryDetail = Entry::create([
-                'entity_code' => $entityCode,
-                'entry_general_id' => $newEntryGeneral->id,
-                'entry_code' => $newEntryCode,
-                'user_id' => $userId,
-                'product_id' => $product['id'],
-                'quantity' => 1, // Siempre 1 para equipos médicos
-                'organization_id' => $data['organization_id'],
-                'guide' => 'N/A', // No se requiere guía para equipos médicos
-                'lote_number' => $product['loteNumber'],
-                'serial' => $product['serial'] ?? '',
-                'bien_nacional' => $product['bienNacional'] ?? '',
-                'expiration_date' => '9999-09-09', // Los equipos médicos no vencen
-                'condition_id' => $product['conditionId'],
-                'authority_fullname' => 'N/A', // No se requiere autoridad para equipos médicos
-                'authority_ci' => 'N/A', // No se requiere cédula para equipos médicos
-                'day' => $date['day'],
-                'month' => $date['month'],
-                'year' => $date['year'],
-                'description' => $product['description'],
-                'arrival_time' => $data['arrival_time'],
-                'created_at' => $data['created_at'],
-                'search' => $search,
-            ]);
-
-            EntryDetailCreated::dispatch($newEntryDetail);
-
-            }
+        throw $e;
 
         }
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 8, $newEntryGeneral->id);
-
-        return ['message' => 'Entradas Actualizada exitosamente'];
     }
 
-    public function delete($entrGeneralID){
+    public function delete(EntryGeneral $entryGeneral){
 
-        $entries = Entry::where('entry_general_id',$entrGeneralID)->get();
+        $user = auth()->user();
 
-        foreach ($entries as $entry)
-        {
-            $inventory = Inventory::where('entry_id', $entry->id)->first();
+        return DB::transaction(function() use($entryGeneral, $user){
 
-            if($inventory->outputs > 0)
-                throw new Exception('El producto con lote: ' . $inventory->lote_number . ' No puede eliminarse ya que quedaria en negativo',422);
+            try {
 
-            $oldEntry = $entry->toArray();
-            EntryDetailDeleted::dispatch($oldEntry);
-        }
+                $inventory = InventoryGeneral::where('entry_general_id',$entryGeneral->id)->first();
+                if($inventory->quantity == 0)
+                    throw new Exception("No puede eliminarse esta entrada, ya que se le hizo una salida", 403);
+
+                $inventory->delete();
+
+                $entryGeneral->update([
+                    'status' => InventoryMoveStatus::ELIMINADO->value,
+                ]);
+
+                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_ENTRADA->value, $entryGeneral->id);
+
+                return ['message' => 'Entradas Eliminada exitosamente'];
+
+
+
+            } catch (Exception $e) {
+
+                Log::error('EntryService -  Error al eliminar entrada: '. $e->getMessage(), [
+                'data' => [$inventory, $entryGeneral],
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+            }
+
+        });
 
     }
 
