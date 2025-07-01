@@ -8,8 +8,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import HistoryIcon from "@mui/icons-material/History";
-import MicIcon from '@mui/icons-material/Mic';
-import { IconButton, TextField, MenuItem, Autocomplete, Box } from "@mui/material";
+import MicIcon from "@mui/icons-material/Mic";
+import {
+  IconButton,
+  TextField,
+  MenuItem,
+  Autocomplete,
+  Box,
+} from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
 import Alert from "../components/Alert";
@@ -19,10 +25,8 @@ import useDebounce from "../components/useDebounce";
 import CryptoJS from "crypto-js";
 import Input from "../components/Input";
 import CheckableList from "../components/CheckableList";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 import InputWhite from "../components/InputWhite";
-
-
 
 function getCurrentTime() {
   const now = new Date();
@@ -83,22 +87,21 @@ export default function Entradas(props) {
 
   const [organizations, setOrganizations] = useState([]);
 
-
   const handleSearchOrganizations = useDebounce(async (searchText) => {
-      if (searchText.trim().length > 0) {
-        try {
-          const response = await axios.get(
-            `dashboard/organizations?search[all]=${searchText}`
-          );
-          const responseSearch = response.data.data;
-          setOrganizations(responseSearch);
-        } catch (error) {
-          // Maneja los errores de la solicitud
-        }
+    if (searchText.trim().length > 0) {
+      try {
+        const response = await axios.get(
+          `dashboard/organizations?search[all]=${searchText}`
+        );
+        const responseSearch = response.data.data;
+        setOrganizations(responseSearch);
+      } catch (error) {
+        // Maneja los errores de la solicitud
       }
-    }, 290);
+    }
+  }, 290);
 
-    const handleOptionSelectOrganizations = (event, value) => {
+  const handleOptionSelectOrganizations = (event, value) => {
     if (value) {
       setNewRegister((prev) => ({
         ...prev,
@@ -115,16 +118,15 @@ export default function Entradas(props) {
     }
   };
 
-
   const [dataTable, setDataTable] = useState([]);
   const [generalData, setGeneralData] = useState({
     machine_status: [
       { id: 1, name: "OPERATIVO" },
       { id: 2, name: "INOPERATIVO" },
-      { id: 3, name: "PENDIENTE DE VALIDACIÓN" }
+      { id: 3, name: "PENDIENTE DE VALIDACIÓN" },
     ],
     entitiesObject: {},
-    entities:[],
+    entities: [],
   });
 
   const [open, setOpen] = useState(false);
@@ -133,7 +135,6 @@ export default function Entradas(props) {
     modalInfo: false,
     content: <></>,
   });
-
 
   const [NewRegister, setNewRegister] = useState({
     code: "",
@@ -146,7 +147,7 @@ export default function Entradas(props) {
     national_code: "",
     organization_id: null,
     machine_status_id: 1,
-    components: [],
+    components: {},
     arrival_time: getCurrentTime(),
     arrival_date: new Date().toISOString().split("T")[0],
     status: 1,
@@ -170,7 +171,6 @@ export default function Entradas(props) {
       entityCode: props.userData.entityCode,
     },
   });
-
 
   const columns = [
     {
@@ -213,9 +213,10 @@ export default function Entradas(props) {
       name: "entity_name",
       label: "Entidad",
       options: {
-        display: parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*" 
-          ? "true" 
-          : "excluded",
+        display:
+          parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*"
+            ? "true"
+            : "excluded",
         filter: false,
         sort: true,
       },
@@ -232,7 +233,6 @@ export default function Entradas(props) {
       label: "Fecha",
       options: {
         filter: false,
-        
       },
     },
     {
@@ -284,82 +284,84 @@ export default function Entradas(props) {
         filter: false,
       },
     },
-  {
-  name: "components",
-  label: "Componentes",
-  options: {
-    filter: false,
-    customBodyRender: (value, tableMeta) => {
-      // Si no hay componentes o el objeto está vacío
-      if (!value || Object.keys(value).length === 0) return "N/A";
+    {
+      name: "components",
+      label: "Componentes",
+      options: {
+        filter: false,
+        customBodyRender: (value, tableMeta) => {
+          // Si no hay componentes o el objeto está vacío
+          if (!value || Object.keys(value).length === 0) return "N/A";
 
-      // Convertir el objeto en un array de componentes FALTANTES (false)
-      const missingComponents = Object.entries(value)
-        .filter(([_, isIncluded]) => !isIncluded) // Filtra los que tienen false
-        .map(([component]) => component); // Extrae solo el nombre
+          // Convertir el objeto en un array de componentes FALTANTES (false)
+          const missingComponents = Object.entries(value)
+            .filter(([_, isIncluded]) => !isIncluded) // Filtra los que tienen false
+            .map(([component]) => component); // Extrae solo el nombre
 
-      // Caso 1: No hay componentes faltantes
-      if (missingComponents.length === 0) {
-        return (
-          <span className="text-white p-auto font-bold text-xs px-2 py-1 rounded bg-green">
-              Incluidos
-            <CheckIcon className="pb-1"></CheckIcon>
-          </span>
-        );
-      }
-
-      // Caso 2: Hay componentes faltantes
-      return (
-        <div className="relative group">
-          <div className="flex flex-wrap gap-1 max-w-[300px]">
-            {/* Mostrar los primeros 3 faltantes (color amarillo) */}
-            <p className="text-xs py-1 ">Faltan:</p>
-            {missingComponents.slice(0, 3).map((comp, i) => (
-              
-              <span 
-                key={i} 
-                className="bg-orange text-white text-center text-xs px-2 py-1 rounded"
-              >
-                {comp}
+          // Caso 1: No hay componentes faltantes
+          if (missingComponents.length === 0) {
+            return (
+              <span className="text-white p-auto font-bold text-xs px-2 py-1 rounded bg-green">
+                Incluidos
+                <CheckIcon className="pb-1"></CheckIcon>
               </span>
-            ))}
+            );
+          }
 
-            {/* Botón "Más" si hay más de 3 faltantes */}
-            {missingComponents.length > 3 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  document.getElementById(`missing-components-${tableMeta.rowIndex}`)
-                    .classList.toggle('hidden');
-                }}
-                className="text-xs p-1 rounded border border-gray-300 text-grey"
+          // Caso 2: Hay componentes faltantes
+          return (
+            <div className="relative group">
+              <div className="flex flex-wrap gap-1 max-w-[300px]">
+                {/* Mostrar los primeros 3 faltantes (color amarillo) */}
+                <p className="text-xs py-1 ">Faltan:</p>
+                {missingComponents.slice(0, 3).map((comp, i) => (
+                  <span
+                    key={i}
+                    className="bg-orange text-white text-center text-xs px-2 py-1 rounded"
+                  >
+                    {comp}
+                  </span>
+                ))}
+
+                {/* Botón "Más" si hay más de 3 faltantes */}
+                {missingComponents.length > 3 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document
+                        .getElementById(
+                          `missing-components-${tableMeta.rowIndex}`
+                        )
+                        .classList.toggle("hidden");
+                    }}
+                    className="text-xs p-1 rounded border border-gray-300 text-grey"
+                  >
+                    +{missingComponents.length - 3} faltantes
+                  </button>
+                )}
+              </div>
+
+              {/* Popup con TODOS los faltantes (solo visible al hacer clic) */}
+              <div
+                id={`missing-components-${tableMeta.rowIndex}`}
+                className="hidden absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md p-2 border border-grey"
               >
-                +{missingComponents.length - 3} faltantes
-              </button>
-            )}
-          </div>
-
-          {/* Popup con TODOS los faltantes (solo visible al hacer clic) */}
-          <div
-            id={`missing-components-${tableMeta.rowIndex}`}
-            className="hidden absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md p-2 border border-grey"
-          >
-            <div className="flex flex-wrap gap-1">
-              {missingComponents.map((comp, i) => (
-                <span 
-                  key={i} 
-                  className="bg-orange text-white text-xs px-2 py-1 rounded mb-1"
-                >
-                  {comp}
-                </span>
-              ))}
+                <div className="flex flex-wrap gap-1">
+                  {missingComponents.map((comp, i) => (
+                    <span
+                      key={i}
+                      className="bg-orange text-white text-xs px-2 py-1 rounded mb-1"
+                    >
+                      {comp}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      );
+          );
+        },
+      },
     },
-  },
-},
     {
       name: "user_name",
       label: "Registrado por",
@@ -374,9 +376,9 @@ export default function Entradas(props) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewRegister(prev => ({
+    setNewRegister((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -397,9 +399,13 @@ export default function Entradas(props) {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      setSearchProductText(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+      setSearchProductText(
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      );
       setIsListening(false);
-      handleSearchForSelect(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+      handleSearchForSelect(
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      );
       if (isSearchHidden == "hidden") {
         setIsSearchHidden("absolute");
       }
@@ -410,39 +416,36 @@ export default function Entradas(props) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.ctrlKey && e.code === 'Space') {
+      if (e.ctrlKey && e.code === "Space") {
         e.preventDefault();
         startListening();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [startListening]);
 
-  const handleSearchForSelect = useDebounce(
-    async (searchText) => {
-      if (searchText.trim() == "") {
-        setProductsSearched([]);
-        return;
-      }
+  const handleSearchForSelect = useDebounce(async (searchText) => {
+    if (searchText.trim() == "") {
+      setProductsSearched([]);
+      return;
+    }
 
-      try {
-        const response = await axios.get(
-          `dashboard/products?search[all]=${searchText}&rowsPerPage=15`
-        );
-        const responseSearch = response.data.products;
-        if (responseSearch.length > 0) {
-          setProductsSearched(responseSearch);
-        } else {
-          setProductsSearched("No se encontró ningún producto");
-        }
-      } catch (error) {
-        setProductsSearched("Error al buscar productos");
+    try {
+      const response = await axios.get(
+        `dashboard/products?search[all]=${searchText}&rowsPerPage=15`
+      );
+      const responseSearch = response.data.products;
+      if (responseSearch.length > 0) {
+        setProductsSearched(responseSearch);
+      } else {
+        setProductsSearched("No se encontró ningún producto");
       }
-    },
-    350
-  );
+    } catch (error) {
+      setProductsSearched("Error al buscar productos");
+    }
+  }, 350);
 
   const [totalData, setTotalData] = useState(0);
 
@@ -450,10 +453,10 @@ export default function Entradas(props) {
     setParametersURL((prev) => ({ ...prev, search: searchText, page: 1 }));
   }, 350);
 
-
   useEffect(() => {
     if (!hasLoadedRelations) {
-      axios.get(`/dashboard/relation?entities=true&machine_status=true`)
+      axios
+        .get(`/dashboard/relation?entities=true&machine_status=true`)
         .then((res) => {
           if (res.data.entities) {
             const entitiesObject = {};
@@ -468,7 +471,6 @@ export default function Entradas(props) {
               machine_status: res.data.machine_status,
               // conditions: res.data.conditions || prev.conditions,
             }));
-
           }
           setHasLoadedRelations(true);
         })
@@ -477,7 +479,6 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-
 
   useEffect(() => {
     setDataTable([]);
@@ -566,7 +567,7 @@ export default function Entradas(props) {
       handleSearch(searchText);
     },
 
-     onFilterChange: (
+    onFilterChange: (
       changedColumn,
       filterList,
       typeFilter,
@@ -587,7 +588,7 @@ export default function Entradas(props) {
       } else {
         delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
-      
+
       setParametersURL((prev) => ({
         ...prev,
         filter: Object.values(filterObject).join(""),
@@ -657,15 +658,23 @@ export default function Entradas(props) {
               <IconButton
                 title="Copiar"
                 onClick={() => {
-                    editIconClick(dataTable[selectedRows.data[0].dataIndex], "Crear entrada", true);
+                  editIconClick(
+                    dataTable[selectedRows.data[0].dataIndex],
+                    "Crear entrada",
+                    true
+                  );
                 }}
-                >
+              >
                 <ContentCopyIcon />
               </IconButton>
               <IconButton
                 title="Editar"
                 onClick={() => {
-                    editIconClick(dataTable[selectedRows.data[0].dataIndex], "Editar entrada", false);
+                  editIconClick(
+                    dataTable[selectedRows.data[0].dataIndex],
+                    "Editar entrada",
+                    false
+                  );
                 }}
               >
                 <EditIcon />
@@ -673,7 +682,6 @@ export default function Entradas(props) {
               <IconButton
                 title="Eliminar"
                 onClick={() => {
-                      
                   setModalConfirm({
                     isOpen: true,
                     modalInfo: (
@@ -681,7 +689,6 @@ export default function Entradas(props) {
                         <p className="mb-2">
                           Está seguro que cancelará esta entrada?
                         </p>
-                    
                       </>
                     ),
                     aceptFunction: () => {
@@ -716,51 +723,54 @@ export default function Entradas(props) {
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
     if (isJustForCopy) {
-      copySelectedRowRquest.serial_number = "_"+createHashFromTime();
-      copySelectedRowRquest.national_code = "_"+createHashFromTime();
+      copySelectedRowRquest.serial_number = "_" + createHashFromTime();
+      copySelectedRowRquest.national_code = "_" + createHashFromTime();
 
-      copySelectedRowRquest.components = copySelectedRowRquest.product.required_components.reduce((acc, component) => ({
-      ...acc,
-      [component]: true
-    }), {});
-
+      copySelectedRowRquest.components =
+        copySelectedRowRquest.product.required_components.reduce(
+          (acc, component) => ({
+            ...acc,
+            [component]: true,
+          }),
+          {}
+        );
+    } else {
+      copySelectedRowRquest.components =
+        copySelectedRowRquest?.components || {};
     }
-    else{
-       copySelectedRowRquest.components = copySelectedRowRquest?.components || {};
-    }
 
-    setOrganizations([{
-          id: copySelectedRowRquest.organization_id,
-          name: copySelectedRowRquest.organization_name,
-    }]);
+    setOrganizations([
+      {
+        id: copySelectedRowRquest.organization_id,
+        name: copySelectedRowRquest.organization_name,
+      },
+    ]);
 
     setNewRegister({
       ...copySelectedRowRquest,
       code: isJustForCopy ? "" : copySelectedRowRquest.code,
       product: {
-        brand: copySelectedRowRquest.product_brand, 
-        name: copySelectedRowRquest.product_name, 
-        model: copySelectedRowRquest.product_model, 
+        brand: copySelectedRowRquest.product_brand,
+        name: copySelectedRowRquest.product_name,
+        model: copySelectedRowRquest.product_model,
         id: copySelectedRowRquest.product_id,
         required_components: copySelectedRowRquest.product_required_components,
         serial_number: copySelectedRowRquest.serial_number,
         national_code: copySelectedRowRquest.national_code,
-
       },
-      organizationObject:{
+      organizationObject: {
         organizationId: copySelectedRowRquest.organization_id,
-          name: copySelectedRowRquest?.organization_name,
-          code: copySelectedRowRquest?.organization_code,
+        name: copySelectedRowRquest?.organization_name,
+        code: copySelectedRowRquest?.organization_code,
       },
-      organization_id:copySelectedRowRquest.organization_id,
+      organization_id: copySelectedRowRquest.organization_id,
       organizationName: copySelectedRowRquest.organization_name,
-      arrival_date: new Date(copySelectedRowRquest.arrival_date).toISOString().split("T")[0],
+      arrival_date: new Date(copySelectedRowRquest.arrival_date)
+        .toISOString()
+        .split("T")[0],
     });
     setSubmitStatus(submitText);
     setOpen(true);
-
-    
-
   }
 
   const getData = async (url) => {
@@ -769,7 +779,7 @@ export default function Entradas(props) {
       const res = response.data;
       setTotalData(res.total);
       setDataTable(res.entries);
-        setIsLoading(false);
+      setIsLoading(false);
     });
   };
 
@@ -821,11 +831,19 @@ export default function Entradas(props) {
         national_code: "",
         organization_id: null,
         machine_status_id: 1,
-        components: [],
+        components: {},
+        organizationObject: {
+          organizationId: null,
+          name: "",
+          code: "",
+        },
+        organization_id: null,
+        organizationName: "",
         arrival_time: getCurrentTime(),
         arrival_date: new Date().toISOString().split("T")[0],
         status: 1,
       });
+      setOrganizations([])
     } catch (error) {
       if (error.response.status == 403) {
         localStorage.removeItem("userData");
@@ -847,7 +865,7 @@ export default function Entradas(props) {
   };
 
   const [tabla, setTabla] = useState();
-
+  console.log({ NewRegister, organizations });
   useEffect(() => {
     setTabla(
       <MUIDataTable
@@ -930,10 +948,14 @@ export default function Entradas(props) {
                   national_code: "",
                   organization_id: null,
                   machine_status_id: 1,
-                  components: [],
-                  organizationObject:{},
-                  organization_id:'',
-                  organizationName: '',
+                  components: {},
+                  organizationObject: {
+                    organizationId: null,
+                    name: "",
+                    code: "",
+                  },
+                  organization_id: null,
+                  organizationName: "",
                   arrival_time: getCurrentTime(),
                   arrival_date: new Date().toISOString().split("T")[0],
                   status: 1,
@@ -1005,10 +1027,10 @@ export default function Entradas(props) {
                         <InputAdornment position="end">
                           <SearchIcon className="text-dark" />
                         </InputAdornment>
-                        <button 
-                          className="hover:text-blue2" 
-                          title="(Ctrl+Espacio) Dictar por voz" 
-                          onClick={startListening} 
+                        <button
+                          className="hover:text-blue2"
+                          title="(Ctrl+Espacio) Dictar por voz"
+                          onClick={startListening}
                           disabled={isListening}
                         >
                           {isListening ? "Escuchando..." : <MicIcon />}
@@ -1043,16 +1065,19 @@ export default function Entradas(props) {
                             className="body border-b border-b-grey border-opacity-10 text-black items-center hover:bg-blue1 hover:text-white cursor-pointer py-3"
                             onMouseDown={() => {
                               setIsSearchHidden("hidden");
-                              setNewRegister(prev => ({
+                              setNewRegister((prev) => ({
                                 ...prev,
                                 product_id: product.id,
                                 serial_number: "_" + createHashFromTime(),
                                 national_code: "_" + createHashFromTime(),
                                 product: product,
-                                components: product.required_components.reduce((acc, component) => ({
+                                components: product.required_components.reduce(
+                                  (acc, component) => ({
                                     ...acc,
-                                    [component]: true
-                                }), {})
+                                    [component]: true,
+                                  }),
+                                  {}
+                                ),
                               }));
                             }}
                           >
@@ -1067,120 +1092,110 @@ export default function Entradas(props) {
                   </table>
                 </div>
               </div>
-              
-           
 
               {NewRegister.product && (
                 <>
-                <table className="border border-light w-full ">
-                <thead className="header  text-dark text-xs px-30  ">
-                  <tr>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      #
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Producto
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Nro Serial
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Cod. Bien nacional
-                    </th>
-                    {/* <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">Stock</th> */}
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Estado del equipo
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Componentes
-                    </th>
-                    
-                  </tr>
-                </thead>
-                <tbody className="">
-                        <tr
-                          key={NewRegister.product.id}
-                          className="body px-2  px-30  text-dark items-center text-sm "
-                        >
-                          <td className="p-4 px-2 w-[60px] ">
-                            {NewRegister.product.code}
-                          </td>
+                  <table className="border border-light w-full ">
+                    <thead className="header  text-dark text-xs px-30  ">
+                      <tr>
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          #
+                        </th>
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          Producto
+                        </th>
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          Nro Serial
+                        </th>
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          Cod. Bien nacional
+                        </th>
+                        {/* <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">Stock</th> */}
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          Estado del equipo
+                        </th>
+                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
+                          Componentes
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="">
+                      <tr
+                        key={NewRegister.product.id}
+                        className="body px-2  px-30  text-dark items-center text-sm "
+                      >
+                        <td className="p-4 px-2 w-[60px] ">
+                          {NewRegister.product.code}
+                        </td>
 
-                          <td className="p-4 px-2 w-[300px]">
-                            {" "}
-                            <b>{NewRegister.product.machine}</b>{" "}
-                            <span className="text-green font-semibold">{NewRegister.product.brand} </span>
-                            {" "}
-                            <small>{NewRegister.product.model}</small>
-                          </td>
-                          <td className="p-4 px-2 w-[200px]">
-                            <Input
-                              label={"Serial"}
-                              key={`nro_serial_${NewRegister.product.id}`}
-                              value={NewRegister.product?.serial_number}
-                              name={`serial_number`}
-                              size="small"
-                              onChange={handleChange}
-                            />
-                          </td>
-                          <td className="p-4 px-2 w-[200px]">
-                            <Input
-                              label={"Nacional"}
-                              key={`national_code_${NewRegister.product.id}`}
-                              value={NewRegister.product?.national_code}
-                              name={`national_code`}
-                              size="small"
-                              onChange={handleChange}
-                            />
-                          </td>
-                          <td className="p-4 px-2 w-[200px]">
-                           <Input
-                              name="machine_status_id"
-                              id=""
-                              select
-                              value={NewRegister.machine_status_id}
-                              size="small"
-                              className="bg-blue/0 py-1 font-bold"
-                              onChange={(e) => {
-                                setNewRegister(prev => ({
-                                  ...prev,
-                                  machine_status_id: e.target.value
-                                }));
-                              }}
-                            >
-                              {generalData.machine_status?.map((option) => (
-                                <MenuItem key={option.id} value={option.id}>
-                                  {option.name}
-                                </MenuItem>
-                              )) || <MenuItem value={""}></MenuItem>}
-                             
-                            </Input>
-                          </td>
+                        <td className="p-4 px-2 w-[300px]">
+                          {" "}
+                          <b>{NewRegister.product.machine}</b>{" "}
+                          <span className="text-green font-semibold">
+                            {NewRegister.product.brand}{" "}
+                          </span>{" "}
+                          <small>{NewRegister.product.model}</small>
+                        </td>
+                        <td className="p-4 px-2 w-[200px]">
+                          <Input
+                            label={"Serial"}
+                            key={`nro_serial_${NewRegister.product.id}`}
+                            value={NewRegister.product?.serial_number}
+                            name={`serial_number`}
+                            size="small"
+                            onChange={handleChange}
+                          />
+                        </td>
+                        <td className="p-4 px-2 w-[200px]">
+                          <Input
+                            label={"Nacional"}
+                            key={`national_code_${NewRegister.product.id}`}
+                            value={NewRegister.product?.national_code}
+                            name={`national_code`}
+                            size="small"
+                            onChange={handleChange}
+                          />
+                        </td>
+                        <td className="p-4 px-2 w-[200px]">
+                          <Input
+                            name="machine_status_id"
+                            id=""
+                            select
+                            value={NewRegister.machine_status_id}
+                            size="small"
+                            className="bg-blue/0 py-1 font-bold"
+                            onChange={(e) => {
+                              setNewRegister((prev) => ({
+                                ...prev,
+                                machine_status_id: e.target.value,
+                              }));
+                            }}
+                          >
+                            {generalData.machine_status?.map((option) => (
+                              <MenuItem key={option.id} value={option.id}>
+                                {option.name}
+                              </MenuItem>
+                            )) || <MenuItem value={""}></MenuItem>}
+                          </Input>
+                        </td>
 
-                          <td className="p-4 px-2">
-                              <CheckableList 
-                                  components={NewRegister.components || {}}
-                                  onComponentsChange={(updatedComponents) => {
-                                      setNewRegister(prev => ({
-                                          ...prev,
-                                          components: updatedComponents
-                                      }));
-                                  }}
-                              />
-                          </td>
-                          
-                          
-                   
-                        </tr>
-                      
-                </tbody>
-                </table>
-
-                  
+                        <td className="p-4 px-2">
+                          <CheckableList
+                            components={NewRegister.components || {}}
+                            onComponentsChange={(updatedComponents) => {
+                              setNewRegister((prev) => ({
+                                ...prev,
+                                components: updatedComponents,
+                              }));
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </>
-            )}
+              )}
             </div>
-
 
             <Input
               shrink={true}
@@ -1190,7 +1205,6 @@ export default function Entradas(props) {
               value={NewRegister.arrival_date}
               name={"arrival_date"}
               onChange={handleChange}
-              
             />
             <Input
               shrink={true}
@@ -1220,9 +1234,7 @@ export default function Entradas(props) {
                   >
                     {option.code !== props?.userData?.entityCode && (
                       <p>
-                        <span
-                          style={{ color: "#011140", marginRight: "5px" }}
-                        >
+                        <span style={{ color: "#011140", marginRight: "5px" }}>
                           {option.code !== "nocode" && <StoreIcon />}
                         </span>
                         {option.name}
@@ -1239,15 +1251,10 @@ export default function Entradas(props) {
                 );
               }}
               renderInput={(params) => (
-                <TextField
-                  required
-                  key={params}
-                  {...params}
-                  label="Origen"
-                />
+                <TextField required key={params} {...params} label="Origen" />
               )}
             />
-            
+
             <Input
               label={"Área"}
               value={NewRegister.area}
@@ -1257,7 +1264,8 @@ export default function Entradas(props) {
 
             {submitStatus == "Editar entrada" && (
               <p className="text-xs text-center col-span-3 relative top-3">
-                Al editar se cancelará la versión anterior y se guardará esta nueva
+                Al editar se cancelará la versión anterior y se guardará esta
+                nueva
               </p>
             )}
             <Button3D
