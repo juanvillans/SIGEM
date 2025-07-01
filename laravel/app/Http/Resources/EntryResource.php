@@ -34,12 +34,14 @@ class EntryResource extends JsonResource
             "organization_id"=> $this->organization->id,
             "organization_name"=> $this->organization->name,
             "organization_code"=> $this->organization->code,
+            "organizationObj" => (object) ['name' => $this->organization->name??null, 'code' => $this->organization->code??null],
             "machine_status_id" => $this->machine_status_id,
             "machine_status_name" => $this->machineStatus->name,
             "components" => $this->components,
             "arrival_time" => $this->arrival_time,
             "arrival_date" => $this->updated_at->format('F d, Y'),
             "status"=>$this->status,
+
         ];
 
     }
