@@ -88,14 +88,49 @@ export default function Inventario(props) {
     filterObjectValues: { entityCode: props.userData.entityCode },
   });
 
-  const columns = [
+   const columns = [
     {
-      name: "entityName",
+      name: "day",
+      label: "Dia",
+      options: {
+        display: "excluded",
+        filter: true,
+        filterList: parametersURL?.filterList[0] || [],
+        filterOptions: {
+          names: days,
+        },
+      },
+    },
+    {
+      name: "month",
+      label: "Mes",
+      options: {
+        display: "excluded",
+        filter: true,
+        filterList: parametersURL?.filterList[1] || [],
+        filterOptions: {
+          names: months,
+        },
+      },
+    },
+    {
+      name: "year",
+      label: "Año",
+      options: {
+        display: "excluded",
+        filter: true,
+        filterList: parametersURL?.filterList[2] || [],
+        filterOptions: {
+          names: generalData?.years,
+        },
+      },
+    },
+    {
+      name: "entity_name",
       label: "Entidad",
       options: {
         display:
-          parametersURL.filterObjectValues.entityCode ==
-          "&inventories[entityCode]=*"
+          parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*"
             ? "true"
             : "excluded",
         filter: false,
@@ -103,249 +138,168 @@ export default function Inventario(props) {
       },
     },
     {
-      name: "code",
-      label: "Cód",
+      name: "arrival_date",
+      label: "Fecha",
       options: {
         filter: false,
-        sort: false,
+      },
+    },
+     {
+      name: "organizationObj",
+      label: "Origen",
+      options: {
+        filter: false,
+        customBodyRender: (value) => {
+          if (value.code.toLowerCase() !== "nocode") {
+            return (
+              <div className="flex">
+                <p>
+                  {" "}
+                  <span className="text-blue1">
+                    <StoreIcon style={{ fontSize: "15px" }} />
+                  </span>{" "}
+                  {value.name}
+                </p>
+              </div>
+            );
+          } else {
+            return <p>{value.name}</p>;
+          }
+        },
       },
     },
     {
-      name: "name",
-      label: "producto",
+      name: "arrival_time",
+      label: "Hora",
       options: {
         filter: false,
-        customBodyRenderLite: (value, tableMeta) => {
-          const rowData = dataTable[tableMeta];
+      },
+    },
+    {
+      name: "product_name",
+      label: "Equipo",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "product_brand",
+      label: "Marca",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "product_model",
+      label: "Modelo",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "serial_number",
+      label: "Serial",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "national_code",
+      label: "Bien Nacional",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "machine_status_name",
+      label: "Estado",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "components",
+      label: "Componentes",
+      options: {
+        filter: false,
+        customBodyRender: (value, tableMeta) => {
+          // Si no hay componentes o el objeto está vacío
+          if (!value || Object.keys(value).length === 0) return "N/A";
+
+          // Convertir el objeto en un array de componentes FALTANTES (false)
+          const missingComponents = Object.entries(value)
+            .filter(([_, isIncluded]) => !isIncluded) // Filtra los que tienen false
+            .map(([component]) => component); // Extrae solo el nombre
+
+          // Caso 1: No hay componentes faltantes
+          if (missingComponents.length === 0) {
+            return (
+              <span className="text-white p-auto font-bold text-xs px-2 py-1 rounded bg-green">
+                Incluidos
+                <CheckIcon className="pb-1"></CheckIcon>
+              </span>
+            );
+          }
+
+          // Caso 2: Hay componentes faltantes
           return (
-            <p>
-              <b> {rowData.name}</b> {rowData.unitPerPackage > 1 ? <span className="text-green font-semibold">{rowData.unitPerPackage}<small>x</small> </span> : <span>{rowData.unitPerPackage}</span>}{" "}
-              {rowData.typePresentationName != "N/A" &&
-                rowData.typePresentationName}{" "}
-              {rowData.concentrationSize != "N/A" && (
-                <b style={{ color: "#187CBA" }}> {rowData.concentrationSize}</b>
-              )}
-            </p>
+            <div className="relative group">
+              <div className="flex flex-wrap gap-1 max-w-[300px]">
+                {/* Mostrar los primeros 3 faltantes (color amarillo) */}
+                <p className="text-xs py-1 ">Faltan:</p>
+                {missingComponents.slice(0, 3).map((comp, i) => (
+                  <span
+                    key={i}
+                    className="bg-orange text-white text-center text-xs px-2 py-1 rounded"
+                  >
+                    {comp}
+                  </span>
+                ))}
+
+                {/* Botón "Más" si hay más de 3 faltantes */}
+                {missingComponents.length > 3 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document
+                        .getElementById(
+                          `missing-components-${tableMeta.rowIndex}`
+                        )
+                        .classList.toggle("hidden");
+                    }}
+                    className="text-xs p-1 rounded border border-gray-300 text-grey"
+                  >
+                    +{missingComponents.length - 3} faltantes
+                  </button>
+                )}
+              </div>
+
+              {/* Popup con TODOS los faltantes (solo visible al hacer clic) */}
+              <div
+                id={`missing-components-${tableMeta.rowIndex}`}
+                className="hidden absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md p-2 border border-grey"
+              >
+                <div className="flex flex-wrap gap-1">
+                  {missingComponents.map((comp, i) => (
+                    <span
+                      key={i}
+                      className="bg-orange text-white text-xs px-2 py-1 rounded mb-1"
+                    >
+                      {comp}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           );
         },
       },
     },
     {
-      name: "stock",
-      label: "Total",
+      name: "user_name",
+      label: "Registrado por",
       options: {
         filter: false,
-        customBodyRender: (stock, tableMeta) => {
-          return <p className=" font-bold">{stock}</p>;
-        },
-      },
-    },
-    {
-      name: "stockPerExpire",
-      label: "Por vencer",
-      options: {
-        filter: false,
-        customBodyRender: (value, tableMeta) => {
-          if (value > 0) {
-            return (
-              <span className=" bg-blue3 text-red font-bold p-1 px-2 rounded">
-                {value} <RunningWithErrorsIcon className="relative -top-1 " />
-              </span>
-            );
-          } else {
-            return <span className="">{value}</span>;
-          }
-        },
-      },
-    },
-    {
-      name: "stockGood",
-      label: "Buen estado",
-      options: {
-        filter: false,
-
-        customBodyRender: (stock, tableMeta) => {
-          const minimumAlert = dataTable[tableMeta.rowIndex].minimumAlert;
-
-          if (minimumAlert) {
-            return (
-              <span className="flex">
-                <span className="text-blue1 p-1 px-2 rounded font-bold  bg-blue3">
-                  {stock}
-                </span>
-                <ErrorOutlineIcon className="relative text-red -top-1.5" />
-              </span>
-            );
-          } else {
-            return (
-              <span className="text-blue1 p-1 px-2 rounded font-bold bg-blue3">
-                {stock}
-              </span>
-            );
-          }
-        },
-      },
-    },
-    {
-      name: "categoryName",
-      label: "Categoria",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[6] || [],
-        sort: true,
-        filterOptions: {
-          names: generalData.categories
-            ? generalData.categories.map((ent) => ent.name)
-            : [""],
-        },
-      },
-    },
-    {
-      name: "typePresentationName",
-      label: "Presentación",
-      options: {
-        display: "excluded",
-
-        filter: true,
-        filterList: parametersURL?.filterList[7] || [],
-        sort: true,
-        filterOptions: {
-          names: generalData.typePresentations
-            ? generalData.typePresentations.map((ent) => ent.name)
-            : [""],
-        },
-      },
-    },
-
-    {
-      name: "unitPerPackage",
-      label: "Unidades x envase",
-      options: {
-        display: "excluded",
-
-        filter: false,
-      },
-    },
-    {
-      name: "concentrationSize",
-      label: "Concentración / tamaño",
-      options: {
-        display: "excluded",
-        filter: false,
-      },
-    },
-
-    {
-      name: "typeAdministrationName",
-      label: "Administración",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[10] || [],
-        sort: true,
-        filterOptions: {
-          names: generalData.typeAdministrations
-            ? generalData.typeAdministrations.map((ent) => ent.name)
-            : [""],
-        },
-      },
-    },
-    {
-      name: "medicamentName",
-      label: "Tipo de medicamento",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[11] || [],
-        sort: true,
-        filterOptions: {
-          names: generalData.medicaments
-            ? generalData.medicaments.map((ent) => ent.name)
-            : [""],
-        },
-      },
-    },
-
-    {
-      name: "stockExpired",
-      label: "Vencidos",
-      options: {
-        filter: false,
-        customBodyRender: (value, tableMeta) => {
-          if (value > 0) {
-            return (
-              <span className=" bg-red text-white font-bold p-1 px-2 rounded">
-                {value}
-              </span>
-            );
-          } else {
-            return <span className="">{value}</span>;
-          }
-        },
-      },
-    },
-    {
-      name: "stockBad",
-      label: "Defectuosos",
-      options: {
-        filter: false,
-        customBodyRender: (value, tableMeta) => {
-          if (value > 0) {
-            return (
-              <span className=" bg-orange text-white font-bold p-1 px-2 rounded">
-                {value}
-              </span>
-            );
-          } else {
-            return <span className="">{value}</span>;
-          }
-        },
-      },
-    },
-    {
-      name: "entries",
-      label: "Entradas",
-      options: {
-        filter: false,
-      },
-    },
-
-    {
-      name: "outputs",
-      label: "Salidas",
-      options: {
-        filter: false,
-      },
-    },
-    {
-      name: "entityCode",
-      label: "Condición",
-      options: {
-        display: "excluded",
-        filter: true,
-        // filterType: "singleSelect",
-
-        filterList: parametersURL?.filterList[16] || [],
-        sort: false,
-        filterOptions: {
-          names: generalData.conditions
-            ? generalData.conditions.map((ent) => ent.name)
-            : [""],
-        },
-      },
-    },
-    {
-      name: "minimunAlert",
-      label: "Cantidad",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[17] || [],
-        sort: false,
-        filterOptions: {
-          names: ["Crítica", "Suficiente"],
-        },
       },
     },
   ];
