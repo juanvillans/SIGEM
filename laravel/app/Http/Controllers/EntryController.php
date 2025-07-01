@@ -44,10 +44,7 @@ class EntryController extends Controller
 
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 
-       $years = EntryGeneral::selectRaw('EXTRACT(YEAR FROM created_at) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year');
+
 
 
 
@@ -57,7 +54,6 @@ class EntryController extends Controller
             'entries' => $entryCollection,
             'total' => $total,
             'canSeeOthers' => $canSeeOthers,
-            'years' => $years,
             'message' => 'OK'
         ];
 
