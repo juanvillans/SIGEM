@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Enums\MachineStatus;
-use App\Enums\TypeMaintenance;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\MachineStatus;
+use App\Models\TypeMaintenance;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class InventoryGeneral extends Model
 {

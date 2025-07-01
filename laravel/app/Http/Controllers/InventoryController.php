@@ -2,36 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entry;
+use App\Models\Output;
+use App\Models\Condition;
+use App\Models\Inventory;
+use App\Models\Organization;
+use Illuminate\Http\Request;
+use App\Models\HierarchyEntity;
+use App\Models\InventoryGeneral;
+use App\Services\InventoryService;
+use Illuminate\Support\Facades\Log;
+
 use App\Filters\InventoryQueryFilter;
 use App\Http\Resources\InventoryCollection;
 use App\Http\Resources\InventoryReportCollection;
-use App\Models\Condition;
-use App\Models\Entry;
-use App\Models\HierarchyEntity;
-use App\Models\Inventory;
-use App\Models\InventoryGeneral;
-use App\Models\Organization;
-use App\Models\Output;
-
-use App\Services\InventoryService;
-use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
+    private $inventoryService;
+
     public function __construct()
     {
         $this->inventoryService = new InventoryService;
-        $this->queryFilter = new InventoryQueryFilter;
     }
 
     public function index(Request $request)
     {
-        $userEntityCode = auth()->user()->entity_code;
+        $inventories = $this->inventoryService->getData();
 
-        $paginateArray = $this->queryFilter->getPaginateValues($request,'inventory_generals');
-
-
-        $inventories = $this->inventoryService->getData($paginateArray,$request,$userEntityCode);
+        Log::info('testeando inventario', $inventories->toArray());
 
         if($request->input('report') == 'true')
             $inventoryCollection = new InventoryReportCollection($inventories);
@@ -40,7 +39,8 @@ class InventoryController extends Controller
 
         $total = $inventories->total();
 
-        $canSeeOthers = $userEntityCode == '1'?true:false;
+        $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
+
 
         return [
             'inventories' => $inventoryCollection,

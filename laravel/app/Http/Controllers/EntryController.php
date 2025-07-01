@@ -45,10 +45,6 @@ class EntryController extends Controller
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 
 
-
-
-
-
         return [
 
             'entries' => $entryCollection,
