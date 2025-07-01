@@ -199,7 +199,7 @@ export default function Entradas(props) {
       },
     },
     {
-      name: "created_at",
+      name: "year",
       label: "Año",
       options: {
         display: "excluded",
@@ -234,6 +234,30 @@ export default function Entradas(props) {
       label: "Fecha",
       options: {
         filter: false,
+      },
+    },
+     {
+      name: "organizationObj",
+      label: "Origen",
+      options: {
+        filter: false,
+        customBodyRender: (value) => {
+          if (value.code.toLowerCase() !== "nocode") {
+            return (
+              <div className="flex">
+                <p>
+                  {" "}
+                  <span className="text-blue1">
+                    <StoreIcon style={{ fontSize: "15px" }} />
+                  </span>{" "}
+                  {value.name}
+                </p>
+              </div>
+            );
+          } else {
+            return <p>{value.name}</p>;
+          }
+        },
       },
     },
     {
@@ -463,13 +487,12 @@ export default function Entradas(props) {
             res.data.entities.forEach((obj) => {
               entitiesObject[obj.name] = obj.name;
             });
-
             setGeneralData((prev) => ({
               ...prev,
               entitiesObject,
               entities: res.data.entities,
               machine_status: res.data.machine_status,
-              years:res.entriesYears
+              years:res.data.entriesYears
               // conditions: res.data.conditions || prev.conditions,
             }));
           }
@@ -480,7 +503,7 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-
+  console.log(generalData)
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -583,6 +606,7 @@ export default function Entradas(props) {
         return;
       }
       if (arrValues.length > 0) {
+        console.log({changedColumn, columnIndex});
         filterObject[changedColumn] = `${
           filterConfiguration[changedColumn]
         }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
