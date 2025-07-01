@@ -126,7 +126,8 @@ export default function Entradas(props) {
       { id: 3, name: "PENDIENTE DE VALIDACIÓN" },
     ],
     entitiesObject: {},
-    entities: [],
+    entities:[],
+    years: [],
   });
 
   const [open, setOpen] = useState(false);
@@ -198,7 +199,7 @@ export default function Entradas(props) {
       },
     },
     {
-      name: "year",
+      name: "created_at",
       label: "Año",
       options: {
         display: "excluded",
@@ -455,8 +456,7 @@ export default function Entradas(props) {
 
   useEffect(() => {
     if (!hasLoadedRelations) {
-      axios
-        .get(`/dashboard/relation?entities=true&machine_status=true`)
+      axios.get(`/dashboard/relation?entities=true&machine_status=true&entriesYears=true`)
         .then((res) => {
           if (res.data.entities) {
             const entitiesObject = {};
@@ -469,6 +469,7 @@ export default function Entradas(props) {
               entitiesObject,
               entities: res.data.entities,
               machine_status: res.data.machine_status,
+              years:res.entriesYears
               // conditions: res.data.conditions || prev.conditions,
             }));
           }

@@ -83,73 +83,48 @@ class EntryService extends ApiService
                 });
             }
 
-            if(isset($param['day']))
-            {
-                $day = $param['day'];
+            if(isset($param['day'])) {
+                $days = $this->parseQuery($param['day']);
 
-                $days = $this->parseQuery($day);
+                $query->where(function ($query) use ($days) {
+                    $query->whereDay('created_at', $days[0]);
 
-                $query->where(function ($query) use ($days){
-
-                    $query->where('day',$days[0]);
-
-                    if(count($days) > 1){
-
+                    if(count($days) > 1) {
                         array_shift($days);
-
-                        foreach($days as $day)
-                        {
-                            $query->orWhere('day',$day);
+                        foreach($days as $day) {
+                            $query->orWhereDay('created_at', $day);
                         }
                     }
-
                 });
-
             }
 
-            if(isset($param['month']))
-            {
-                $month = $param['month'];
+            if(isset($param['month'])) {
+                $months = $this->parseQuery($param['month']);
 
-                $months = $this->parseQuery($month);
+                $query->where(function ($query) use ($months) {
+                    $query->whereMonth('created_at', $months[0]);
 
-                $query->where(function ($query) use ($months){
-
-                    $query->where('month',$months[0]);
-
-                    if(count($months) > 1){
-
+                    if(count($months) > 1) {
                         array_shift($months);
-
-                        foreach($months as $month)
-                        {
-                            $query->orWhere('month',$month);
+                        foreach($months as $month) {
+                            $query->orWhereMonth('created_at', $month);
                         }
                     }
-
                 });
-
             }
 
-            if(isset($param['year']))
-            {
-                $year = $param['year'];
+            if(isset($param['year'])) {
+                $years = $this->parseQuery($param['year']);
 
-                $years = $this->parseQuery($year);
+                $query->where(function ($query) use ($years) {
+                    $query->whereYear('created_at', $years[0]);
 
-                $query->where(function ($query) use ($years){
-
-                    $query->where('year',$years[0]);
-
-                    if(count($years) > 1){
+                    if(count($years) > 1) {
                         array_shift($years);
-
-                        foreach($years as $year)
-                        {
-                            $query->orWhere('year',$year);
+                        foreach($years as $year) {
+                            $query->orWhereYear('created_at', $year);
                         }
                     }
-
                 });
             }
 
