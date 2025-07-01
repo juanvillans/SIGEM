@@ -6,6 +6,7 @@ use App\Models\EntryGeneral;
 use Illuminate\Http\Request;
 use App\Models\MachineStatus;
 use App\Models\HierarchyEntity;
+use App\Models\TypeMaintenance;
 
 class RelationController extends Controller
 {
@@ -42,6 +43,14 @@ class RelationController extends Controller
             ->pluck('year');
 
             $response['entriesYears'] = $years;
+
+        }
+
+        if($request->input('types_maintenance'))
+        {
+            $types_maintenance = TypeMaintenance::select('name','id')->get();
+
+            $response['types_maintenance'] = $types_maintenance;
 
         }
 
