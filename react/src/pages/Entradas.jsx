@@ -134,7 +134,6 @@ export default function Entradas(props) {
     content: <></>,
   });
 
-    console.log('Ha cambiado el valor de open ' + open);
 
   const [NewRegister, setNewRegister] = useState({
     code: "",
@@ -439,7 +438,6 @@ export default function Entradas(props) {
           setProductsSearched("No se encontró ningún producto");
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
         setProductsSearched("Error al buscar productos");
       }
     },
@@ -568,19 +566,28 @@ export default function Entradas(props) {
       handleSearch(searchText);
     },
 
-    onFilterChange: (changedColumn, filterList, typeFilter) => {
+     onFilterChange: (
+      changedColumn,
+      filterList,
+      typeFilter,
+      columnIndex,
+      displayData
+    ) => {
+      let arrValues = filterList[columnIndex];
+      // let newFilterObject = { ...filterObject }; // Copia el objeto de filtro actual
+      // let copyText= textFilterUrl
       if (typeFilter == "reset") {
         setParametersURL((prev) => ({ ...prev, filter: [], filterList: [] }));
         return;
       }
-      if (filterList[changedColumn]?.length > 0) {
+      if (arrValues.length > 0) {
         filterObject[changedColumn] = `${
           filterConfiguration[changedColumn]
-        }${encodeURIComponent(filterList[changedColumn].join().replaceAll(",", "[OR]"))}`;
+        }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
-        delete filterObject[changedColumn];
+        delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
-
+      
       setParametersURL((prev) => ({
         ...prev,
         filter: Object.values(filterObject).join(""),
@@ -705,12 +712,9 @@ export default function Entradas(props) {
       }
     },
   };
-    console.log({NewRegister})
 
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
-    console.log('ROW_SELECTED')
-    console.log(copySelectedRowRquest)
     if (isJustForCopy) {
       copySelectedRowRquest.serial_number = "_"+createHashFromTime();
       copySelectedRowRquest.national_code = "_"+createHashFromTime();
