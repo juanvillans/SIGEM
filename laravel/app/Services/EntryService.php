@@ -26,18 +26,7 @@ use App\Models\InventoryGeneral;
 class EntryService extends ApiService
 {
 
-    protected $snakeCaseMap = [
-        'arrivalDate' => 'created_at',
-        'productId' => 'product_id',
-        'organizationId' => 'organization_id',
-        'loteNumber' => 'lote_number',
-        'serial' => 'serial',
-        'bienNacional' => 'bien_nacional',
-        'conditionId' => 'condition_id',
-        'arrivalTime' => 'arrival_time',
-        'organizationName' => 'organization_name',
-        // Campos de autoridad y guía eliminados - no necesarios para equipos médicos
-    ];
+    protected $snakeCaseMap = [];
 
 
     public function getData()
@@ -177,12 +166,13 @@ class EntryService extends ApiService
 
                 $string = $this->generateString($search);
 
-                $query->whereHas('entries', function($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
-                });
+                $query->where('serial_number', 'ILIKE', $string)
+                ->orWhere('national_code','ILIKE', $string);
 
-                $query->orWhereHas('entries.product', function ($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
+                $query->whereHas('product', function($query) use ($string) {
+                    $query->where('machine', 'ILIKE', $string)
+                    ->orWhere('brand','ILIKE', $string)
+                    ->orWhere('model','ILIKE', $string);
                 });
 
                 $query->orWhereHas('organization', function ($query) use ($string) {

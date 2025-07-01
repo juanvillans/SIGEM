@@ -927,12 +927,14 @@ export default function Entradas(props) {
                   organization_id: null,
                   machine_status_id: 1,
                   components: [],
+                  organizationObject:{},
+                  organization_id:'',
+                  organizationName: '',
                   arrival_time: getCurrentTime(),
                   arrival_date: new Date().toISOString().split("T")[0],
                   status: 1,
                 });
               }
-              console.log('dddddddd')
               setOpen(true);
               setSubmitStatus("Crear entrada");
             }}
