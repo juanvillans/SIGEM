@@ -42,18 +42,13 @@ class EntryController extends Controller
 
         $total = $entries->total();
 
-        $relation = $request->query('relation') ?? false;
-
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 
-        if($relation){
-
-            $years = EntryGeneral::selectRaw('YEAR(created_at) as year')
+       $years = EntryGeneral::selectRaw('EXTRACT(YEAR FROM created_at) as year')
             ->distinct()
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        }
 
 
 
