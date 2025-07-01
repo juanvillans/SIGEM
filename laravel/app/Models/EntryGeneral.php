@@ -28,7 +28,6 @@ class EntryGeneral extends Model
         'components',
         'arrival_time',
         'status',
-        'updated_at',
 
     ];
 
