@@ -2,19 +2,7 @@
 
 namespace App\Services;
 
-use App\Exceptions\GeneralExceptions;
-use App\Http\Resources\EntryCollection;
-use App\Http\Resources\EntryResource;
-use App\Http\Resources\InventoryDetailCollection;
-use App\Models\Entry;
-use App\Models\HierarchyEntity;
-use App\Models\Inventory;
 use App\Models\InventoryGeneral;
-use App\Models\Organization;
-use App\Models\Product;
-use Carbon\Carbon;
-use DB;
-use Illuminate\Support\Facades\Log;
 
 class InventoryService extends ApiService
 {
@@ -104,86 +92,6 @@ class InventoryService extends ApiService
 
 
         return $inventories;
-
-    }
-
-    public function getDetailData($productID,$entityCode)
-    {
-        $inventories = Inventory::select('id','product_id','lote_number','stock','condition_id','origin_id','expiration_date')
-        ->where('product_id', $productID)
-        ->where('entity_code', $entityCode)
-        ->where('stock','>',0)
-        ->with('condition')
-        ->get();
-
-        $originIDs = $inventories->pluck('origin_id')->unique()->values();
-
-        $organizations = Organization::whereIn('id',$originIDs)->get();
-
-        $lotsPerOrigin = array();
-        $loteGoods = array();
-        $loteBads = array();
-        $loteExpired = array();
-        $lotePerExpire = array();
-
-        foreach ($organizations as $origin)
-        {
-
-            $loteGoods = collect($inventories)
-            ->filter(function ($inventory) use ($origin, $entityCode, $productID) {
-                return $inventory->condition_id == 1
-                    && $inventory->origin_id == $origin->id;
-            })
-            ->values();
-
-            $loteBads = collect($inventories)
-                ->filter(function ($inventory) use ($origin, $entityCode, $productID) {
-                    return $inventory->condition_id == 2
-                        && $inventory->origin_id == $origin->id;
-                })
-                ->values();
-
-            $loteExpired = collect($inventories)
-                ->filter(function ($inventory) use ($origin, $entityCode, $productID) {
-                    return $inventory->condition_id == 3
-                        && $inventory->origin_id == $origin->id;
-                })
-                ->values();
-
-            $lotePerExpire = collect($inventories)
-                ->filter(function ($inventory) use ($origin, $entityCode, $productID) {
-                    return $inventory->condition_id == 4
-                        && $inventory->origin_id == $origin->id;
-                })
-                ->values();
-
-            if ($loteGoods->isNotEmpty() || $loteBads->isNotEmpty() || $loteExpired->isNotEmpty() || $lotePerExpire->isNotEmpty()) {
-                $lotsPerOrigin[$origin->id] = [
-                    'name' => $origin->name,
-                    'organizationCode' => $origin->code,
-                    'good' => new InventoryDetailCollection($loteGoods),
-                    'bad' => new InventoryDetailCollection($loteBads),
-                    'expired' => new InventoryDetailCollection($loteExpired),
-                    'perExpire' => new InventoryDetailCollection($lotePerExpire),
-                ];
-            } else
-            {
-                $lotsPerOrigin[$origin->id] = [
-                    'name' => $origin->name,
-                    'organizationCode' => $origin->code,
-                    'good' => [],
-                    'bad' => [],
-                    'expired' => [],
-                    'perExpire' => [],
-                ];
-            }
-
-
-        }
-
-        return $lotsPerOrigin;
-
-
 
     }
 

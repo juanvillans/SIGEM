@@ -272,6 +272,7 @@ export default function Entradas(props) {
       label: "Equipo",
       options: {
         filter: false,
+        sort:false,
       },
     },
     {
@@ -279,6 +280,8 @@ export default function Entradas(props) {
       label: "Marca",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
     {
@@ -286,6 +289,8 @@ export default function Entradas(props) {
       label: "Modelo",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
     {
@@ -293,6 +298,8 @@ export default function Entradas(props) {
       label: "Serial",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
     {
@@ -300,6 +307,8 @@ export default function Entradas(props) {
       label: "Bien Nacional",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
     {
@@ -307,6 +316,8 @@ export default function Entradas(props) {
       label: "Estado",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
     {
@@ -314,6 +325,7 @@ export default function Entradas(props) {
       label: "Componentes",
       options: {
         filter: false,
+        sort:false,
         customBodyRender: (value, tableMeta) => {
           // Si no hay componentes o el objeto está vacío
           if (!value || Object.keys(value).length === 0) return "N/A";
@@ -392,6 +404,8 @@ export default function Entradas(props) {
       label: "Registrado por",
       options: {
         filter: false,
+        sort:false,
+
       },
     },
   ];

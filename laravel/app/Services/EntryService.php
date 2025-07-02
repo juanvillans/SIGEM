@@ -189,29 +189,24 @@ class EntryService extends ApiService
                 $orderDirection = 'desc';
 
 
-            if($param == 'entryCode')
+            if($param == 'code')
             {
                 $query->orderBy('code',$orderDirection);
             }
 
-            else if($param == 'guide')
-            {
-                $query->orderBy('guide',$orderDirection);
 
-            }
-
-            else if($param == 'arrivalDate')
+            else if($param == 'arrival_date')
             {
 
                 $query->orderBy('created_at',$orderDirection);
             }
 
-            else if($param == 'arrivalTime')
+            else if($param == 'arrival_time')
             {
                 $query->orderBy('arrival_time',$orderDirection);
             }
 
-            else if($param == 'organizationName')
+            else if($param == 'organizationObj')
             {
 
                 $query->orderByRaw(
