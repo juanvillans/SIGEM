@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Services;
 
@@ -27,67 +27,26 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 
 class OutputService extends ApiService
-{   
-
-    protected $snakeCaseMap = [
-
-        'departureDate' => 'created_at',
-        'productId' => 'product_id',
-        'organizationId' => 'organization_id',
-        'organizationName' => 'organization_name',
-        'loteNumber' => 'lote_number',
-        'expirationDate' => 'expiration_date',
-        'authorityFullname' => 'authority_fullname',
-        'authorityCi' => 'authority_ci',      
-        'categoryId' => 'category_id',
-        'typePresentationId' => 'type_presentation_id',
-        'typeAdministrationId' => 'type_administration_id',
-        'medicamentId' => 'medicament_id',
-        'unitPerPackage' => 'unit_per_package',
-        'concentrationSize' => 'concentration_size',
-        'departureTime' => 'departure_time',
-        'receiverFullname' => 'receiver_fullname',
-        'receiverCi' => 'receiver_ci',
-        'municipalityId' => 'municipality_id',
-        'parishId' => 'parish_id',
-        'municipalityName' => 'municipality_name',
-        'parishName' => 'parish_name',
-
-
-    ];
-
-    private Inventory $inventoryModel;
-    private Organization $organizationModel;
-    private HierarchyEntity $entityModel; 
-    private OrganizationService $organizationService;
-    private $wantSeeOtherEntity;
-    private $codeToSee; 
-    private $entityCode;
-    public function __construct()
-    {
-        parent::__construct(new Output);
-        $this->inventoryModel = new Inventory;
-        $this->organizationModel = new Organization;
-        $this->entityModel = new HierarchyEntity;
-        $this->organizationService = new OrganizationService;
-        
-    }
+{
 
     public function getData()
-    {   
+    {
 
         $userEntityCode = auth()->user()->entity_code;
 
-        $query = OutputGeneral::with(
-            'organization', 
-            'municipality',
-            'parish',
-            'user'
+        $outputs = OutputGeneral::with(
+            'entity',
+            'organization',
+            'user',
+            'inventoryGeneral.product',
+            'inventoryGeneral.machineStatus',
+            'inventoryGeneral.lastMaintenanceType',
+
         )
         ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
-                
+
                 $entity = $param;
-                
+
                 if (!$userEntityCode == '1') {
                     $query->where('entity_code', $userEntityCode);
                 } else {
@@ -95,158 +54,162 @@ class OutputService extends ApiService
                         $query->where('entity_code', $entity);
                 }
         })
+
         ->when(request()->input('outputs'), function ($query, $param) use ($userEntityCode) {
-            
-            
-        
-            if (isset($param['status'])) {
-                $map = ['En proceso' => 1, 'Despachado' => 3, 'Cancelado' => 2, 'Retrasado' => 4];
+
+
+
+            if(isset($param['status']))
+            {
                 $status = $param['status'];
                 $statuses = $this->parseQuery($status);
-        
-                $query->where(function ($query) use ($statuses, $map) {
-                    $query->where('status', $map[$statuses[0]]);
-                    if (count($statuses) > 1) {
-                        array_shift($statuses); 
-                        foreach ($statuses as $status) {
-                            $query->orWhere('status', $map[$status]);
+
+                $query->where(function ($query) use ($statuses){
+
+                    $query->where('status',$statuses[0]);
+
+                    if(count($statuses) > 1)
+                    {
+                        array_shift($statuses);
+
+                        foreach($statuses as $status)
+                        {
+                            $query->orWhere('status',$status);
                         }
                     }
+
                 });
             }
 
             if (isset($param['organizationId'])) {
-                
+
                 $organizationID = $param['organizationId'];
 
                 $query->where(function ($query) use ($organizationID) {
-                    
+
                     $query->where('organization_id', $organizationID);
-               
+
                 });
             }
-        
-            if (isset($param['day'])) {
 
-                $day = $param['day'];
-                $days = $this->parseQuery($day);
-        
-                $query->where(function($query) use ($days) {
-                    $query->where('day', $days[0]);
-                    if (count($days) > 1) {
-                        array_shift($days); 
-                        foreach ($days as $day) {
-                            $query->orWhere('day', $day);
+            if(isset($param['day'])) {
+                $days = $this->parseQuery($param['day']);
+
+                $query->where(function ($query) use ($days) {
+                    $query->whereDay('created_at', $days[0]);
+
+                    if(count($days) > 1) {
+                        array_shift($days);
+                        foreach($days as $day) {
+                            $query->orWhereDay('created_at', $day);
                         }
                     }
                 });
             }
-        
-            if (isset($param['month'])) {
 
-                $month = $param['month'];
-                $months = $this->parseQuery($month);
-        
-                    $query->where(function($query) use ($months) {
-                        $query->where('month', $months[0]);
-                        if (count($months) > 1) {
-                            array_shift($months); 
-                            foreach ($months as $month) {
-                                $query->orWhere('month', $month);
-                            }
+            if(isset($param['month'])) {
+                $months = $this->parseQuery($param['month']);
+
+                $query->where(function ($query) use ($months) {
+                    $query->whereMonth('created_at', $months[0]);
+
+                    if(count($months) > 1) {
+                        array_shift($months);
+                        foreach($months as $month) {
+                            $query->orWhereMonth('created_at', $month);
                         }
-                    });
+                    }
+                });
             }
-        
-            if (isset($param['year'])) {
-                $year = $param['year'];
-                $years = $this->parseQuery($year);
-        
-                    $query->where(function($query) use ($years) {
-                        $query->where('year', $years[0]);
-                        if (count($years) > 1) {
-                            array_shift($years); 
-                            foreach ($years as $year) {
-                                $query->orWhere('year', $year);
-                            }
+
+            if(isset($param['year'])) {
+                $years = $this->parseQuery($param['year']);
+
+                $query->where(function ($query) use ($years) {
+                    $query->whereYear('created_at', $years[0]);
+
+                    if(count($years) > 1) {
+                        array_shift($years);
+                        foreach($years as $year) {
+                            $query->orWhereYear('created_at', $year);
                         }
-                    });
+                    }
+                });
             }
-        
+
             if (isset($param['id'])) {
-                $id = $param['id'];
-                $query->where('id', $id);
+                $query->where('id', $param['id']);
             }
         })
-        ->when(request()->input('search'), function ($query, $param) {
-           
-            if (!isset($param['all'])) return 0;
-        
-            $search = $param['all'];
-        
-            $query->where(function ($query) use ($search) {
-                $string = $this->generateString($search);
-            
-                $query->whereHas('outputs', function ($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
-                });
-            
-                $query->orWhereHas('outputs.product', function ($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
-                });
-            
-                $query->orWhereHas('organization', function ($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
-                });
-            });
-            
-        })
-        ->when(request()->input('municipality'), function ($query, $param) {
 
-            if (isset($param['name'])) {
-                $municipalityName = $param['name'];
-                $municipalities = $this->parseQuery($municipalityName);
-        
-                $query->whereHas('municipality', function($query) use($municipalities) {
-                    $query->where('name', $municipalities[0]);
-                    if (count($municipalities) > 1) {
-                        array_shift($municipalities); 
-                        foreach ($municipalities as $municipality) {
-                            $query->orWhere('name', $municipality);
-                        }
-                    }
+        ->when(request()->input('search'), function ($query, $param) {
+
+            if (!isset($param['all'])) return 0;
+
+            $search = $param['all'];
+
+            $query->where(function ($query) use ($search) {
+                    $string = $this->generateString($search);
+
+                    $query->where(function ($query) use ($string) {
+                        // Condiciones directas en el modelo principal
+                        $query->where('code', 'ILIKE', $string)
+                            ->orWhere('area', 'ILIKE', $string);
+                    })
+                    ->orWhereHas('inventoryGeneral', function ($query) use ($string) {
+                        // Condiciones en inventoryGeneral
+                        $query->where('serial_number', 'ILIKE', $string)
+                            ->orWhere('national_code', 'ILIKE', $string);
+                    })
+                    ->orWhereHas('inventoryGeneral.product', function($query) use ($string) {
+                        // Condiciones en la relación product (anidada en inventoryGeneral)
+                        $query->where('machine', 'ILIKE', $string)
+                            ->orWhere('brand', 'ILIKE', $string)
+                            ->orWhere('model', 'ILIKE', $string);
+                    })
+                    ->orWhereHas('organization', function ($query) use ($string) {
+                        // Condiciones en la relación organization
+                        $query->where('search', 'ILIKE', $string);
+                    });
                 });
-            }
+
         })
-        ->when(request()->input('organization'), function($query, $param) {
-            if (isset($param['name'])) {
+
+        ->when(request()->input('organization'), function($query,$param)
+        {
+            if(isset($param['name']))
+            {
                 $organizationName = $param['name'];
                 $organizations = $this->parseQuery($organizationName);
-        
-                $query->whereHas('organization', function($query) use($organizations) {
-                    $query->where('name', $organizations[0]);
-                    if (count($organizations) > 1) {
-                        array_shift($organizations); 
-                        foreach ($organizations as $organization) {
-                            $query->orWhere('name', $organization);
+
+
+                $query->whereHas('organization', function($query) use($organizations)
+                {
+                    $query->where('name',$organizations[0]);
+                    if(count($organizations) > 1)
+                    {
+                        array_shift($organizations);
+
+                        foreach($organizations as $organization)
+                        {
+                            $query->orWhere('name',$organization);
                         }
                     }
                 });
             }
+
         })
-        ->when(request()->input('orderBy'), function($query, $param) {      
+
+        ->when(request()->input('orderBy'), function($query, $param) {
             $orderDirection = (request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
-                ? request()->input('orderDirection') 
+                ? request()->input('orderDirection')
                 : 'desc';
-        
+
             switch ($param) {
-                case 'outputCode':
+                case 'code':
                     $query->orderBy('code', $orderDirection);
                     break;
 
-                case 'guide':
-                    $query->orderBy('guide',$orderDirection);
-                    break;
 
                 case 'departureDate':
                     $query->orderBy('created_at',$orderDirection);
@@ -256,53 +219,31 @@ class OutputService extends ApiService
                     $query->orderBy('departure_time',$orderDirection);
                     break;
 
-                case 'receiverFullname':
-                    $query->orderBy('receiver_fullname',$orderDirection);
-                    break;
-
-                case 'receiverCi':
-                    $query->orderBy('receiver_ci',$orderDirection);
-                    break;
-
-                case 'organizationName':
+                case 'organizationObj':
                     $query->orderByRaw(
                         '(SELECT "name" FROM "organizations" WHERE "organizations"."id" = "output_generals"."organization_id" LIMIT 1) ' . $orderDirection
                         );
                 break;
-                
-                case 'municipalityName':
-                    $query->orderByRaw(
-                        '(SELECT "name" FROM "municipalities" WHERE "municipalities"."id" = "output_generals"."municipality_id" LIMIT 1) ' . $orderDirection
-                        );
-                break;
 
-                case 'parishName':
-                    $query->orderByRaw(
-                        '(SELECT "name" FROM "parishes" WHERE "parishes"."id" = "output_generals"."parish_id" LIMIT 1) ' . $orderDirection
-                        );
-                break;
             }
         })
+
         ->unless(request()->input('entity'), function($query) {
             $entity = auth()->user()->entity_code;
-            $query->where('entity_code', $entity);  
+            $query->where('entity_code', $entity);
         })
+
         ->unless(request()->input('orderBy'), function($query) {
             $query->orderBy('id', 'desc');
-        });
+        })->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
 
 
-        
-        $outputs = $query->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
-
-        
         return $outputs;
-
 
     }
 
     public function create($data)
-    {   
+    {
         if(count($data['products']) == 0)
             throw new Exception('Debe seleccionar al menos un producto', 400);
 
@@ -310,8 +251,8 @@ class OutputService extends ApiService
         $userId = auth()->user()->id;
 
 
-        
-        
+
+
         $lastOutputCode = $this->model->where('entity_code',$this->entityCode)
         ->lockForUpdate()
         ->orderBy('output_code','desc')
@@ -319,9 +260,9 @@ class OutputService extends ApiService
         $newOutputCode = $lastOutputCode + 1;
 
         $guide = $this->generateNewGuideNumber($this->entityCode);
-        
+
         $newOutputGeneral = OutputGeneral::create([
-        
+
             'entity_code' => $this->entityCode,
             'code' => $newOutputCode,
             'status' => $data['status'],
@@ -338,7 +279,7 @@ class OutputService extends ApiService
             'day' => date('d'),
             'month' => date('m'),
             'year' => date('Y'),
-            
+
          ]);
         $newOutputGeneral->save();
 
@@ -355,16 +296,16 @@ class OutputService extends ApiService
             Log::info('si entro aca '. $destiny);
             $entryToConfirm = $entryToConfirmService->createGeneralEntry($newOutputGeneral, $destiny);
             $organizationOrigin = Organization::where('code',$newOutputGeneral->entity_code)->first();
-            
+
         }
-        
+
         foreach ($data['products'] as $product)
-        {   
+        {
             $this->validateQuantityOfInventoryDetail($product);
             OutputDetailCreated::dispatch($product);
-            
+
             $search = $this->generateSearch(['product' => $product, 'data' => $data, 'guide' => $guide, 'output_code' => $newOutputCode]);
-            
+
             $newOutputDetail = Output::create([
                 'user_id' => $userId,
                 'entity_code' => $this->entityCode,
@@ -401,7 +342,7 @@ class OutputService extends ApiService
         $userID = auth()->user()->id;
         NewActivity::dispatch($userID, 10, $newOutputGeneral->id);
 
-        
+
         return ['message' => 'Salidas creadas exitosamente', 'outputID' => $newOutputGeneral->id];
 
     }
@@ -421,21 +362,21 @@ class OutputService extends ApiService
 
 
     public function insertInventory($outputData,$entityCode = null)
-    {   
+    {
         if($entityCode == null)
             $entityCode = $outputData['entity_code'];
 
 
         $quantity = $outputData['quantity'];
 
-        $register = $this->inventoryModel->updateOrCreate(    
+        $register = $this->inventoryModel->updateOrCreate(
         [
             'entity_code' => $entityCode,
             'product_id' => $outputData['product_id'],
             'lote_number' => $outputData['lote_number'],
             'condition_id' => $outputData['condition_id']
         ],
-        [   
+        [
             'expiration_date' => $outputData['expiration_date'],
             'search' => $outputData['search'],
 
@@ -452,20 +393,20 @@ class OutputService extends ApiService
         ->where('output_general_id',$outputGeneralID)
         ->get();
 
-        return new OutputDetailCollection($outputs);        
+        return new OutputDetailCollection($outputs);
 
     }
 
     public function validateQuantityOfInventoryDetail($product){
 
         $inventory = Inventory::with('product')->where('id', $product['inventoryDetailID'])->first();
-        
+
         if($inventory->stock < $product['quantity'])
             throw new Exception("La cantidad solicitada del producto: " . $inventory->product->name . " - " . $inventory->lote_number . " supera el stock disponible", 500);
     }
 
     private function createOrganizationMap($organizations)
-    {   
+    {
         $response = [];
         foreach ($organizations as $organization)
         {
@@ -476,7 +417,7 @@ class OutputService extends ApiService
     }
 
     private function createOrganizationMapToName($organizations)
-    {   
+    {
         $response = [];
         foreach ($organizations as $organization)
         {
@@ -491,7 +432,7 @@ class OutputService extends ApiService
         $response = [];
         foreach ($entities as $entity)
         {
-            $response[$entity->code] = $entity->name;    
+            $response[$entity->code] = $entity->name;
         }
 
         return $response;
@@ -502,12 +443,12 @@ class OutputService extends ApiService
         $outputs = OutputGeneral::where('id',$id)
                    ->with('outputs.product.presentation', 'outputs.product.category', 'outputs.product.administration', 'outputs.product.medicament', 'outputs.organization', 'outputs.condition','outputs.municipality','outputs.parish','outputs.user')
                    ->get();
-        
+
         return $outputs;
     }
 
     public function generateNewGuideNumber($entityCode)
-    {   
+    {
 
         $greatestGuide = OutputGeneral::where('entity_code',$entityCode)->where('guide','!=',null)->orderBy('id','desc')->first();
 
@@ -522,17 +463,17 @@ class OutputService extends ApiService
         $lots = array_keys($lotesRequested);
 
         $inventoryLots = Inventory::where('entity_code',$entityCode)->whereIn('lote_number',$lots)->get()->pluck('stock','lote_number')->toArray();
-        
+
        foreach ($lotesRequested as $loteNumber => $quantity)
        {
             if($quantity > $inventoryLots[$loteNumber])
-                throw new GeneralExceptions('La cantidad solicitada supera a la cantidad del lote: '.$loteNumber, 400);   
+                throw new GeneralExceptions('La cantidad solicitada supera a la cantidad del lote: '.$loteNumber, 400);
        }
     }
 
 
     private function generateSearch($dataToGenerateSearch)
-    {   
+    {
         [
             $product,
             $data,
@@ -541,7 +482,7 @@ class OutputService extends ApiService
         ] = array_values($dataToGenerateSearch);
 
 
-        $string = $data['receiver_fullname'] . ' ' 
+        $string = $data['receiver_fullname'] . ' '
              . $data['receiver_ci'] . ' '
              . $output_code . ' '
              . $guide . ' '
@@ -553,22 +494,22 @@ class OutputService extends ApiService
 
     private function createNewOrganization($data){
 
-           
+
         $createOrganization = ['name' => $data['organization_name'], 'authority_fullname' => $data['receiver_fullname'], 'authority_ci' => $data['receiver_ci']];
         $newOrganization = $this->organizationService->create($createOrganization);
-        
+
         return $newOrganization['model']->id;
-        
+
     }
 
     public function generateConfirmEntry($outputGeneral){
-        
+
         $destiny = Organization::where('id',$outputGeneral->organization_id)->first();
-        
+
         if($destiny->code == 'nocode')
             return 0;
 
-        
+
         $entryToConfirmService = new EntryToConfirmService();
         $entryToConfirm = $entryToConfirmService->createGeneralEntry($outputGeneral, $destiny);
         $organizationOrigin = Organization::where('code',$outputGeneral->entity_code)->first();
@@ -577,7 +518,7 @@ class OutputService extends ApiService
 
         foreach ($outputs as $output) {
             $entryToConfirmService->createDetailEntry($organizationOrigin, $output, $entryToConfirm);
-            
+
         }
 
     }

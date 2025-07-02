@@ -142,7 +142,9 @@ class EntryService extends ApiService
                 $string = $this->generateString($search);
 
                 $query->where('serial_number', 'ILIKE', $string)
-                ->orWhere('national_code','ILIKE', $string);
+                ->orWhere('national_code','ILIKE', $string)
+                ->orWhere('code','ILIKE', $string);
+
 
                 $query->whereHas('product', function($query) use ($string) {
                     $query->where('machine', 'ILIKE', $string)

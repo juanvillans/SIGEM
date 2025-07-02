@@ -24,13 +24,9 @@ return new class extends Migration
             $table->integer('code');
             $table->string('area')->nullable();
             $table->foreignId('user_id');
-            $table->foreignId('product_id');
-            $table->foreignId('machine_status_id');
-            $table->integer('quantity');
+            $table->foreignId('inventory_general_id');
+            $table->integer('quantity')->default(1);
             $table->foreignId('organization_id')->nullable();
-            $table->foreignId('municipality_id')->nullable();
-            $table->foreignId('parish_id')->nullable();
-            $table->string('serial_number');
             $table->string('description',200);
             $table->integer('status');
             $table->string('departure_time');

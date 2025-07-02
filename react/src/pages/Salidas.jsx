@@ -199,16 +199,14 @@ export default function Salidas(props) {
   //   localStorage.setItem('outputForm', JSON.stringify(NewRegister))
   // }, [NewRegister]);
 
-  const columns = [
+ const columns = [
     {
       name: "day",
       label: "Dia",
       options: {
         display: "excluded",
-
         filter: true,
         filterList: parametersURL?.filterList[0] || [],
-
         filterOptions: {
           names: days,
         },
@@ -221,7 +219,6 @@ export default function Salidas(props) {
         display: "excluded",
         filter: true,
         filterList: parametersURL?.filterList[1] || [],
-
         filterOptions: {
           names: months,
         },
@@ -234,18 +231,17 @@ export default function Salidas(props) {
         display: "excluded",
         filter: true,
         filterList: parametersURL?.filterList[2] || [],
-
         filterOptions: {
           names: generalData?.years,
         },
       },
     },
     {
-      name: "entityName",
+      name: "entity_name",
       label: "Entidad",
       options: {
         display:
-          parametersURL?.filterObject?.entityCode == "&outputs[entityCode]=*"
+          parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*"
             ? "true"
             : "excluded",
         filter: false,
@@ -253,57 +249,24 @@ export default function Salidas(props) {
       },
     },
     {
-      name: "outputCode",
-      label: "código",
+      name: "code",
+      label: "Cód.",
       options: {
         filter: false,
       },
     },
     {
-      name: "guide",
-      label: "nro. guia",
-      options: {
-        filter: false,
-      },
-    },
-    // {
-    //   name: "totalQuantity",
-    //   label: "Producti",
-    //   options: {
-    //     filter: false,
-    //   },
-    // },
-
-    {
-      name: "departureDate",
+      name: "arrival_date",
       label: "Fecha",
       options: {
         filter: false,
-        customBodyRender: (value) => {
-          const [year, month, day] = value?.split("-") || "n/a";
-          return (
-            <p className="min-w-[85px]">
-              {day}-{month}-{year}
-            </p>
-          );
-        },
       },
     },
-    {
-      name: "departureTime",
-      label: "Hora",
-      options: {
-        filter: false,
-      },
-    },
-    {
+     {
       name: "organizationObj",
-      label: "Destino",
+      label: "Origen",
       options: {
         filter: false,
-
-        // filterList: parametersURL?.filterList[8] || [],
-        sort: true,
         customBodyRender: (value) => {
           if (value.code.toLowerCase() !== "nocode") {
             return (
@@ -321,100 +284,154 @@ export default function Salidas(props) {
             return <p>{value.name}</p>;
           }
         },
-        // filterOptions: {
-        //   names: generalData.organizations
-        //     ? generalData.organizations.map((ent) => ent.name)
-        //     : [""],
-        // },
       },
     },
+    {
+      name: "arrival_time",
+      label: "Hora",
+      options: {
+        filter: false,
+      },
+    },
+    {
+      name: "product_name",
+      label: "Equipo",
+      options: {
+        filter: false,
+        sort:false,
+      },
+    },
+    {
+      name: "product_brand",
+      label: "Marca",
+      options: {
+        filter: false,
+        sort:false,
 
-    {
-      name: "receiverFullname",
-      label: "recibió",
-      options: {
-        filter: false,
       },
     },
     {
-      name: "receiverCi",
-      label: "C.I del recibidor",
+      name: "product_model",
+      label: "Modelo",
       options: {
-        display: true,
         filter: false,
+        sort:false,
+
       },
     },
     {
-      name: "status",
+      name: "serial_number",
+      label: "Serial",
+      options: {
+        filter: false,
+        sort:false,
+
+      },
+    },
+    {
+      name: "national_code",
+      label: "Bien Nacional",
+      options: {
+        filter: false,
+        sort:false,
+
+      },
+    },
+    {
+      name: "machine_status_name",
       label: "Estado",
       options: {
-        // display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[11] || [],
-        sort: true,
-        filterOptions: {
-          names: ["En proceso", "Despachado", "Cancelado", "Retrasado"],
-        },
-        customBodyRender: (value) => {
-          const statusString = statutes[value];
-          let color = "";
-          if (value == 1) {
-            color = "text-blue2";
-          } else if (value == 2) {
-            // color = "text-red";
-          } else if (value == 3) {
-            color = "text-green";
-          } else if (value == 4) {
-            color = "text-orange";
-          } else {
-            color = "";
-          }
-          return <b className={`${color}`}>{statusString}</b>;
-        },
-      },
-    },
-    {
-      name: "authorityFullname",
-      label: "Despachador",
-      options: {
         filter: false,
-      },
-    },
-    {
-      name: "authorityCi",
-      label: "C.I del despachador",
-      options: {
-        display: false,
-        filter: false,
-      },
-    },
-    {
-      name: "description",
-      label: "Observación",
-      options: {
-        display: false,
-        filter: false,
-      },
-    },
+        sort:false,
 
-    {
-      name: "municipalityName",
-      label: "Municipio",
-      options: {
-        filter: true,
-        filterList: parametersURL?.filterList[15] || [],
-        filterOptions: {
-          names: generalData?.municipalities.map((obj) => obj.name),
-        },
-        sort: true,
       },
     },
     {
-      name: "parishName",
-      label: "Parroquia",
+      name: "components",
+      label: "Componentes",
       options: {
         filter: false,
-        sort: true,
+        sort:false,
+        customBodyRender: (value, tableMeta) => {
+          // Si no hay componentes o el objeto está vacío
+          if (!value || Object.keys(value).length === 0) return "N/A";
+
+          // Convertir el objeto en un array de componentes FALTANTES (false)
+          const missingComponents = Object.entries(value)
+            .filter(([_, isIncluded]) => !isIncluded) // Filtra los que tienen false
+            .map(([component]) => component); // Extrae solo el nombre
+
+          // Caso 1: No hay componentes faltantes
+          if (missingComponents.length === 0) {
+            return (
+              <span className="text-white p-auto font-bold text-xs px-2 py-1 rounded bg-green">
+                Incluidos
+                <CheckIcon className="pb-1"></CheckIcon>
+              </span>
+            );
+          }
+
+          // Caso 2: Hay componentes faltantes
+          return (
+            <div className="relative group">
+              <div className="flex flex-wrap gap-1 max-w-[300px]">
+                {/* Mostrar los primeros 3 faltantes (color amarillo) */}
+                <p className="text-xs py-1 ">Faltan:</p>
+                {missingComponents.slice(0, 3).map((comp, i) => (
+                  <span
+                    key={i}
+                    className="bg-orange text-white text-center text-xs px-2 py-1 rounded"
+                  >
+                    {comp}
+                  </span>
+                ))}
+
+                {/* Botón "Más" si hay más de 3 faltantes */}
+                {missingComponents.length > 3 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document
+                        .getElementById(
+                          `missing-components-${tableMeta.rowIndex}`
+                        )
+                        .classList.toggle("hidden");
+                    }}
+                    className="text-xs p-1 rounded border border-gray-300 text-grey"
+                  >
+                    +{missingComponents.length - 3} faltantes
+                  </button>
+                )}
+              </div>
+
+              {/* Popup con TODOS los faltantes (solo visible al hacer clic) */}
+              <div
+                id={`missing-components-${tableMeta.rowIndex}`}
+                className="hidden absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md p-2 border border-grey"
+              >
+                <div className="flex flex-wrap gap-1">
+                  {missingComponents.map((comp, i) => (
+                    <span
+                      key={i}
+                      className="bg-orange text-white text-xs px-2 py-1 rounded mb-1"
+                    >
+                      {comp}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        },
+      },
+    },
+    {
+      name: "user_name",
+      label: "Registrado por",
+      options: {
+        filter: false,
+        sort:false,
+
       },
     },
   ];

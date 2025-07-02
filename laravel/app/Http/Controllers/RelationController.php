@@ -6,6 +6,7 @@ use App\Models\EntryGeneral;
 use Illuminate\Http\Request;
 use App\Models\MachineStatus;
 use App\Models\HierarchyEntity;
+use App\Models\OutputGeneral;
 use App\Models\TypeMaintenance;
 
 class RelationController extends Controller
@@ -43,6 +44,17 @@ class RelationController extends Controller
             ->pluck('year');
 
             $response['entriesYears'] = $years;
+
+        }
+
+        if($request->input('outputsYears'))
+        {
+            $years = OutputGeneral::selectRaw('EXTRACT(YEAR FROM created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+            $response['outputsYears'] = $years;
 
         }
 

@@ -17,20 +17,17 @@ use App\Filters\EntriesQueryFilter;
 use App\Http\Requests\EntryRequest;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
-use App\Services\CancellationService;
 use App\Http\Resources\EntryCollection;
 
 class EntryController extends Controller
 {
     private $entryService;
-    private $cancellationService;
 
 
 
      public function __construct()
     {
         $this->entryService = new EntryService;
-        $this->cancellationService = new CancellationService;
     }
 
     public function index(Request $request)
