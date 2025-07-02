@@ -336,23 +336,7 @@ class EntryService extends ApiService
 
     }
 
-    private function generateSearch($dataToGenerateSearch){
-        [
-            $product,
-            $data,
-            $entryCode,
-        ] = array_values($dataToGenerateSearch);
 
-
-        $string = $data['authority_fullname'] . ' '
-             . $data['authority_ci'] . ' '
-             . $entryCode . ' '
-             . $data['guide'] . ' '
-             . $data['organization_name'] . ' '
-             . $product['name'];
-
-        return $string;
-    }
 
     public function createEntryFromOutput($entryToConfirm){
 
@@ -417,32 +401,8 @@ class EntryService extends ApiService
 
     }
 
-    // private function generateSearch($dataToGenerateSearch)
-    // {
-    //     [
-    //         $product,
-    //         $newEntryCode,
-    //     ] = array_values($dataToGenerateSearch);
 
 
-    //     $string = $product['receiver_fullname'] . ' '
-    //          . $product['receiver_ci'] . ' '
-    //          . $newEntryCode . ' '
-    //          . $product['guide'] . ' '
-    //          . $data['organization_name'] . ' '
-    //          . $product['name'];
-
-    //     return $string;
-    // }
-
-    public function getDetailData($entryGeneral){
-        $entries = Entry::with('product.category','product.presentation','product.administration','product.medicament','condition')
-        ->where('entry_general_id',$entryGeneral->id)
-        ->get();
-
-        return new EntryDetailCollection($entries);
-
-    }
 
     public function splitDate($date)
     {
