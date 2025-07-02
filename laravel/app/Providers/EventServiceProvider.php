@@ -2,34 +2,25 @@
 
 namespace App\Providers;
 
-use App\Events\EntryCreated;
-use App\Events\ProductsRequested;
 use App\Events\NewActivity;
-use App\Events\EntryDetailCreated;
+use App\Events\EntryCreated;
+use App\Events\OutputCreated;
+use App\Listeners\AddInventory;
+use App\Listeners\TrackActivity;
+use App\Events\NewEntryToConfirm;
+use App\Events\ProductsRequested;
 use App\Events\EntryDetailDeleted;
 use App\Events\EntryDetailUpdated;
-use App\Events\NewEntryToConfirm;
-use App\Listeners\TrackActivity;
-use App\Events\OutputDetailCreated;
 use App\Events\OutputDetailDeleted;
-use App\Listeners\AddInventory;
-use App\Listeners\AddInventoryFromOutputDeleted;
-use App\Listeners\DeleteInventoryFromEntry;
-use App\Listeners\SendNewProductsRequestedNotification;
-
+use App\Listeners\SubtractInventory;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
-use App\Listeners\RefreshInventoryGeneral;
-use App\Listeners\HandleInventoryAfterEntryCreated;
-use App\Listeners\HandleInventoryAfterEntryDeleted;
-use App\Listeners\HandleInventoryAfterOutputCreated;
-use App\Listeners\HandleInventoryAfterOutputDeleted;
-use App\Listeners\HandleDestinyEntriesAfterOutputCreated;
-use App\Listeners\HandleDestinyInventoryAfterOutputCreated;
-use App\Listeners\SendNewEntryToConfirmNotification;
-use App\Listeners\SubtractInventory;
+
+use App\Listeners\DeleteInventoryFromEntry;
 use App\Listeners\UpdateInventoryFromEntry;
-use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use App\Listeners\AddInventoryFromOutputDeleted;
+use App\Listeners\SendNewEntryToConfirmNotification;
+use App\Listeners\SendNewProductsRequestedNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -49,12 +40,13 @@ class EventServiceProvider extends ServiceProvider
             SendNewEntryToConfirmNotification::class,
         ],
 
-        OutputDetailCreated::class => [
-            SubtractInventory::class,
-        ],
 
         EntryCreated::class => [
             AddInventory::class,
+        ],
+
+        OutputCreated::class => [
+            SubtractInventory::class,
         ],
 
         EntryDetailUpdated::class => [

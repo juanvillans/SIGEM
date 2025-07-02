@@ -12,7 +12,8 @@ class InventoryService extends ApiService
         $userEntityCode = auth()->user()->entity_code;
 
 
-        $inventories = InventoryGeneral::with('entity','product', 'machineStatus', 'lastMaintenanceType')
+        $inventories = InventoryGeneral::where('quantity','>',0)
+        ->with('entity','product', 'machineStatus', 'lastMaintenanceType')
         ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
 
             $entity = $param;
