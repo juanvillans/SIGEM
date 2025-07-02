@@ -26,21 +26,38 @@ class OutputRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'departureDate' => ['required','string'], 
-            'departureTime'=> ['required','string'],
-            'authorityCi'=> ['required'],
-            'authorityFullname'=> ['required'],
-            'receiverFullname' => ['required'],
-            'receiverCi' => ['required'],
-            'guide'=> ['required'],
-            'organizationId'=> ['sometimes'],
-            'municipalityId' => ['required'],
-            'parishId' => ['required'],
+            'departure_date' => ['required','string'],
+            'departure_time'=> [
+                'required',
+                'string',
+                'regex:/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/'
+            ],
+            'inventory_general_id' => [
+                'required',
+                'integer',
+                'exists:inventory_generals,id'
+            ],
+            'organization_id' => [
+                'required',
+                'integer',
+                'exists:organizations,id'
+            ],
+            'area' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
         ];
     }
 
-    protected function failedValidation(Validator $validator)
+    public function messages()
     {
-        throw new HttpResponseException(response()->json(['errors' => $validator->errors()], 422));
+        return [
+            'inventory_general_id.required' => 'El producto es requerido',
+            'inventory_general_id.exists' => 'El producto especificado no existe en inventario',
+            'organization_id.required' => 'La organizacion de destino es requerido',
+            'departure_time.required' => 'La hora de salida es requerida',
+            'departure_time.regex' => 'El formato de hora debe ser HH:MM',
+        ];
     }
 }

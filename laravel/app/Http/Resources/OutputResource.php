@@ -17,6 +17,7 @@ class OutputResource extends JsonResource
     {
            return [
             "id"=> $this->id,
+            "inventory_general_id"=> $this->inventory_general_id,
             "user_id" => $this->user->id,
             "user_name" => $this->user->name . ' ' . $this->user->last_name,
             "entity_code" => $this->entity_code,
@@ -39,7 +40,7 @@ class OutputResource extends JsonResource
             "components" => $this->inventoryGeneral->components,
             "departure_time" => $this->departure_time,
             "description" => $this->description,
-            "departure_date" => $this->created_at->format('F d, Y'),
+            "departure_date" => $this->updated_at->format('F d, Y'),
             "status"=>$this->status,
 
         ];
