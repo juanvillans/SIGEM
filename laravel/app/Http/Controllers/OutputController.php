@@ -53,27 +53,23 @@ class OutputController extends Controller
     public function store(OutputRequest $request)
     {
 
-        DB::beginTransaction();
-
         try {
 
-            $dataToCreateOuputs = $this->outputService->convertToSnakeCase($request);
-            $response = $this->outputService->create($dataToCreateOuputs);
+            $response = $this->outputService->create($request->validated());
 
-            DB::commit();
-
-            return ['message' => $response['message'], 'outputGeneralID' => $response['outputID'] ];
+            return $response;
 
         } catch (Exception $e) {
 
-            Log::info($e);
-            DB::rollback();
+            Log::error("Error al crear salida: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
+
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage()
+            'message' => 'Error al crear salida: ' .$e->getMessage()
             ], 500);
-
-
 
         }
     }

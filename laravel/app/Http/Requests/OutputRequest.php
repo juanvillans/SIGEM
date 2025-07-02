@@ -47,6 +47,12 @@ class OutputRequest extends FormRequest
                 'string',
                 'max:255'
             ],
+
+            'description' => [
+                'nullable',
+                'string',
+                'max:255'
+            ],
         ];
     }
 

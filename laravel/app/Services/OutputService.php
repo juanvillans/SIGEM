@@ -2,29 +2,30 @@
 
 namespace App\Services;
 
-use App\Events\InventoryLoteCreated;
-use App\Events\NewActivity;
-use App\Events\OutputCreated;
-use App\Events\OutputDetailCreated;
-use App\Exceptions\GeneralExceptions;
-use App\Http\Resources\EntryCollection;
-use App\Http\Resources\EntryResource;
-use App\Http\Resources\OutputCollection;
-use App\Http\Resources\OutputDetailCollection;
+use Exception;
+use Carbon\Carbon;
 use App\Models\Entry;
-use App\Models\EntryGeneral;
-use App\Models\HierarchyEntity;
+use App\Models\Output;
+use App\Models\Parish;
 use App\Models\Inventory;
+use App\Enums\TypeActivity;
+use App\Events\NewActivity;
+use App\Models\EntryGeneral;
 use App\Models\Municipality;
 use App\Models\Organization;
-use App\Models\Output;
+use App\Events\OutputCreated;
 use App\Models\OutputGeneral;
-use App\Models\Parish;
-use App\Services\OrganizationService;
-use Carbon\Carbon;
-use DB;
-use Exception;
+use App\Models\HierarchyEntity;
+use Illuminate\Support\Facades\DB;
+use App\Events\OutputDetailCreated;
 use Illuminate\Support\Facades\Log;
+use App\Events\InventoryLoteCreated;
+use App\Exceptions\GeneralExceptions;
+use App\Http\Resources\EntryResource;
+use App\Services\OrganizationService;
+use App\Http\Resources\EntryCollection;
+use App\Http\Resources\OutputCollection;
+use App\Http\Resources\OutputDetailCollection;
 
 class OutputService extends ApiService
 {
@@ -244,43 +245,44 @@ class OutputService extends ApiService
 
     public function create($data)
     {
-        if(count($data['products']) == 0)
-            throw new Exception('Debe seleccionar al menos un producto', 400);
+        $user = auth()->user();
 
-        $this->entityCode = auth()->user()->entity_code;
-        $userId = auth()->user()->id;
+        return DB::transaction(function () use($data, $user) {
+
+            try{
+
+                $newOutputCode = $this->generateNewOutputyCode($user->entity_code);
+
+                $data['code'] = $newOutputCode;
+                $data['entity_code'] = $user->entity_code;
+                $data['status'] = 1;
+                $data['updated_at'] = Carbon::parse($data['departure_date']);
+                $data['user_id'] = $user->id;
+
+                $newOutputGeneral = OutputGeneral::create($data);
+
+                OutputCreated::dispatch($newOutputGeneral);
+
+                NewActivity::dispatch($user->id, TypeActivity::CREAR_SALIDA->value, $newOutputGeneral->id);
+
+                return ['message' => 'Salida creada exitosamente', 'outputGeneralID' => $newOutputGeneral->id];
 
 
+            }
+            catch (Exception $e){
+
+            Log::error('OutputService -  Error al crear salida: '. $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            throw $e;
+
+            }
+
+        });
 
 
-        $lastOutputCode = $this->model->where('entity_code',$this->entityCode)
-        ->lockForUpdate()
-        ->orderBy('output_code','desc')
-        ->value('output_code') ?? 0;
-        $newOutputCode = $lastOutputCode + 1;
-
-        $guide = $this->generateNewGuideNumber($this->entityCode);
-
-        $newOutputGeneral = OutputGeneral::create([
-
-            'entity_code' => $this->entityCode,
-            'code' => $newOutputCode,
-            'status' => $data['status'],
-            'guide' => intval($guide),
-            'departure_time' => $data['departure_time'],
-            'organization_id' => $data['organization_id'],
-            'authority_fullname' => $data['authority_fullname'],
-            'authority_ci' => $data['authority_ci'],
-            'receiver_fullname' => $data['receiver_fullname'],
-            'receiver_ci' => $data['receiver_ci'],
-            'municipality_id' => $data['municipality_id'],
-            'parish_id' => $data['parish_id'],
-            'user_id' => $userId,
-            'day' => date('d'),
-            'month' => date('m'),
-            'year' => date('Y'),
-
-         ]);
         $newOutputGeneral->save();
 
 
@@ -521,5 +523,18 @@ class OutputService extends ApiService
 
         }
 
+    }
+
+    public function generateNewOutputyCode($entityCode){
+
+        $lastOutputCode = OutputGeneral::where('entity_code',$entityCode)
+        ->lockForUpdate()
+        ->orderBy('code','desc')
+        ->pluck('code')->first();
+
+        if($lastOutputCode == null)
+            $lastOutputCode = 0;
+
+        return $lastOutputCode + 1;
     }
 }
