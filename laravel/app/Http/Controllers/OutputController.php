@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\InventoryMoveStatus;
 use App\Http\Requests\OutputRequest;
 use App\Http\Resources\MunicipalityCollection;
 use App\Http\Resources\OutputCollection;
+use App\Http\Resources\OutputResource;
 use App\Models\HierarchyEntity;
 use App\Models\Municipality;
 use App\Models\Output;
@@ -114,21 +116,23 @@ class OutputController extends Controller
     }
 
 
-    public function generateOutputOrder($id)
+    public function show(OutputGeneral $output)
     {
+        $output->load('entity',
+            'organization',
+            'user',
+            'inventoryGeneral.product',
+            'inventoryGeneral.machineStatus',
+            'inventoryGeneral.lastMaintenanceType',);
 
-        $outputs = $this->outputService->getOutpustWithID($id);
-        $outputCollection = new OutputCollection($outputs);
-
-        return ['message' => 'OK', 'outputs' => $outputCollection];
+        return new OutputResource($output);
     }
 
-    public function dispatch($id)
+    public function dispatch(OutputGeneral $outputGeneral)
     {
-        $outputGeneral = OutputGeneral::where('id',$id)->first();
-        $outputGeneral->update(['status' => 3]);
+        $outputGeneral->update(['status' => InventoryMoveStatus::DESPACHADO->value]);
 
-        $this->outputService->generateConfirmEntry($outputGeneral);
+        $this->outputService->handleOutputToOtherInventory($outputGeneral);
 
         return ['message' => 'OK'];
 

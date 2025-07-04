@@ -288,7 +288,7 @@ class OutputService extends ApiService
         });
     }
 
-    private function handleOutputToOtherInventory($newOutputGeneral){
+    public function handleOutputToOtherInventory($newOutputGeneral){
 
         $destiny = Organization::where('id', $newOutputGeneral->organization_id)->first();
 

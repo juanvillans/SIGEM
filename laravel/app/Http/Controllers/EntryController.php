@@ -135,15 +135,6 @@ class EntryController extends Controller
         return 'ok';
     }
 
-    public function detailEntry(EntryGeneral $entryGeneral){
-
-        $entries = $this->entryService->getDetailData($entryGeneral);
-        return [
-
-            'products' => $entries,
-            'message' => 'OK'
-        ];
-    }
 
 
 

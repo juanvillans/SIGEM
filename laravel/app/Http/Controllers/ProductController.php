@@ -125,29 +125,5 @@ class ProductController extends Controller
 
     }
 
-    public function getStock(Request $request)
-    {
-
-        $request->validate([
-            'inventories' => 'required|array',
-            'inventories.*.inventoryDetailID' => 'required'
-        ]);
-
-        $inventoryIds = array_column($request->input('inventories'), 'inventoryDetailID');
-        $userEntityCode = auth()->user()->entity_code;
-
-        $stock = Inventory::select('product_id', 'stock', 'condition_id')
-        ->whereIn('id', $inventoryIds)
-        ->where('entity_code',$userEntityCode)
-        ->get()
-        ->keyBy('product_id')
-        ->map(function ($item) {
-            return ['stock' => $item->stock, 'condition' => $item->condition_id];
-        })->toArray();
-
-        return $stock;
-    }
-
-    // Métodos de vinculación eliminados - no necesarios para equipos médicos
 
 }
