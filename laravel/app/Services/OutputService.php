@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\InventoryMoveStatus;
 use Exception;
 use Carbon\Carbon;
 use App\Models\Entry;
@@ -26,6 +27,7 @@ use App\Services\OrganizationService;
 use App\Http\Resources\EntryCollection;
 use App\Http\Resources\OutputCollection;
 use App\Http\Resources\OutputDetailCollection;
+use App\Models\InventoryGeneral;
 
 class OutputService extends ApiService
 {
@@ -251,7 +253,7 @@ class OutputService extends ApiService
 
             try{
 
-                $newOutputCode = $this->generateNewOutputyCode($user->entity_code);
+                $newOutputCode = $this->generateNewOutputCode($user->entity_code);
 
                 $data['code'] = $newOutputCode;
                 $data['entity_code'] = $user->entity_code;
@@ -264,6 +266,9 @@ class OutputService extends ApiService
                 OutputCreated::dispatch($newOutputGeneral);
 
                 NewActivity::dispatch($user->id, TypeActivity::CREAR_SALIDA->value, $newOutputGeneral->id);
+
+                $this->handleOutputToOtherInventory($newOutputGeneral);
+
 
                 return ['message' => 'Salida creada exitosamente', 'outputGeneralID' => $newOutputGeneral->id];
 
@@ -281,251 +286,83 @@ class OutputService extends ApiService
             }
 
         });
+    }
 
+    private function handleOutputToOtherInventory($newOutputGeneral){
 
-        $newOutputGeneral->save();
+        $destiny = Organization::where('id', $newOutputGeneral->organization_id)->first();
 
+        if($destiny->code != 'nocode' && $destiny->code != 'NOCODE' && $newOutputGeneral->status == 3){
 
-        $createdAt = Carbon::now();
-        $destiny = Organization::where('id', $data['organization_id'])->first();
-        $isInventory = false;
-        $entryToConfirmService = new EntryToConfirmService();
-        $entryToConfirm = null;
-        $organizationOrigin = null;
-
-        if($destiny->code != 'nocode' && $destiny->code != 'NOCODE' && $data['status'] == 3){
-            $isInventory = true;
-            Log::info('si entro aca '. $destiny);
-            $entryToConfirm = $entryToConfirmService->createGeneralEntry($newOutputGeneral, $destiny);
-            $organizationOrigin = Organization::where('code',$newOutputGeneral->entity_code)->first();
+            $entryToConfirmService = new EntryToConfirmService();
+            $entryToConfirmService->createGeneralEntry($newOutputGeneral, $destiny);
 
         }
 
-        foreach ($data['products'] as $product)
-        {
-            $this->validateQuantityOfInventoryDetail($product);
-            OutputDetailCreated::dispatch($product);
+        return 0;
 
-            $search = $this->generateSearch(['product' => $product, 'data' => $data, 'guide' => $guide, 'output_code' => $newOutputCode]);
+    }
 
-            $newOutputDetail = Output::create([
-                'user_id' => $userId,
-                'entity_code' => $this->entityCode,
-                'output_code' => $newOutputCode,
-                'output_general_id' => $newOutputGeneral->id,
-                'inventory_id' => $product['inventoryDetailID'],
-                'product_id' => $product['productId'],
-                'condition_id' => $product['conditionId'],
-                'quantity' => $product['quantity'],
-                'organization_id' => $data['organization_id'],
-                'guide' => $guide,
-                'authority_fullname' => $data['authority_fullname'],
-                'authority_ci' => $data['authority_ci'],
-                'receiver_fullname' => $data['receiver_fullname'],
-                'receiver_ci' => $data['receiver_ci'],
-                'expiration_date' => Carbon::parse($product['expirationDate'])->format('Y-m-d'),
-                'day' => date('d'),
-                'month' => date('m'),
-                'year' => date('Y'),
-                'description' => $product['description'],
-                'lote_number' => $product['loteNumber'],
-                'departure_time' => $data['departure_time'],
-                'municipality_id' => $data['municipality_id'],
-                'parish_id' => $data['parish_id'],
-                'created_at' => $createdAt,
-                'search' => $search,
+    public function update($data, $outputGeneral){
+
+        try{
+
+            $this->delete($outputGeneral);
+            $this->create($data);
+
+            $user = auth()->user();
+            NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_SALIDA->value, $outputGeneral->id);
+
+            return ['message' => 'Salida Actualizada exitosamente'];
+
+        }catch (Exception $e){
+
+            Log::error('OutputService - Error al actualizar salida: ' . $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
             ]);
 
-            if($isInventory)
-                $entryToConfirmService->createDetailEntry($organizationOrigin, $newOutputDetail, $entryToConfirm);
+            throw $e;
 
         }
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 10, $newOutputGeneral->id);
+
+    }
+
+    public function delete(OutputGeneral $outputGeneral){
+
+        $user = auth()->user();
+
+        return DB::transaction(function() use($outputGeneral, $user){
+
+            try{
+
+                $outputGeneral->update(
+                    [
+                        'status' => InventoryMoveStatus::ELIMINADO->value
+                    ]
+                );
+
+                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_SALIDA->value, $outputGeneral->id);
+
+                return ['message' => 'Salida Eliminada exitosamente'];
 
 
-        return ['message' => 'Salidas creadas exitosamente', 'outputID' => $newOutputGeneral->id];
+            }catch( Exception $e ){
+
+                Log::error('OutputService - Error al eliminar salida: ' . $e->getMessage(), [
+                    'data' => [$outputGeneral],
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+            }
+
+        });
 
     }
 
 
-    public function splitDate($date)
-    {
-        $dateParsed = Carbon::parse($date);
-
-        $splitDate['year'] = $dateParsed->year;
-        $splitDate['month'] = $dateParsed->month;
-        $splitDate['day'] = $dateParsed->day;
-
-        return $splitDate;
-
-    }
-
-
-    public function insertInventory($outputData,$entityCode = null)
-    {
-        if($entityCode == null)
-            $entityCode = $outputData['entity_code'];
-
-
-        $quantity = $outputData['quantity'];
-
-        $register = $this->inventoryModel->updateOrCreate(
-        [
-            'entity_code' => $entityCode,
-            'product_id' => $outputData['product_id'],
-            'lote_number' => $outputData['lote_number'],
-            'condition_id' => $outputData['condition_id']
-        ],
-        [
-            'expiration_date' => $outputData['expiration_date'],
-            'search' => $outputData['search'],
-
-        ]
-    );
-
-        $register->increment('stock',$quantity);
-        $register->increment('entries',$quantity);
-
-    }
-
-    public function getDetailData($outputGeneralID){
-        $outputs = Output::with('product.category','product.presentation','product.administration','product.medicament','condition')
-        ->where('output_general_id',$outputGeneralID)
-        ->get();
-
-        return new OutputDetailCollection($outputs);
-
-    }
-
-    public function validateQuantityOfInventoryDetail($product){
-
-        $inventory = Inventory::with('product')->where('id', $product['inventoryDetailID'])->first();
-
-        if($inventory->stock < $product['quantity'])
-            throw new Exception("La cantidad solicitada del producto: " . $inventory->product->name . " - " . $inventory->lote_number . " supera el stock disponible", 500);
-    }
-
-    private function createOrganizationMap($organizations)
-    {
-        $response = [];
-        foreach ($organizations as $organization)
-        {
-            $response[$organization->id] = $organization->code;
-        }
-
-        return $response;
-    }
-
-    private function createOrganizationMapToName($organizations)
-    {
-        $response = [];
-        foreach ($organizations as $organization)
-        {
-            $response[$organization->id] = $organization->name;
-        }
-
-        return $response;
-    }
-
-    private function createEntitiesMap($entities)
-    {
-        $response = [];
-        foreach ($entities as $entity)
-        {
-            $response[$entity->code] = $entity->name;
-        }
-
-        return $response;
-    }
-
-    public function getOutpustWithID($id)
-    {
-        $outputs = OutputGeneral::where('id',$id)
-                   ->with('outputs.product.presentation', 'outputs.product.category', 'outputs.product.administration', 'outputs.product.medicament', 'outputs.organization', 'outputs.condition','outputs.municipality','outputs.parish','outputs.user')
-                   ->get();
-
-        return $outputs;
-    }
-
-    public function generateNewGuideNumber($entityCode)
-    {
-
-        $greatestGuide = OutputGeneral::where('entity_code',$entityCode)->where('guide','!=',null)->orderBy('id','desc')->first();
-
-        if(!isset($greatestGuide->guide))
-            return 1;
-
-        return $greatestGuide->guide + 1;
-    }
-
-    private function validateQuantityFromLoteNumbers($lotesRequested, $entityCode)
-    {
-        $lots = array_keys($lotesRequested);
-
-        $inventoryLots = Inventory::where('entity_code',$entityCode)->whereIn('lote_number',$lots)->get()->pluck('stock','lote_number')->toArray();
-
-       foreach ($lotesRequested as $loteNumber => $quantity)
-       {
-            if($quantity > $inventoryLots[$loteNumber])
-                throw new GeneralExceptions('La cantidad solicitada supera a la cantidad del lote: '.$loteNumber, 400);
-       }
-    }
-
-
-    private function generateSearch($dataToGenerateSearch)
-    {
-        [
-            $product,
-            $data,
-            $guide,
-            $output_code,
-        ] = array_values($dataToGenerateSearch);
-
-
-        $string = $data['receiver_fullname'] . ' '
-             . $data['receiver_ci'] . ' '
-             . $output_code . ' '
-             . $guide . ' '
-             . $data['organization_name'] . ' '
-             . $product['name'];
-
-        return $string;
-    }
-
-    private function createNewOrganization($data){
-
-
-        $createOrganization = ['name' => $data['organization_name'], 'authority_fullname' => $data['receiver_fullname'], 'authority_ci' => $data['receiver_ci']];
-        $newOrganization = $this->organizationService->create($createOrganization);
-
-        return $newOrganization['model']->id;
-
-    }
-
-    public function generateConfirmEntry($outputGeneral){
-
-        $destiny = Organization::where('id',$outputGeneral->organization_id)->first();
-
-        if($destiny->code == 'nocode')
-            return 0;
-
-
-        $entryToConfirmService = new EntryToConfirmService();
-        $entryToConfirm = $entryToConfirmService->createGeneralEntry($outputGeneral, $destiny);
-        $organizationOrigin = Organization::where('code',$outputGeneral->entity_code)->first();
-
-        $outputs = Output::where('output_general_id',$outputGeneral->id)->get();
-
-        foreach ($outputs as $output) {
-            $entryToConfirmService->createDetailEntry($organizationOrigin, $output, $entryToConfirm);
-
-        }
-
-    }
-
-    public function generateNewOutputyCode($entityCode){
+    public function generateNewOutputCode($entityCode){
 
         $lastOutputCode = OutputGeneral::where('entity_code',$entityCode)
         ->lockForUpdate()

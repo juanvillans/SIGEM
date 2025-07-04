@@ -277,7 +277,7 @@ class EntryService extends ApiService
             $user = auth()->user();
             NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_ENTRADA->value, $entryGeneral->id);
 
-            return ['message' => 'Entradas Actualizada exitosamente'];
+            return ['message' => 'Entrada Actualizada exitosamente'];
 
 
         } catch (Exception $e) {
@@ -313,7 +313,7 @@ class EntryService extends ApiService
 
                 NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_ENTRADA->value, $entryGeneral->id);
 
-                return ['message' => 'Entradas Eliminada exitosamente'];
+                return ['message' => 'Entrada Eliminada exitosamente'];
 
 
 

@@ -74,55 +74,45 @@ class OutputController extends Controller
         }
     }
 
-    public function update(OutputRequest $request, $id)
+    public function update(OutputRequest $request, OutputGeneral $output)
     {
-        DB::beginTransaction();
 
         try {
 
-            if($request->status == '3')
-                return response()->json(['message' => 'No se puede actualizar una salida despachada'],400);
+            $response = $this->outputService->update($request->validated(), $output);
 
-
-            $this->cancellationService->handleOutputCancellation($request->id);
-            $dataToCreateOuputs = $this->outputService->convertToSnakeCase($request);
-            $response = $this->outputService->create($dataToCreateOuputs);
-
-
-            DB::commit();
-
-            return ['message' => $response['message']];
+            return $response;
 
 
         } catch (Exception $e) {
 
-            DB::rollback();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-                ], $e->getCode());
+                ], 500);
         }
 
     }
 
-    public function verifyIfExistsPatient($ci)
-    {
-        $startDate = Carbon::now()->subDays(15);
-        $endDate = Carbon::now();
+    public function destroy(OutputGeneral $output){
 
-        $register = OutputGeneral::with('entity')
-        ->where("receiver_ci", $ci)
-        ->whereBetween('created_at', [$startDate, $endDate])
-        ->orderBy('id','desc')
-        ->first();
+        try{
 
-        if(!isset($register->id))
-            return response()->json(['message' => 'ok'],404);
+            $response = $this->outputService->delete($output);
 
-        $message = $register->entity->name . ' ha encontrado en un registro con la presente cedula en los ultimos 15 dias. Cod. Salida: '.$register->code. ', Fecha: '.$register->created_at->format('d-m-Y');
+            return $response;
 
-        return $message;
+
+        }catch( Exception $e){
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+
     }
+
 
     public function generateOutputOrder($id)
     {
@@ -144,30 +134,5 @@ class OutputController extends Controller
 
     }
 
-    public function detailOutput($outputGeneralID){
-
-        $outputs = $this->outputService->getDetailData($outputGeneralID);
-        return [
-
-            'products' => $outputs,
-            'message' => 'OK'
-        ];
-    }
-
-    public function restoreProductIds()
-    {
-        /*$outputs = Output::where('guide','>',181)->distinct('guide')->get();
-        $contador = 182;
-        foreach ($outputs as $output)
-        {
-            Output::where('guide',$output->guide)->update(['guide' => $contador]);
-            $contador++;
-        }
-        */
-
-      return "Lo hecho, hecho esta";
-    //    $user = User::where('ci','11479046')->update(['password'=> Hash::make('1234567') ]);
-        //return $user;
-    }
 
 }
