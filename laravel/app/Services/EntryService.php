@@ -14,6 +14,7 @@ use App\Events\EntryDetailCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
+use App\Models\EntryToConfirmed;
 use App\Models\InventoryGeneral;
 
 class EntryService extends ApiService
@@ -333,151 +334,54 @@ class EntryService extends ApiService
 
 
 
-    public function createEntryFromOutput($entryToConfirm){
+    public function createEntryFromEntryToConfirm(EntryToConfirmed $entryToConfirm){
 
         $user = auth()->user();
-        $newEntryCode = $this->generateNewEntryCode($user->entity_code);
+        return DB::transaction(function () use ($entryToConfirm, $user){
 
-        $arrivalTime = Carbon::now()->format('H:i');
+            try {
+                $newEntryCode = $this->generateNewEntryCode($user->entity_code);
 
-        $newEntryGeneral = EntryGeneral::create([
-        'entity_code' => $user->entity_code,
-        'code' => $newEntryCode,
-        'guide' => $entryToConfirm->guide,
-        'arrival_time' => $arrivalTime,
-        'organization_id' => $entryToConfirm->entryDetails[0]->organization_id,
-        'authority_fullname' => $entryToConfirm->authority_fullname,
-        'authority_ci' => $entryToConfirm->authority_ci,
-        'user_id' => $user->id,
-        'day' => date('d'),
-        'month' => date('m'),
-        'year' => date('Y'),
-        'status' => 1,
+                $data = [
+                    'entity_code' => $entryToConfirm->entity_code,
+                    'code' => $newEntryCode,
+                    'area' => $entryToConfirm->area,
+                    'product_id' => $entryToConfirm->product_id,
+                    'quantity' => $entryToConfirm->quantity,
+                    'serial_number' => $entryToConfirm->serial_number,
+                    'national_code' => $entryToConfirm->national_code,
+                    'organization_id' => $entryToConfirm->organization_id,
+                    'machine_status_id' => $entryToConfirm->machine_status_id,
+                    'user_id' => $user->id,
+                    'components' => $entryToConfirm->components,
+                    'arrival_time' => $entryToConfirm->arrival_time,
+                    'status' => InventoryMoveStatus::DESPACHADO->value,
+                ];
 
-       ]);
+                $newEntryGeneral = EntryGeneral::create($data);
 
-       $newEntryGeneral->save();
+                EntryCreated::dispatch($newEntryGeneral);
 
-       foreach ($entryToConfirm->entryDetails as $entry) {
+                NewActivity::dispatch($user->id, TypeActivity::CREAR_ENTRADA->value, $newEntryGeneral->id);
 
-
-        $entryCreated = Entry::create([
-
-                'user_id' => $user->id,
-                'entity_code' => $user->entity_code,
-                'entry_general_id' => $newEntryGeneral->id,
-                'entry_code' => $newEntryCode,
-                'product_id' => $entry->product_id,
-                'quantity' => $entry->quantity,
-                'organization_id' => $entry->organization_id,
-                'guide' => $entryToConfirm->guide,
-                'expiration_date' => $entry->expiration_date,
-                'condition_id' => $entry->condition_id,
-                'authority_fullname' => $entryToConfirm->authority_fullname,
-                'authority_ci' => $entryToConfirm->authority_ci,
-                'day' => date('d'),
-                'month' => date('m'),
-                'year' => date('Y'),
-                'description' => 'Sin comentarios',
-                'lote_number' => $entry->lote_number,
-                'arrival_time' => $arrivalTime,
-                'search' => $entry->search,
-
-        ]);
-
-        EntryDetailCreated::dispatch($entryCreated);
+                return 0;
 
 
 
-       }
+            } catch (Exception $e) {
 
-       return 0;
+                Log::error('EntryService -  Error al crear entrada desde una entrada por confirmar: '. $e->getMessage(), [
+                'data' => $entryToConfirm,
+                'trace' => $e->getTraceAsString()
+            ]);
 
+            throw $e;
+            }
+
+        });
 
     }
 
-
-
-
-    public function splitDate($date)
-    {
-        $dateParsed = Carbon::parse($date);
-
-        $splitDate['year'] = $dateParsed->year;
-        $splitDate['month'] = $dateParsed->month;
-        $splitDate['day'] = $dateParsed->day;
-
-        return $splitDate;
-
-    }
-
-    private function deleteInventory($entryData)
-    {
-        $register = $this->inventoryModel
-        ->where('entity_code',$entryData->entity_code)
-        ->where('product_id',$entryData->product_id)
-        ->where('lote_number',$entryData->lote_number)
-        ->first();
-
-        $register->decrement('stock',$entryData->quantity);
-        $register->decrement('entries',$entryData->quantity);
-    }
-
-
-
-
-    private function createOrganizationMap($organizations)
-    {
-        $response = [];
-        foreach ($organizations as $organization)
-        {
-            $response[$organization->id] = $organization->code;
-        }
-
-        return $response;
-    }
-
-    private function createOrganizationMapToName($organizations)
-    {
-        $response = [];
-        foreach ($organizations as $organization)
-        {
-            $response[$organization->id] = $organization->name;
-        }
-
-        return $response;
-    }
-
-    private function createEntitiesMap($entities)
-    {
-        $response = [];
-        foreach ($entities as $entity)
-        {
-            $response[$entity->code] = $entity->name;
-        }
-
-        return $response;
-    }
-
-
-
-
-
-    private function validateUniqueLoteNumber($loteNumber,$entityCode)
-    {
-       $entry =  Entry::where('entity_code', $entityCode)
-       ->where('lote_number',$loteNumber)
-       ->whereHas('entryGeneral', function($query){
-
-           $query->where('status','!=',2)->first();
-
-        })->first();
-
-         if(isset($entry->id) == true)
-            throw new GeneralExceptions('El número de lote: ' .$loteNumber.' ya se encuentra en el inventario',422);
-
-        return 0;
-    }
 
     public function generateNewEntryCode($entityCode){
 

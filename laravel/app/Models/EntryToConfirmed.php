@@ -12,18 +12,18 @@ class EntryToConfirmed extends Model
     protected $fillable = [
         'entity_code',
         'entity_code_from',
-        'output_general_id',
-        'guide',
-        'departure_date',
+        'product_id',
+        'organization_id',
+        'quantity',
+        'area',
+        'serial_number',
+        'machine_status_id',
         'departure_time',
         'arrival_time',
-        'authority_fullname',
-        'authority_ci',
-        'day',
-        'month',
-        'year',
+        'output_general_id',
         'status',
     ];
+
 
     public function entity(){
         return $this->belongsTo(HierarchyEntity::class, 'entity_code', 'code');
@@ -35,12 +35,36 @@ class EntryToConfirmed extends Model
 
     }
 
-    public function outputGeneral(){
-        return $this->belongsTo(OutputGeneral::class, 'id', 'output_general_id');
+     public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 
-    public function entryDetails()
+    /**
+     * Get the organization associated with the record.
+     */
+    public function organization()
     {
-        return $this->hasMany(EntryToConfirmedDetail::class, 'entry_to_confirmed_id');
+        return $this->belongsTo(Organization::class);
     }
+
+    /**
+     * Get the machine status associated with the record.
+     */
+    public function machineStatus()
+    {
+        return $this->belongsTo(MachineStatus::class);
+    }
+
+    /**
+     * Get the output general associated with the record.
+     */
+    public function outputGeneral()
+    {
+        return $this->belongsTo(OutputGeneral::class);
+    }
+
+
+
+
 }

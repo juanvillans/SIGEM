@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EntryGeneral;
+use App\Models\EntryToConfirmed;
 use Illuminate\Http\Request;
 use App\Models\MachineStatus;
 use App\Models\HierarchyEntity;
@@ -55,6 +56,17 @@ class RelationController extends Controller
             ->pluck('year');
 
             $response['outputsYears'] = $years;
+
+        }
+
+        if($request->input('entriesToConfirmedYears'))
+        {
+            $years = EntryToConfirmed::selectRaw('EXTRACT(YEAR FROM created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+            $response['entriesToConfirmedYears'] = $years;
 
         }
 

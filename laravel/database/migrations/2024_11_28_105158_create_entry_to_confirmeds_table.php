@@ -30,13 +30,16 @@ return new class extends Migration
                 ->onDelete("restrict")
                 ->onUpdate("cascade");
 
+            $table->string('area')->nullable();
             $table->foreignId('product_id');
             $table->foreignId('organization_id');
-            $table->integer('quantity');
+            $table->integer('quantity')->default(1);
             $table->string('serial_number');
+            $table->string('national_code');
             $table->foreignId('machine_status_id');
             $table->string('departure_time');
             $table->string('arrival_time');
+            $table->json('components');
             $table->foreignId('output_general_id');
             $table->integer('status');
             $table->timestamps();

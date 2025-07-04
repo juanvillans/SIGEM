@@ -40,11 +40,11 @@ class NewEntryToConfirmNotification extends Notification
         $TYPE_NOTIFICATION_ENTRY_TO_CONFIRM = 2;
         $entityName = HierarchyEntity::where('code', $this->entry->entity_code_from)->first()->name;
 
-        
+
         return [
             'type' => $TYPE_NOTIFICATION_ENTRY_TO_CONFIRM,
             'Title' => 'Entrada por confirmar',
-            'message' => 'De: ' . $entityName . ' Guia: ' . $this->entry->guide,
+            'message' => 'De: ' . $entityName . ' Codigo: ' . $this->entry->id,
             'id' => $this->entry->id,
             'date' => Carbon::now(),
         ];

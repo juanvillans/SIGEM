@@ -3,20 +3,11 @@
 namespace App\Http\Controllers;
 
 use Exception;
-use App\Models\Entry;
-use App\Models\Condition;
-use App\Models\Inventory;
 use App\Models\EntryGeneral;
-use App\Models\Organization;
 use Illuminate\Http\Request;
 use App\Services\EntryService;
-use App\Models\HierarchyEntity;
-use Illuminate\Support\Facades\DB;
-use App\Filters\EntriesQueryFilter;
-
 use App\Http\Requests\EntryRequest;
 use Illuminate\Support\Facades\Log;
-use App\Exceptions\GeneralExceptions;
 use App\Http\Resources\EntryCollection;
 
 class EntryController extends Controller
@@ -116,24 +107,7 @@ class EntryController extends Controller
         }
     }
 
-    public function changeLoteNumber()
-    {
-        $entries = Entry::all();
-        foreach($entries as $entry)
-        {
-            $randomString = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 8);
-            $inventory = Inventory::where('lote_number',$entry->lote_number)->first();
 
-            $inventory->lote_number = $randomString;
-            $inventory->save();
-
-            $entry->lote_number = $randomString;
-            $entry->save();
-
-        }
-
-        return 'ok';
-    }
 
 
 

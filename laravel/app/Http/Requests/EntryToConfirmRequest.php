@@ -22,7 +22,18 @@ class EntryToConfirmRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'entryToConfirmID' => ['required'],
+            'entryToConfirmID' => [
+                'required',
+                'exists:entry_to_confirmeds,id'
+        ],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'entryToConfirmID.required' => 'La entrada a confirmar es requerido',
+            'entryToConfirmID.exists' => 'La entrada a confirmar no existe',
         ];
     }
 }
