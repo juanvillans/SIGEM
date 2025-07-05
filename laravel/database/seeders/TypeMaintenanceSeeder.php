@@ -24,6 +24,6 @@ class TypeMaintenanceSeeder extends Seeder
 
         ];
 
-        DB::table('type_maitenances')->insert($fields);
+        DB::table('type_maintenances')->insert($fields);
     }
 }
