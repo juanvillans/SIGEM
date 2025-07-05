@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             ParishSeeder::class,
             OrganizationSeeder::class,
             TypeActivitySeeder::class,
+            TypeMaintenanceSeeder::class,
 
         ]);
 
