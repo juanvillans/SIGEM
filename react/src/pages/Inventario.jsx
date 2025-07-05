@@ -19,6 +19,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import InventoryReport from "../components/InventoryReport";
+import CheckIcon from "@mui/icons-material/Check";
+
 // import { NavLink } from "react-router-dom";
 import * as XLSX from "xlsx";
 // import { NavLink } from "react-router-dom";
@@ -35,6 +37,7 @@ const filterConfiguration = {
   month: "&inventories[month]=",
   year: "&inventories[year]=",
   minimunAlert: "&inventories[minimumAlert]=",
+  last_type_maintenance_name: "&inventories[last_type_maintenance_id]=",
 };
 let filterObject = {};
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -61,18 +64,19 @@ export default function Inventario(props) {
   // 559 573 719 724
   const [dataTable, setDataTable] = useState([]);
   const [generalData, setGeneralData] = useState({
-    typePresentations: [],
-    TypeAdministrations: [],
-    categories: [],
-    Medicaments: [],
+    types_maintenance: [],
     organizations: [],
   });
 
+  console.log(generalData);
   const [open, setOpen] = useState(false);
   const [modalConfirm, setModalConfirm] = useState({
     isOpen: false,
     modalInfo: false,
   });
+  const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
+  
+
   const [reportData, setReportData] = useState([]);
 
   const [relation, setRelation] = useState(true);
@@ -89,42 +93,7 @@ export default function Inventario(props) {
   });
 
    const columns = [
-    {
-      name: "day",
-      label: "Dia",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[0] || [],
-        filterOptions: {
-          names: days,
-        },
-      },
-    },
-    {
-      name: "month",
-      label: "Mes",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[1] || [],
-        filterOptions: {
-          names: months,
-        },
-      },
-    },
-    {
-      name: "year",
-      label: "Año",
-      options: {
-        display: "excluded",
-        filter: true,
-        filterList: parametersURL?.filterList[2] || [],
-        filterOptions: {
-          names: generalData?.years,
-        },
-      },
-    },
+   
     {
       name: "entity_name",
       label: "Entidad",
@@ -137,44 +106,7 @@ export default function Inventario(props) {
         sort: true,
       },
     },
-    {
-      name: "arrival_date",
-      label: "Fecha",
-      options: {
-        filter: false,
-      },
-    },
-     {
-      name: "organizationObj",
-      label: "Origen",
-      options: {
-        filter: false,
-        customBodyRender: (value) => {
-          if (value.code.toLowerCase() !== "nocode") {
-            return (
-              <div className="flex">
-                <p>
-                  {" "}
-                  <span className="text-blue1">
-                    <StoreIcon style={{ fontSize: "15px" }} />
-                  </span>{" "}
-                  {value.name}
-                </p>
-              </div>
-            );
-          } else {
-            return <p>{value.name}</p>;
-          }
-        },
-      },
-    },
-    {
-      name: "arrival_time",
-      label: "Hora",
-      options: {
-        filter: false,
-      },
-    },
+  
     {
       name: "product_name",
       label: "Equipo",
@@ -296,12 +228,18 @@ export default function Inventario(props) {
       },
     },
     {
-      name: "user_name",
-      label: "Registrado por",
+      name: "last_type_maintenance_name",
+      label: "Último tipo de mantenimiento",
       options: {
-        filter: false,
+        filter: true,
+        filterList: parametersURL?.filterList[8] || [],
+        filterOptions: {
+          names: generalData?.types_maintenance?.map((obj) => obj.name),
+        },
+      
       },
     },
+
   ];
 
   // console.log(NewRegister);
@@ -388,7 +326,7 @@ export default function Inventario(props) {
       setParametersURL((prev) => ({ ...prev, rowsPerPage: numberOfRows, page:  (totalData / numberOfRows ) < prev.page ? 1 : prev.page }));
     },
 
-    onFilterChange: (
+     onFilterChange: (
       changedColumn,
       filterList,
       typeFilter,
@@ -403,54 +341,27 @@ export default function Inventario(props) {
         return;
       }
       if (arrValues.length > 0) {
-        if (changedColumn == "minimunAlert") {
-          filterObject[changedColumn] = `${
-            filterConfiguration[changedColumn]
-          }${encodeURIComponent(
-            arrValues
-              .map((eachValue) => (eachValue == "Crítica" ? 1 : 0))
-              .join()
-              .replaceAll(",", "[OR]")
-          )}`;
-        } else if (changedColumn == "conditionName") {
+        console.log({changedColumn, columnIndex});
+        if (changedColumn == "last_type_maintenance_name") {
           arrValues = arrValues.map((eachValue) => {
-            eachValue = eachValue.toUpperCase();
-            if (eachValue == "POR VENCER") return "stockPerExpire";
-            if (eachValue == "BUEN ESTADO") return "stockGood";
-            if (eachValue == "DEFECTUOSO") return "stockBad";
-            if (eachValue == "VENCIDO") return "stockExpired";
+            const typeMaintenanceObject = generalData.types_maintenance.find(
+              (obj) => obj.name == eachValue
+            );
+            return typeMaintenanceObject ? typeMaintenanceObject.id : null;
           });
-
-          delete filterObject["stockPerExpire"];
-          delete filterObject["stockGood"];
-          delete filterObject["stockBad"];
-          delete filterObject["stockExpired"];
-          filterObject[arrValues[arrValues.length - 1]] = `&inventories[${
-            arrValues[arrValues.length - 1]
-          }]=0`;
-        } else {
-          // if (arrValues.some(eachValue => eachValue == "Crítica" || eachValue == ))
-          filterObject[changedColumn] = `${
-            filterConfiguration[changedColumn]
-          }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
-        }
+        } 
+        filterObject[changedColumn] = `${
+          filterConfiguration[changedColumn]
+        }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
-        if (changedColumn == "conditionName") {
-          delete filterObject["stockPerExpire"];
-          delete filterObject["stockGood"];
-          delete filterObject["stockBad"];
-          delete filterObject["stockExpired"];
-        }
         delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
 
-      // setFilterObject(newFilterObject); // Actualiza el objeto de filtro
       setParametersURL((prev) => ({
         ...prev,
         filter: Object.values(filterObject).join(""),
         page: 1,
         filterList,
-        filterObject,
       }));
     },
 
@@ -510,30 +421,8 @@ export default function Inventario(props) {
 
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
-    expandableRowsHeader: false,
-    expandableRowsOnClick: true,
-    expandableRows: true,
-    onRowExpansionChange: (
-      currentRowsExpanded,
-      allRowsExpanded,
-      rowsExpanded
-    ) => {
-      const product = dataTable[currentRowsExpanded[0].dataIndex];
-      // console.log(product)
-      // setDataTable(prev => [...prev])
-      // detailInventory(product.productId , product.entityCode, currentRowsExpanded[0].dataIndex)
-    },
-    renderExpandableRow: (rowData, rowMeta) => {
-      const product = dataTable[rowMeta.dataIndex];
-      // detailInventory(product.productId , product.entityCode, rowMeta.dataIndex)
-      return (
-        <ExpandRowInventory
-          productId={product.productId}
-          entityCode={product.entityCode}
-          indx={rowMeta.dataIndex}
-        />
-      );
-    },
+   
+
   };
 
   const getData = async (isJustForReport = false) => {
@@ -577,7 +466,32 @@ export default function Inventario(props) {
       setRelation(false);
     });
   };
-
+  useEffect(() => {
+      if (!hasLoadedRelations) {
+        axios.get(`/dashboard/relation?entities=true&machine_status=true&types_maintenance=true`)
+          .then((res) => {
+            if (res.data.entities) {
+              const entitiesObject = {};
+              res.data.entities.forEach((obj) => {
+                entitiesObject[obj.name] = obj.name;
+              });
+              setGeneralData((prev) => ({
+                ...prev,
+                entitiesObject,
+                entities: res.data.entities,
+                machine_status: res.data.machine_status,
+                types_maintenance: res.data.types_maintenance,
+                // conditions: res.data.conditions || prev.conditions,
+              }));
+            }
+            setHasLoadedRelations(true);
+          })
+          .catch((err) => {
+            console.error("Error al cargar datos relacionados:", err);
+          });
+      }
+    }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
+    console.log({generalData});
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -636,7 +550,7 @@ export default function Inventario(props) {
         options={options}
       />
     );
-  }, [dataTable]);
+  }, [dataTable, generalData]);
 
   const [modalReport, setModalReport] = useState();
   useEffect(() => {
