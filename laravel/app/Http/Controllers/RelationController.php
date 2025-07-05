@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\MachineStatus;
 use App\Models\HierarchyEntity;
 use App\Models\OutputGeneral;
+use App\Models\RequestProduct;
 use App\Models\TypeMaintenance;
 
 class RelationController extends Controller
@@ -68,6 +69,16 @@ class RelationController extends Controller
 
             $response['entriesToConfirmedYears'] = $years;
 
+        }
+
+        if($request->input('requestProductsYears')){
+
+            $years = RequestProduct::selectRaw('EXTRACT(YEAR FROM created_at) as year')
+            ->distinct()
+            ->orderBy('year','desc')
+            ->pluck('year');
+
+            $response['requestProductsYears'] = $years;
         }
 
         if($request->input('types_maintenance'))

@@ -12,12 +12,7 @@ class RequestProduct extends Model
     protected $fillable = [
         'entity_code',
         'entity_code_destiny',
-        'code',
-        'created_time',
-        'created_by',
-        'day',
-        'month',
-        'year',
+        'user_id',
         'status',
         'comment',
         'output_general_id',
@@ -32,10 +27,14 @@ class RequestProduct extends Model
         return $this->belongsTo(HierarchyEntity::class, 'entity_code_destiny', 'code');
 
     }
-    
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+
     public function outputGeneral(){
         return $this->belongsTo(OutputGeneral::class);
     }
 
-    
+
 }

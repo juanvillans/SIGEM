@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InventoryMoveStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -29,9 +30,8 @@ return new class extends Migration
                 ->onDelete("restrict")
                 ->onUpdate("cascade");
 
-            $table->integer('code');
             $table->string('comment');
-            $table->integer('status');
+            $table->integer('status')->default(InventoryMoveStatus::SIN_CONFIRMAR->value);
             $table->unsignedInteger('output_general_id')->nullable();
             $table->foreign('output_general_id')
                 ->references('id')
@@ -41,8 +41,6 @@ return new class extends Migration
                 ->onUpdate("cascade");
 
             $table->foreignId('product_id');
-            $table->integer('quantity');
-            $table->string('serial_number');
             $table->timestamps();
         });
     }

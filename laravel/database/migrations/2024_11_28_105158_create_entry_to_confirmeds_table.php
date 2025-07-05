@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\InventoryMoveStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -41,7 +42,7 @@ return new class extends Migration
             $table->string('arrival_time');
             $table->json('components');
             $table->foreignId('output_general_id');
-            $table->integer('status');
+            $table->integer('status')->default(InventoryMoveStatus::SIN_CONFIRMAR->value);
             $table->timestamps();
         });
     }

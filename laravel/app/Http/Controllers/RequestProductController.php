@@ -22,44 +22,26 @@ class RequestProductController extends Controller
     public function __construct()
     {
         $this->requestProductService = new RequestProductService;
-        $this->queryFilter = new RequestProductQueryFilter;
     }
 
     public function index(Request $request)
-    {      
-
-
-        $paginateArray = $this->queryFilter->getPaginateValues($request,'request_products');
-
-        $requestsProducts = $this->requestProductService->getData($paginateArray,$request);    
+    {
+        $requestsProducts = $this->requestProductService->getData();
 
         $requestProductCollection = new RequestProductCollection($requestsProducts);
 
         $total = $requestsProducts->total();
 
-
-        $relation = $request->query('relation') ?? "false";
-        
-        if($relation == "true")
-        {   
-            $entities = HierarchyEntity::select('name','code')->get();
-            $years  = RequestProduct::orderBy('year','desc')->distinct()->pluck('year');
-
-        }
-        
-
         return [
-            
+
             'requests' => $requestProductCollection,
-            'entities' => $entities ?? null,
-            'years' => $years ?? null,
             'total' => $total,
             'message' => 'OK'
         ];
 
     }
 
-    
+
     public function store(Request $request)
     {
         DB::beginTransaction();
@@ -71,39 +53,19 @@ class RequestProductController extends Controller
             DB::commit();
 
             return ['message' => 'Solicitud enviada correctamente' ];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage() 
+            'message' => $e->getMessage()
             ], 500);
 
-            
-            
+
+
         }
     }
-
-    public function detailRequest(RequestProduct $requestProduct)
-    {   
-        $detailRequests = $this->requestProductService->getDetailData($requestProduct->id);
-        $outputs = null;
-        
-        if($requestProduct->status = 6){
-            $outputService = new OutputService;
-            $outputs = $outputService->getDetailData($requestProduct->output_general_id);
-        }
-
-        return [
-            
-            'products' => $detailRequests,
-            'outputs' => $outputs,
-            'message' => 'OK'
-        ];
-        
-    }
-
 
 
 
@@ -121,17 +83,17 @@ class RequestProductController extends Controller
             DB::commit();
 
             return ['message' => 'Solicitud actualizada correctamente' ];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage() 
+            'message' => $e->getMessage()
             ], 500);
 
-            
-            
+
+
         }
     }
 
@@ -149,17 +111,17 @@ class RequestProductController extends Controller
             DB::commit();
 
             return ['message' => 'Solicitud eliminada correctamente' ];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage() 
+            'message' => $e->getMessage()
             ], 500);
 
-            
-            
+
+
         }
     }
 
@@ -169,7 +131,7 @@ class RequestProductController extends Controller
 
         $paginateArray = $this->queryFilter->getPaginateValues($request,'request_products');
 
-        $requestsProducts = $this->requestProductService->getMyRequests($paginateArray, $request, $userEntityCode);    
+        $requestsProducts = $this->requestProductService->getMyRequests($paginateArray, $request, $userEntityCode);
 
         $requestProductCollection = new RequestProductCollection($requestsProducts);
 
@@ -177,17 +139,17 @@ class RequestProductController extends Controller
 
 
         $relation = $request->query('relation') ?? "false";
-        
+
         if($relation == "true")
-        {   
+        {
             $entities = HierarchyEntity::select('name','code')->get();
             $years  = RequestProduct::orderBy('year','desc')->distinct()->pluck('year');
 
         }
-        
+
 
         return [
-            
+
             'requests' => $requestProductCollection,
             'entities' => $entities ?? null,
             'years' => $years ?? null,
@@ -197,19 +159,19 @@ class RequestProductController extends Controller
     }
 
     public function detailRequestToMyInventory(RequestProduct $requestProduct){
-        
+
         $response = $this->requestProductService->getDetailDataRequestToMyInventory($requestProduct->id);
 
         $outputs = null;
-        
+
         if($requestProduct->status = 6){
             $outputService = new OutputService;
             $outputs = $outputService->getDetailData($requestProduct->output_general_id);
         }
 
-        
+
         return [
-            
+
             'products' => $response['products'],
             'organization' => $response['organization'],
             'outputs' => $outputs ?? null,
@@ -218,7 +180,7 @@ class RequestProductController extends Controller
     }
 
     public function confirmRequest($status, RequestProduct $requestProduct, $outputGeneralID = null){
-        
+
         DB::beginTransaction();
 
         try {
@@ -231,20 +193,20 @@ class RequestProductController extends Controller
             DB::commit();
 
             return ['message' => 'Pedido respondido con exito' ];
-            
+
         } catch (Exception $e) {
-            
+
             DB::rollback();
             return response()->json([
             'status' => false,
-            'message' => $e->getMessage() 
+            'message' => $e->getMessage()
             ], 500);
 
-            
-            
+
+
         }
 
     }
 
-    
+
 }
