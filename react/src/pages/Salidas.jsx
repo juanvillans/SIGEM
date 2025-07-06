@@ -16,7 +16,7 @@ import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import HistoryIcon from "@mui/icons-material/History";
 import InputAdornment from "@mui/material/InputAdornment";
 import ExpandRowProducts from "../components/ExpandRowProducts";
-import MicIcon from '@mui/icons-material/Mic';
+import MicIcon from "@mui/icons-material/Mic";
 
 // import Chip from '@material-ui/core/Chip';
 import {
@@ -122,22 +122,13 @@ export default function Salidas(props) {
   });
   let date = new Date().toISOString().split("T")[0];
   const [NewRegister, setNewRegister] = useState({
-    status: 1,
-    code: "",
     id: "",
-    authorityFullname: "",
-    authorityCi: "",
-    authorityObj: { authorityFullname: "", authorityCi: "" },
-    guide: "new",
-    parishId: "",
-    municipalityId: 14,
-    organizationName: "",
-    organizationId: "",
-    receiverCi: "",
-    receiverName: "",
+    area: "",
+    departureTime: getCurrentTime(),
+    description: "",
     organizationObject: { name: "", organizationId: null },
     products: [],
-    departureDate: date,
+    departureDate: new Date().toISOString().split("T")[0],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchHidden, setIsSearchHidden] = useState("hidden");
@@ -199,7 +190,7 @@ export default function Salidas(props) {
   //   localStorage.setItem('outputForm', JSON.stringify(NewRegister))
   // }, [NewRegister]);
 
- const columns = [
+  const columns = [
     {
       name: "day",
       label: "Dia",
@@ -262,7 +253,7 @@ export default function Salidas(props) {
         filter: false,
       },
     },
-     {
+    {
       name: "organizationObj",
       label: "Origen",
       options: {
@@ -298,7 +289,7 @@ export default function Salidas(props) {
       label: "Equipo",
       options: {
         filter: false,
-        sort:false,
+        sort: false,
       },
     },
     {
@@ -306,8 +297,7 @@ export default function Salidas(props) {
       label: "Marca",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -315,8 +305,7 @@ export default function Salidas(props) {
       label: "Modelo",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -324,8 +313,7 @@ export default function Salidas(props) {
       label: "Serial",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -333,8 +321,7 @@ export default function Salidas(props) {
       label: "Bien Nacional",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -342,8 +329,7 @@ export default function Salidas(props) {
       label: "Estado",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -351,7 +337,7 @@ export default function Salidas(props) {
       label: "Componentes",
       options: {
         filter: false,
-        sort:false,
+        sort: false,
         customBodyRender: (value, tableMeta) => {
           // Si no hay componentes o el objeto está vacío
           if (!value || Object.keys(value).length === 0) return "N/A";
@@ -430,8 +416,7 @@ export default function Salidas(props) {
       label: "Registrado por",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
   ];
@@ -456,10 +441,14 @@ export default function Salidas(props) {
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
-      setSearchProductText(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+      setSearchProductText(
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      );
 
       setIsListening(false);
-      handleSearchForSelect(transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+      handleSearchForSelect(
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      );
       if (isSearchHidden == "hidden") {
         setIsSearchHidden("absolute");
       }
@@ -469,14 +458,14 @@ export default function Salidas(props) {
   };
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.ctrlKey && e.code === 'Space') {
+      if (e.ctrlKey && e.code === "Space") {
         e.preventDefault();
         startListening();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [startListening]);
   const handleSearchForSelect = useDebounce(async (searchText) => {
     try {
@@ -710,7 +699,6 @@ export default function Salidas(props) {
               ? response.data[product.id].stock
               : response.data[product.id].stock + product.quantity;
             product.conditionId = response.data[product.id].condition;
-
           });
           setOrganizations([
             {
@@ -990,24 +978,7 @@ export default function Salidas(props) {
         </div>
       );
     },
-    expandableRowsHeader: false,
-    expandableRowsOnClick: true,
-    expandableRows: true,
-    renderExpandableRow: (rowData, rowMeta) => {
-      const output = dataTable[rowMeta.dataIndex];
 
-      return (
-        <ExpandRowProducts
-          id={output.id}
-          entityCode={output.entityCode}
-          code={output.outputCode}
-          route={"output"}
-          data={output}
-          handleSelectRow={handleSelectRow}
-          tableSearchText={tableSearchText}
-        />
-      );
-    },
     setRowProps: (row, dataIndex, rowIndex) => {
       if (dataTable[dataIndex].status == "2") {
         return {
@@ -1031,9 +1002,7 @@ export default function Salidas(props) {
 
       if (relation == true) {
         let entitiesObject = {};
-        res.entities.forEach((obj) => {
-          entitiesObject[obj.name] = obj.name;
-        });
+
         setGeneralData({
           ...res,
           entitiesObject,
@@ -1044,38 +1013,6 @@ export default function Salidas(props) {
     });
 
     setRelation(false);
-  };
-  const requestGuide = async (type, id, justForBill = false) => {
-    await axios
-      .get(`dashboard/outputs?outputs[${type}]=${id}`)
-      .then((response) => {
-        const data = response.data.outputs;
-        if (data.length > 0) {
-          const arrGuide = {
-            ...data[0],
-            products: [...data[0].products],
-          };
-
-          for (let i = 1; i < data.length; i++) {
-            arrGuide.products.push(...data[i].products);
-          }
-
-          if (justForBill == true) {
-            setInfoBill(arrGuide);
-            setModalPdf(true);
-          } else {
-            setNewRegister(arrGuide);
-            document.querySelector("#guideNumber").disabled = true;
-          }
-        } else {
-          setAlert({
-            open: true,
-            status: "Error",
-            message: `No se encontró ninguna guia ${guide}`,
-          });
-          return;
-        }
-      });
   };
 
   const [submitStatus, setSubmitStatus] = useState("Crear");
@@ -1148,39 +1085,13 @@ export default function Salidas(props) {
 
       localStorage.setItem("authorities", JSON.stringify(objauthority));
       setNewRegister({
-        status: 1,
-        authorityCi: "",
-        authorityFullname: "",
-        departureTime: "",
-        municipalityId: 14,
-        parishId: null,
-        organizationId: null,
-        organizationName: "",
-
-        organizationObject: {
-          organizationId: null,
-          code: "",
-          name: "",
-          authorityFullname: "",
-          authorityCi: "",
-        },
         code: "",
         id: "",
-        name: "",
-        categoryId: "",
-        medicamentId: "",
-        receiverFullname: "",
-        receiverCi: "",
-
-        typePresentationId: "",
-        typeAdministrationId: "",
-        unitPerPackage: "",
-        concentrationSize: "",
-        categoryObj: { name: "", id: "" },
-        medicamentObj: { name: "N/A", id: 1 },
-        typePresentationObj: { name: "N/A", id: 1 },
-        typeAdministrationObj: { name: "N/A", id: 1 },
-        guide: "new",
+        area: "",
+        departureTime: getCurrentTime(),
+        status: 1,
+        description: "",
+        organizationObject: { name: "", organizationId: null },
         products: [],
         departureDate: new Date().toISOString().split("T")[0],
       });
@@ -1306,7 +1217,8 @@ export default function Salidas(props) {
             color={"red"}
             text="Nueva Salida"
             icon={"add"}
-            fClick={(e) => {
+            onClick={(e) => {
+              console.log("abriendo");
               setNewRegister((prev) => ({
                 ...prev,
                 departureTime: getCurrentTime(),
@@ -1496,14 +1408,19 @@ export default function Salidas(props) {
                   InputProps={{
                     endAdornment: (
                       <>
-                      <InputAdornment position="end">
-                        <SearchIcon className="text-dark" />
-                      </InputAdornment>
+                        <InputAdornment position="end">
+                          <SearchIcon className="text-dark" />
+                        </InputAdornment>
 
-                      <button className="hover:text-blue2" title="(Ctrl+Espacio) Dictar por voz " onClick={startListening} disabled={isListening}>
-                        {isListening ? "Escuchando..." : <MicIcon />}
-                      </button>
-                    </>
+                        <button
+                          className="hover:text-blue2"
+                          title="(Ctrl+Espacio) Dictar por voz "
+                          onClick={startListening}
+                          disabled={isListening}
+                        >
+                          {isListening ? "Escuchando..." : <MicIcon />}
+                        </button>
+                      </>
                     ),
                   }}
                 />
@@ -1512,338 +1429,61 @@ export default function Salidas(props) {
                   id="searchWindow"
                   className={`bg-ligther shadow-2xl  absolute left-0 max-h-96 overflow-auto  rounded-lg  border-t-0 top-[73px] z-50   ${isSearchHidden}`}
                 >
-                  <table className="parent_products bg-opacity-0">
-                    <thead className="header px-2 py-1 pb-0 bg-ligther text-dark text-xs ">
-                      <tr>
-                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                          Cód. produ.
-                        </th>
-                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                          Producto
-                        </th>
-                        <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                          Total
-                        </th>
-                        {showAllStock && (
-                          <>
-                            <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                              Por vencer
-                            </th>
-                            <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                              Buen estado
-                            </th>
-                            <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                              Vencidos
-                            </th>
-                            <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                              Defectuosos
-                            </th>
-                          </>
-                        )}
-                        <th
-                          title="Mostrar vencidos y otros"
-                          className="bg-light cursor-pointer hover:bg-grey hover:text-white text-sm"
-                          onClick={() => setShowAllStock((prev) => !prev)}
-                        >
-                          {showAllStock ? "<<" : ">>"}
-                        </th>
+                  <table className="">
+                    <thead>
+                      <tr className="header pb-0 text-left bg-ligther text-dark text-xs">
+                        <th className="py-2">Cód.</th>
+                        <th className="py-2">Nombre del equipo</th>
+                        <th className="py-2">Marca</th>
+                        <th className="py-2">Modelo</th>
+                        <th className="py-2">Serial</th>
+                        <th className="py-2">Bien Nacional</th>
+                        <th className="py-2">Estado</th>
+                        <th className="py-2">Componentes</th>
                       </tr>
                     </thead>
-
-                    {typeof productsSearched === "string" ? (
+                    {typeof productsSearched == "string" ? (
                       <p className="col-span-8 text-center py-4 font-bold">
-                        {/* Aqui se muestra el texto que dice buscando o que no se encontró ninguno */}
                         {productsSearched}
                       </p>
                     ) : (
                       <tbody>
-                        {productsSearched?.map((product, i) => {
-                          // when select the product ( and not the lote)
-                          const isRowSelected = selectedRow === i;
-                          // if (produ)
-                          return (
-                            <React.Fragment key={product.productId}>
-                              <tr
-                                onClick={(e) => {
-                                  setLotsInventoryData(false);
-                                  const clickedRow = e.currentTarget;
-                                  // Calculate the top position of the clicked row relative to the search window
-                                  clickedRow.scrollIntoView({
-                                    behavior: "smooth",
-                                    block: "start",
-                                  });
+                        {productsSearched?.map((product, i) => (
+                          <tr
+                            key={`${product.product_code}+${i}`}
+                            className="body border-b border-b-grey border-opacity-10 text-black items-center hover:bg-blue1 hover:text-white cursor-pointer py-3"
+                            onMouseDown={() => {
+                              setIsSearchHidden("hidden");
+                              setNewRegister((prev) => ({
+                                ...prev,
 
-                                  // Smooth scroll the search window to the clicked row position
-                                  setSelectedRow((prev) => {
-                                    return prev == i ? null : i;
-                                  });
-                                  axios
-                                    .get(
-                                      `dashboard/detail-inventory/${product.productId}/${product.entityCode}`
-                                    )
-                                    .then((response) => {
-                                      const lots = response.data.lotsPerOrigin;
-                                      console.log(lots);
-                                      
-                                      setLotsInventoryData(lots);
-                                    });
-                                }}
-                                className={`trSearchedProducts body border-b border-b-grey border-opacity-10 px-3 px-30 text-black hover:bg-blue1 hover:text-white  cursor-pointer py-3 ${
-                                  isRowSelected ? "bg-blue1 text-white" : ""
-                                }`}
-                              >
-                                <td className="p-4 px-2">{product.code}</td>
-                                <td className="p-4 px-2">
-                                  <b>{product.name}</b>{" "}
-                                  {product.unitPerPackage > 1 ? <span className="text-green font-semibold">{product.unitPerPackage}<small>x</small> </span> : <span>{product.unitPerPackage}</span>}{" "}
-
-                                  {product.typePresentationName != "N/A"
-                                    ? product.typePresentationName
-                                    : ""}{" "}
-                                  {product.concentrationSize != "N/A" && (
-                                    <b style={{ color: "#187CBA" }}>
-                                      {" "}
-                                      {product.concentrationSize}
-                                    </b>
-                                  )}
-                                </td>
-                                <td className="p-4 px-2">
-                                  <span className="bg-white p-1 px-3 rounded text-dark font-bold">
-                                    {product.stock}
-                                  </span>
-                                </td>
-                                {showAllStock && (
-                                  <>
-                                    <td className="p-4 px-2">
-                                      <span className="bg-blue3 p-1 px-3 pr-1 rounded text-red font-bold">
-                                        {product.stockPerExpire}
-                                        <RunningWithErrorsIcon className="relative  -top-1 left-1" />
-                                      </span>
-                                    </td>
-                                    <td className="p-4 px-2">
-                                      <span className="bg-blue3 p-1 px-3 rounded text-blue1 font-bold">
-                                        {product.stockGood}
-                                      </span>
-                                    </td>
-                                    <td className="p-4 px-2">
-                                      <span className="bg-red p-1 px-3 rounded text-white">
-                                        {product.stockExpired}
-                                      </span>
-                                    </td>
-                                    <td className="p-4 px-2">
-                                      <span className="bg-orange p-1 px-3 rounded text-white">
-                                        {product.stockBad}
-                                      </span>
-                                    </td>
-                                  </>
-                                )}
-
-                                {isRowSelected && (
-                                  <table>
-                                    <thead>
-                                      <tr className="bg-blue2 text-left text-xs">
-                                        <th className="noPadding p-1 px-3 w-[130px] min-w-[130px]">
-                                          Lote
-                                        </th>
-                                        <th className="noPadding p-1 px-3 w-[105px] min-w-[105px]">
-                                          F. de vencimiento
-                                        </th>
-                                        <th className="noPadding p-1 px-3 w-[89px] min-w-[89px]">
-                                          Cantidad
-                                        </th>
-                                        <th className="noPadding p-1 px-3 w-[105px] min-w-[105px] max-w-[105px]">
-                                          Condición
-                                        </th>
-                                        <th className="noPadding p-1 px-3">
-                                          Origen
-                                        </th>
-                                        <th className="noPadding p-1 px-3">
-                                          Total
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {lotsInventoryData ? (
-                                        Object.entries(lotsInventoryData).map(
-                                          ([key, value]) => {
-                                            return (
-                                              <tr
-                                                key={key}
-                                                className="border-b border-blue1 mb-0 mt-0"
-                                              >
-                                                <td colSpan={4}>
-                                                  {[
-                                                    ...value.perExpire,
-                                                    ...value.good,
-                                                    ...value.bad,
-                                                    ...value.expired,
-                                                  ].map((value) => {
-                                                    const conditionColor =
-                                                      () => {
-                                                        if (
-                                                          value.conditionId == 3
-                                                        ) {
-                                                          return "bg-red text-white";
-                                                        } else if (
-                                                          value.conditionId == 2
-                                                        ) {
-                                                          return "bg-orange text-white";
-                                                        } else if (
-                                                          value.conditionId ==
-                                                            1 ||
-                                                          value.conditionId == 4
-                                                        ) {
-                                                          return "bg-blue3 text-blue1";
-                                                        }
-                                                      };
-                                                    return (
-                                                      <tr
-                                                      key={value?.inventoryDetailID}
-                                                        className={
-                                                          NewRegister.products.some(
-                                                            (obj) =>
-                                                              obj?.inventoryDetailID == value?.inventoryDetailID
-                                                          )
-                                                            ? "hover:cursor-not-allowed bg-ligth text-sm my-0 py-0"
-                                                            : `${conditionColor()} text-sm cursor-pointer hover:brightness-110 `
-                                                        }
-                                                        onClick={(e) => {
-                                                          if (
-                                                            !NewRegister.products.some(
-                                                              (obj) =>
-                                                                obj?.inventoryDetailID == value?.inventoryDetailID
-                                                            )
-                                                          ) {
-                                                            setNewRegister(
-                                                              (prev) => ({
-                                                                ...prev,
-                                                                products: [
-                                                                  {
-                                                                    ...product,
-
-                                                                    product: `${
-                                                                      product.name
-                                                                    } ${
-                                                                      product.unitPerPackage !=
-                                                                      "N/A"
-                                                                        ? product.unitPerPackage
-                                                                        : ""
-                                                                    }${" "}
-                                                              ${
-                                                                product.typePresentationName !=
-                                                                "N/A"
-                                                                  ? product.typePresentationName
-                                                                  : ""
-                                                              }${" "}
-                                                              ${
-                                                                product.concentrationSize !=
-                                                                "N/A"
-                                                                  ? product.concentrationSize
-                                                                  : ""
-                                                              }`,
-                                                                    lots: "",
-                                                                    ...value,
-                                                                   
-                                                                    description:
-                                                                      "Sin novedad",
-                                                                    quantity:
-                                                                      "",
-                                                                  },
-                                                                  ...prev.products,
-                                                                ],
-                                                              })
-                                                            );
-                                                            const modal =
-                                                              e.target.closest(
-                                                                ".modal"
-                                                              );
-
-                                                            // Check if the modal exists
-                                                            if (modal) {
-                                                              // Set the scroll position to the top
-                                                              modal.scrollTop = 0;
-                                                            }
-                                                            setIsSearchHidden(
-                                                              "hidden"
-                                                            );
-                                                          }
-                                                          setTimeout(() => {
-                                                            document
-                                                              .querySelector(
-                                                                `#quantity_0`
-                                                              )
-                                                              .focus();
-                                                          }, 100);
-                                                        }}
-                                                      >
-                                                        <td
-                                                          className={`w-[130px] p-2 px-2 pl-3 border-b border-opacity-80  bg-light bg-opacity-20 border-light `}
-                                                          scope="row"
-                                                        >
-                                                          {value.loteNumber}
-                                                        </td>
-                                                        {value.conditionId ==
-                                                        4 ? (
-                                                          <td className="text-red font-bold p-2 px-2 pl-3 border-b border-opacity-80  bg-light bg-opacity-20 border-light">
-                                                            {
-                                                              value.expirationDate
-                                                            }
-                                                            <RunningWithErrorsIcon className="relative -top-1.5" />
-                                                          </td>
-                                                        ) : (
-                                                          <td className="w-[105px]  p-2 px-2 pl-3 border-b border-opacity-80  bg-light bg-opacity-20 border-light">
-                                                            {
-                                                              value.expirationDate
-                                                            }
-                                                          </td>
-                                                        )}
-
-                                                        <td className="w-[89px] min-w-[80px] p-2 px-2 pl-3 border-b border-opacity-80 font-bold bg-light bg-opacity-20 border-light">
-                                                          {value.stock}
-                                                        </td>
-                                                        <td className="w-[105px] min-w-[105px] max-w-[105px] text-sm p-2 px-2 pl-3 border-b border-opacity-80  bg-light bg-opacity-20 border-light">
-                                                          {value.conditionName}
-                                                        </td>
-                                                      </tr>
-                                                    );
-                                                  })}
-                                                </td>
-                                                <td className="bg-ligther text-dark p-3">
-                                                  {value.organizationCode.toLowerCase() !==
-                                                  "nocode" ? (
-                                                    <span className="text-blue1">
-                                                      <StoreIcon
-                                                        style={{
-                                                          fontSize: "15px",
-                                                        }}
-                                                      />
-                                                    </span>
-                                                  ) : (
-                                                    ""
-                                                  )}{" "}
-                                                  {value.name}
-                                                </td>
-                                                <td className="bg-ligther text-dark p-3">
-                                                  {value.good.reduce(
-                                                    (acc, obj) =>
-                                                      acc + obj.stock,
-                                                    0
-                                                  )}
-                                                </td>
-                                              </tr>
-                                            );
-                                          }
-                                        )
-                                      ) : (
-                                        <p>Cargando...</p>
-                                      )}
-                                    </tbody>
-                                  </table>
-                                )}
-                              </tr>
-                            </React.Fragment>
-                          );
-                        })}
+                                products: [product],
+                              }));
+                            }}
+                          >
+                            <td className="p-2 px-6">{product.product_code}</td>
+                            <td className="p-2 px-6">{product.product_name}</td>
+                            <td className="p-2 px-6">
+                              {product.product_brand}
+                            </td>
+                            <td className="p-2 px-6">
+                              {product.product_model}
+                            </td>
+                            <td className="p-2 px-6">
+                              {product.serial_number}
+                            </td>
+                            <td className="p-2 px-6">
+                              {product.national_code}
+                            </td>
+                            <td className="p-2 px-6">
+                              {product.machine_status_name}
+                            </td>
+                            <td className="p-2 px-6">
+                              {product.components &&
+                                Object.keys(product.components).join(", ")}
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     )}
                   </table>
@@ -1851,31 +1491,16 @@ export default function Salidas(props) {
               </div>
 
               <table className="border border-light w-full ">
-                <thead className="header  text-dark text-xs px-30  ">
+                <thead className="header  text-dark text-xs px-  ">
                   <tr>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      #
-                    </th>
-                    {/* <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">Nro Guia</th> */}
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Nro Lote
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Cód del prod
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Producto
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      F. Vencimiento
-                    </th>
-                    {/* <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">Stock</th> */}
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Cantidad de salida
-                    </th>
-                    <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
-                      Observación
-                    </th>
+                    <th className="py-2">Cód.</th>
+                    <th className="py-2">Nombre del equipo</th>
+                    <th className="py-2">Marca</th>
+                    <th className="py-2">Modelo</th>
+                    <th className="py-2">Serial</th>
+                    <th className="py-2">Bien Nacional</th>
+                    <th className="py-2">Estado</th>
+                    <th className="py-2">Componentes</th>
                     <th className="opacity-50">
                       <DeleteIcon />
                     </th>
@@ -1884,131 +1509,47 @@ export default function Salidas(props) {
                 {/* <div className="body px-2 grid grid-cols-subgrid px-30  items-center text-sm justify-between"> */}
                 <tbody className="">
                   {NewRegister?.products?.map((product, i) => {
-                      return (
-                        <tr
-                          key={product.inventoryDetailID + "x_" + i}
-                          className="body px-2  px-30  text-dark items-center text-sm justify-between"
-                        >
-                          <td className="p-4 px-2">
-                            {NewRegister?.products.length - i}
-                          </td>
-                          {/* <td className="p-4 px-2">{product.guide}</td> */}
-                          <td className="p-4 px-2">{product.loteNumber}</td>
-                          <td className="p-4 px-2">{product.code}</td>
+                    return (
+                      <tr
+                        key={product.inventoryDetailID + "x_" + i}
+                        className="body px-2  px-30  text-dark items-center text-sm justify-between"
+                      >
+                        <td className="p-4 px-5">{product.product_code}</td>
+                        <td className="p-4 px-5">{product.product_name}</td>
+                        <td className="p-4 px-5">{product.product_brand}</td>
+                        <td className="p-4 px-5">{product.product_model}</td>
+                        <td className="p-4 px-5">{product.serial_number}</td>
+                        <td className="p-4 px-5">{product.national_code}</td>
+                        <td className="p-4 px-5">
+                          {product.machine_status_name}
+                        </td>
+                        <td className="p-4 px-5">
+                          {product.components &&
+                            Object.keys(product.components).join(", ")}
+                        </td>
 
-                          <td className="p-4 px-2">
-                            {" "}
-                            <b>{product.name}</b>{" "}
-                            {product.unitPerPackage > 1 ? <span className="text-green font-semibold">{product.unitPerPackage}<small>x</small> </span> : <span>{product.unitPerPackage}</span>}{" "}
-                            {" "}
-                            {product.typePresentationName != "N/A"
-                              ? product.typePresentationName
-                              : ""}{" "}
-                            {product.concentrationSize != "N/A" && (
-                              <b style={{ color: "#187CBA" }}>
-                                {" "}
-                                {product.concentrationSize}
-                              </b>
-                            )}
-                          </td>
-                          <td className="p-4 px-2">{product.expirationDate}</td>
-                          {/* <td className="p-4 px-2">{product.stock}</td> */}
-                          <td className="p-4 px-2 flex items-center gap-2 min-w-[184px] max-w-[184px]">
-                            <Input
-                              size="small"
-                              data-index={i}
-                              label={"Cantidad"}
-                              required
-                              key={`quantity_${i}`}
-                              id={`quantity_${i}`}
-                              // defaultValuevalue={product.stock}
-                              value={NewRegister.products[i]?.quantity}
-                              name={`quantity_${i}`}
-                              InputProps={{
-                                inputProps: {
-                                  max: product.stock,
-                                  min: 0,
-                                },
-                              }}
-                              // onChange={() => {}}
-                              onInput={(e) => {
-                                if (
-                                  e.target.value <= +product?.stock &&
-                                  e.target.value >= 0
-                                ) {
-                                  handleChange(e);
-                                }
-                              }}
-                              type={"number"}
-                            />
-
-                            <span className={`min-w-[37px] `}>
-                              / {product.stock}
-                            </span>
-                          </td>
-                          <td className="p-4 px-2">
-                            <Input
-                              label={"Observación"}
-                              key={`description_${i}`}
-                              value={NewRegister.products[i]?.description}
-                              name={`description_${i}`}
-                              size="small"
-                              multiline
-                              // data-index={i}
-                              onChange={handleChange}
-                            />
-                          </td>
-
-                          <td className="p-4 px-2">
-                            <button
-                              onClick={(e) => {
-                                setNewRegister((prev) => ({
-                                  ...prev,
-                                  products: prev.products.filter(
-                                    (eachProduct, j) => i !== j
-                                  ),
-                                }));
-                              }}
-                              type="button"
-                              className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
-                            >
-                              x
-                            </button>
-                          </td>
-                        </tr>
-                      );
+                        <td className="p-4 px-5">
+                          <button
+                            onClick={(e) => {
+                              setNewRegister((prev) => ({
+                                ...prev,
+                                products: prev.products.filter(
+                                  (eachProduct, j) => i !== j
+                                ),
+                              }));
+                            }}
+                            type="button"
+                            className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
+                          >
+                            x
+                          </button>
+                        </td>
+                      </tr>
+                    );
                   })}
                 </tbody>
               </table>
             </div>
-
-            <Autocomplete
-              options={Object.values(authoritiesOptions)}
-              getOptionLabel={(option) => option.authorityFullname}
-              value={NewRegister}
-              inputValue={NewRegister.authorityFullname}
-              onChange={(e, newValue) => {
-                handleOptionSelect(e, newValue);
-              }}
-              onInputChange={handleInputChange}
-              renderInput={(params) => (
-                <TextField
-                  required
-                  {...params}
-                  label="Nombre del despachador"
-                />
-              )}
-            />
-
-            <TextField
-              label="Cédula del despachador"
-              value={NewRegister.authorityCi}
-              name="authorityCi"
-              onChange={handleChange}
-              required
-              type="number"
-              key={57234}
-            />
 
             <>
               <Autocomplete
@@ -2056,65 +1597,13 @@ export default function Salidas(props) {
                   />
                 )}
               />
-
-              <Input
-                label={"Nombre de quien recibe"}
-                shrink={
-                  NewRegister?.receiverFullname?.length > 1 ? true : false
-                }
-                required
-                // type={'text'}
-                key={0}
-                name={"receiverFullname"}
-                onChange={handleChange}
-                value={NewRegister?.receiverFullname}
-              />
-              <span className="flex gap-1">
-                <Input
-                  label={"C.I de quien recibe"}
-                  // shrink={NewRegister?.receiverCi ? true : false}
-                  required
-                  type={"number"}
-                  key={43242423}
-                  name={"receiverCi"}
-                  onChange={(e) => {
-                    if (
-                      NewRegister.organizationId == 1 &&
-                      e.target.value.length >= 6
-                    ) {
-                    } else {
-                      setIsThereARecentGuide("");
-                    }
-                    handleChange(e);
-                  }}
-                  value={NewRegister?.receiverCi}
-                />
-                <button
-                  onClick={() => {
-                    setIsThereARecentGuide("loading");
-                    checkIfHasARecentGuide(NewRegister?.receiverCi);
-                  }}
-                  type="button"
-                  className="bg-light p-3 text-grey hover:text-dark hover:shadow-lg"
-                  title="Revisar salidas a esta persona"
-                >
-                  {isThereARecentGuide == "loading" ? (
-                    <CircularProgress
-                      style={{
-                        fontSize: "11px !important",
-                        height: "21px",
-                        width: " 21px",
-                      }}
-                    />
-                  ) : (
-                    <RemoveRedEyeIcon />
-                  )}
-                </button>
-                {isThereARecentGuide?.length > 10 && (
-                  <p className="text-red text-xs">{isThereARecentGuide}</p>
-                )}
-              </span>
             </>
+            <Input
+              label={"Área"}
+              value={NewRegister.area}
+              name={"area"}
+              onChange={handleChange}
+            />
 
             <Input
               shrink={true}
@@ -2135,124 +1624,13 @@ export default function Salidas(props) {
               name={"departureTime"}
               onChange={handleChange}
             />
-            <FormControl fullWidth>
-              <InputLabel id="municipio" className="px-1 bg-white">
-                Municipios
-              </InputLabel>
-              <Select
-                labelId="municipio"
-                id="demo-simple-select"
-                name="municipalityId"
-                value={NewRegister?.municipalityId}
-                onChange={handleChange}
-              >
-                {generalData?.municipalities?.map((option) => (
-                  <MenuItem
-                    key={`${option.id}-${option.name}`}
-                    value={option.id}
-                  >
-                    {option.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Input
+              label={"Descripción"}
+              value={NewRegister.description}
+              name={"description"}
+              onChange={handleChange}
+            />
 
-            <FormControl fullWidth>
-              <InputLabel
-                id="demo-simple-select-label"
-                className="px-1 bg-white"
-              >
-                Parroquia
-              </InputLabel>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                disabled={!NewRegister.municipalityId}
-                name="parishId"
-                required={true}
-                value={NewRegister?.parishId}
-                onChange={handleChange}
-              >
-                {generalData?.municipalities
-                  ?.find((obj) => obj?.id == NewRegister?.municipalityId)
-                  ?.parishes.map((option) => (
-                    <MenuItem
-                      key={`${option.id}-${option.name} `}
-                      value={option.id}
-                    >
-                      {option.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            {submitStatus !== "Editar" && (
-              <span className="col-span-3 flex justify-around">
-                <label
-                  className={`cursor-pointer p-2 px-3 hover:bg-light rounded text-blue1 ${
-                    NewRegister?.status == 1 ? "font-bold" : ""
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    className="mr-3 scale scale-125"
-                    name="status"
-                    value={1}
-                    checked={NewRegister?.status == 1}
-                    onChange={handleChange}
-                  />
-                  En proceso
-                </label>
-                {NewRegister?.status == 1 &&
-                  NewRegister.organizationObject.code !== "nocode" &&
-                  NewRegister.organizationObject?.code?.length >= 1 && (
-                    <small className="mt-2">
-                      No se añadirá al inventario de{" "}
-                      {NewRegister.organizationName} hasta que esté en
-                      despachado
-                    </small>
-                  )}
-                <label
-                  className={`cursor-pointer p-2 px-3 hover:bg-light rounded text-blue1 ${
-                    NewRegister?.status == 3 ? "font-bold" : ""
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    className="mr-3 scale scale-125"
-                    name="status"
-                    value={3}
-                    checked={NewRegister?.status == 3}
-                    onChange={handleChange}
-                  />
-                  Despachado
-                </label>
-              </span>
-            )}
-            {submitStatus == "Editar" && (
-              <>
-                <div>
-                  {NewRegister?.status == 1 ? (
-                    <div>
-                      {" "}
-                      <span className="bg-blue2 h-4 w-4 rounded-full inline-block"></span>{" "}
-                      En Proceso
-                    </div>
-                  ) : (
-                    <div>
-                      {" "}
-                      <span className="bg-green h-4 w-4 rounded-full inline-block"></span>{" "}
-                      Despachado{" "}
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-center col-span-3 relative top-3">
-                  Al editar se cancelará la versión anterior y se guardará esta
-                  nueva{" "}
-                </p>
-              </>
-            )}
- 
-  
             <Button3D
               className="mt-2 col-span-3"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}
@@ -2263,22 +1641,6 @@ export default function Salidas(props) {
         }
       ></Modal>
       {tabla}
-
-      <Modal
-        show={modalPdf}
-        onClose={() => setModalPdf(false)}
-        content={
-          <PDFViewer
-            style={{ width: "1000px", height: "800px" }}
-            filename={`guia-${infoBill.guide}-${infoBill.code}`}
-          >
-            <OuputGuide
-              output={infoBill}
-              entityCode={props.userData.entityCode}
-            />
-          </PDFViewer>
-        }
-      ></Modal>
 
       <Alert
         open={alert.open}
