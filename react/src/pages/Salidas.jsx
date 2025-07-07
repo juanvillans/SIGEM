@@ -39,6 +39,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 // import { NavLink } from "react-router-dom";
 import useDebounce from "../components/useDebounce";
 import { Box } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
+
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 const filterConfiguration = {
   conditionName: "&condition[name]=",
@@ -95,7 +97,7 @@ export default function Salidas(props) {
     authorityObj: { authorityFullname: "", authorityCi: "" },
     guide: "new",
     products: [],
-    departureDate: new Date().toISOString().split("T")[0],
+    departure_date: new Date().toISOString().split("T")[0],
   });
   const [relation, setRelation] = useState(true);
 
@@ -124,11 +126,12 @@ export default function Salidas(props) {
   const [NewRegister, setNewRegister] = useState({
     id: "",
     area: "",
-    departureTime: getCurrentTime(),
+    inventory_general_id:"",
+    departure_time: getCurrentTime(),
     description: "",
     organizationObject: { name: "", organizationId: null },
     products: [],
-    departureDate: new Date().toISOString().split("T")[0],
+    departure_date: new Date().toISOString().split("T")[0],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchHidden, setIsSearchHidden] = useState("hidden");
@@ -247,7 +250,7 @@ export default function Salidas(props) {
       },
     },
     {
-      name: "arrival_date",
+      name: "departure_date",
       label: "Fecha",
       options: {
         filter: false,
@@ -278,7 +281,7 @@ export default function Salidas(props) {
       },
     },
     {
-      name: "arrival_time",
+      name: "departure_time",
       label: "Hora",
       options: {
         filter: false,
@@ -547,6 +550,7 @@ export default function Salidas(props) {
       setNewRegister((prev) => ({
         ...prev,
         organizationId: value.id,
+        organization_id: value.id,
         organizationName: value?.name,
         receiverFullname: value?.authorityFullname,
         receiverCi: value?.authorityCi,
@@ -1088,12 +1092,12 @@ export default function Salidas(props) {
         code: "",
         id: "",
         area: "",
-        departureTime: getCurrentTime(),
+        departure_time: getCurrentTime(),
         status: 1,
         description: "",
         organizationObject: { name: "", organizationId: null },
         products: [],
-        departureDate: new Date().toISOString().split("T")[0],
+        departure_date: new Date().toISOString().split("T")[0],
       });
       setIsThereARecentGuide("");
       setTypeOfGuide("nueva");
@@ -1221,15 +1225,16 @@ export default function Salidas(props) {
               console.log("abriendo");
               setNewRegister((prev) => ({
                 ...prev,
-                departureTime: getCurrentTime(),
+                departure_time: getCurrentTime(),
               }));
               if (NewRegister.outputCode) {
                 setNewRegister({
                   status: 1,
                   authorityCi: "",
                   authorityFullname: "",
-                  departureTime: getCurrentTime(),
+                  departure_time: getCurrentTime(),
                   organizationId: "",
+                  organization_id: "",
                   organizationName: "",
                   organizationObject: { name: "" },
                   code: "",
@@ -1456,7 +1461,7 @@ export default function Salidas(props) {
                               setIsSearchHidden("hidden");
                               setNewRegister((prev) => ({
                                 ...prev,
-
+                                inventory_general_id:product.id, // This ID is inventory_general_id
                                 products: [product],
                               }));
                             }}
@@ -1610,8 +1615,8 @@ export default function Salidas(props) {
               type={"date"}
               label={"Fecha de salida"}
               required
-              value={NewRegister?.departureDate}
-              name={"departureDate"}
+              value={NewRegister?.departure_date}
+              name={"departure_date"}
               onChange={handleChange}
             />
             <Input
@@ -1620,8 +1625,8 @@ export default function Salidas(props) {
               label={"Hora de salida"}
               placeholder={"24h"}
               required
-              value={NewRegister?.departureTime}
-              name={"departureTime"}
+              value={NewRegister?.departure_time}
+              name={"departure_time"}
               onChange={handleChange}
             />
             <Input
