@@ -15,6 +15,7 @@ class RequestProduct extends Model
         'user_id',
         'status',
         'comment',
+        'product_id',
         'output_general_id',
     ];
 
@@ -26,6 +27,10 @@ class RequestProduct extends Model
     public function entityDestiny(){
         return $this->belongsTo(HierarchyEntity::class, 'entity_code_destiny', 'code');
 
+    }
+
+    public function product(){
+        return $this->belongsTo(Product::class);
     }
 
     public function user(){

@@ -17,7 +17,7 @@ class NewProductsRequestedNotification extends Notification
      * Create a new notification instance.
      */
     public $request;
-    
+
     public function __construct($request)
     {
         $this->request = $request;
@@ -39,15 +39,15 @@ class NewProductsRequestedNotification extends Notification
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
-    {       
+    {
         $TYPE_NOTIFICATION_PRODUCT_REQUESTED = 1;
         $entityName = HierarchyEntity::where('code', $this->request->entity_code)->first()->name;
 
-        
+
         return [
             'type' => $TYPE_NOTIFICATION_PRODUCT_REQUESTED,
             'Title' => 'Pedido a mi almacén',
-            'message' => 'De: ' . $entityName . ' Codigo: ' . $this->request->code,
+            'message' => 'De: ' . $entityName . ' Codigo: ' . $this->request->id,
             'id' => $this->request->id,
             'date' => Carbon::now(),
         ];

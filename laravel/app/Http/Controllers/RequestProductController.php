@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Log;
 
 class RequestProductController extends Controller
 {
-    private $queryFilter;
     private $requestProductService;
 
     public function __construct()
@@ -42,21 +41,20 @@ class RequestProductController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(RequestProductRequest $request)
     {
-        DB::beginTransaction();
-
         try {
 
-            $this->requestProductService->create($request->all());
-
-            DB::commit();
-
+            $this->requestProductService->create($request->validated());
             return ['message' => 'Solicitud enviada correctamente' ];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al  crear solicitud producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
@@ -67,26 +65,25 @@ class RequestProductController extends Controller
         }
     }
 
-
-
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RequestProduct $requestProduct)
+    public function update(RequestProductRequest $request, RequestProduct $requestProduct)
     {
-        DB::beginTransaction();
 
         try {
 
-            $this->requestProductService->update($request->all(), $requestProduct);
-
-            DB::commit();
+            $this->requestProductService->update($request->validated(), $requestProduct);
 
             return ['message' => 'Solicitud actualizada correctamente' ];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al actualizar solicitud de producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
@@ -102,19 +99,20 @@ class RequestProductController extends Controller
      */
     public function destroy(RequestProduct $requestProduct)
     {
-        DB::beginTransaction();
 
         try {
 
             $this->requestProductService->delete($requestProduct);
 
-            DB::commit();
-
             return ['message' => 'Solicitud eliminada correctamente' ];
 
         } catch (Exception $e) {
 
-            DB::rollback();
+            Log::error("Error al eliminar solicitud de producto: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $requestProduct,
+            ]);
+
             return response()->json([
             'status' => false,
             'message' => $e->getMessage()
@@ -125,86 +123,58 @@ class RequestProductController extends Controller
         }
     }
 
+// -------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------
+// ----------------------------------------- GET MY REQUEST ----------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------------
+
+
     public function requestsToMyInventory(Request $request){
 
-        $userEntityCode = auth()->user()->entity_code;
-
-        $paginateArray = $this->queryFilter->getPaginateValues($request,'request_products');
-
-        $requestsProducts = $this->requestProductService->getMyRequests($paginateArray, $request, $userEntityCode);
+        $requestsProducts = $this->requestProductService->getMyRequests();
 
         $requestProductCollection = new RequestProductCollection($requestsProducts);
 
         $total = $requestsProducts->total();
 
 
-        $relation = $request->query('relation') ?? "false";
-
-        if($relation == "true")
-        {
-            $entities = HierarchyEntity::select('name','code')->get();
-            $years  = RequestProduct::orderBy('year','desc')->distinct()->pluck('year');
-
-        }
-
-
         return [
 
             'requests' => $requestProductCollection,
-            'entities' => $entities ?? null,
-            'years' => $years ?? null,
             'total' => $total,
             'message' => 'OK'
         ];
     }
 
-    public function detailRequestToMyInventory(RequestProduct $requestProduct){
-
-        $response = $this->requestProductService->getDetailDataRequestToMyInventory($requestProduct->id);
-
-        $outputs = null;
-
-        if($requestProduct->status = 6){
-            $outputService = new OutputService;
-            $outputs = $outputService->getDetailData($requestProduct->output_general_id);
-        }
-
-
-        return [
-
-            'products' => $response['products'],
-            'organization' => $response['organization'],
-            'outputs' => $outputs ?? null,
-            'message' => 'OK'
-        ];
-    }
 
     public function confirmRequest($status, RequestProduct $requestProduct, $outputGeneralID = null){
 
-        DB::beginTransaction();
+        return DB::transaction(function() use ($status, $requestProduct, $outputGeneralID) {
 
-        try {
+            try{
+
+                $requestProduct->status = $status;
+                $requestProduct->output_general_id = $outputGeneralID;
+                $requestProduct->save();
+
+                return ['message' => 'Pedido respondido con exito' ];
+
+            }catch( Exception $e ){
+
+                Log::error('RequestProductService - Error al confirmar solicitud ');
+
+                return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+                ], 500);
+
+            }
 
 
-            $requestProduct->status = $status;
-            $requestProduct->output_general_id = $outputGeneralID;
-            $requestProduct->save();
-
-            DB::commit();
-
-            return ['message' => 'Pedido respondido con exito' ];
-
-        } catch (Exception $e) {
-
-            DB::rollback();
-            return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-            ], 500);
-
-
-
-        }
+        });
 
     }
 

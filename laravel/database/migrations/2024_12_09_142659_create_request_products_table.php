@@ -30,7 +30,7 @@ return new class extends Migration
                 ->onDelete("restrict")
                 ->onUpdate("cascade");
 
-            $table->string('comment');
+            $table->string('comment')->nullable();
             $table->integer('status')->default(InventoryMoveStatus::SIN_CONFIRMAR->value);
             $table->unsignedInteger('output_general_id')->nullable();
             $table->foreign('output_general_id')
