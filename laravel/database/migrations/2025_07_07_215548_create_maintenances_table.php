@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('maintenances', function (Blueprint $table) {
             $table->id();
+            $table->string('entity_code');
+            $table->foreign('entity_code')
+                  ->references('code')
+                  ->on('hierarchy_entities')
+                  ->constrained()
+                  ->onDelete("restrict")
+                  ->onUpdate("cascade");
             $table->foreignId('inventory_general_id');
             $table->foreignId('type_maintenance_id');
             $table->string('description');

@@ -11,11 +11,16 @@ class Maintenance extends Model
 
     protected $fillable = [
 
+        'entity_code',
         'inventory_general_id',
         'type_maintenance_id',
         'description'
 
     ];
+
+    public function entity(){
+        return $this->belongsTo(HierarchyEntity::class, 'entity_code', 'code');
+    }
 
     public function inventoryGeneral(){
         return $this->belongsTo(InventoryGeneral::class);

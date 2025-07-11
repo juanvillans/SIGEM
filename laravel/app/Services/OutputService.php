@@ -5,29 +5,13 @@ namespace App\Services;
 use App\Enums\InventoryMoveStatus;
 use Exception;
 use Carbon\Carbon;
-use App\Models\Entry;
-use App\Models\Output;
-use App\Models\Parish;
-use App\Models\Inventory;
 use App\Enums\TypeActivity;
 use App\Events\NewActivity;
-use App\Models\EntryGeneral;
-use App\Models\Municipality;
 use App\Models\Organization;
 use App\Events\OutputCreated;
 use App\Models\OutputGeneral;
-use App\Models\HierarchyEntity;
 use Illuminate\Support\Facades\DB;
-use App\Events\OutputDetailCreated;
 use Illuminate\Support\Facades\Log;
-use App\Events\InventoryLoteCreated;
-use App\Exceptions\GeneralExceptions;
-use App\Http\Resources\EntryResource;
-use App\Services\OrganizationService;
-use App\Http\Resources\EntryCollection;
-use App\Http\Resources\OutputCollection;
-use App\Http\Resources\OutputDetailCollection;
-use App\Models\InventoryGeneral;
 
 class OutputService extends ApiService
 {

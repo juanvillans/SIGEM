@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Maintenance;
 use Exception;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,13 @@ class MaintenanceService extends ApiService
         $userEntityCode = auth()->user()->entity_code;
 
 
-        $entries = EntryGeneral::with('organization','user', 'product', 'machineStatus')
+        $maintenances = Maintenance::with(
+            'entity',
+            'inventoryGeneral.product',
+            'inventoryGeneral.machineStatus',
+            'inventoryGeneral.lastMaintenanceType',
+            'typeMaintenance'
+        )
         ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
 
             $entity = $param;
@@ -31,17 +38,17 @@ class MaintenanceService extends ApiService
                     $query->where('entity_code', $entity);
             }
         })
-        ->when(request()->input('entries'), function ($query,$param) use ($userEntityCode)
+        ->when(request()->input('maintenances'), function ($query,$param) use ($userEntityCode)
         {
 
-            if(isset($param['status']))
+            if(isset($param['type_maintenance_id']))
             {
-                $status = $param['status'];
+                $status = $param['type_maintenance_id'];
                 $statuses = $this->parseQuery($status);
 
                 $query->where(function ($query) use ($statuses){
 
-                    $query->where('status',$statuses[0]);
+                    $query->where('type_maintenance_id',$statuses[0]);
 
                     if(count($statuses) > 1)
                     {
@@ -49,20 +56,9 @@ class MaintenanceService extends ApiService
 
                         foreach($statuses as $status)
                         {
-                            $query->orWhere('status',$status);
+                            $query->orWhere('type_maintenance_id',$status);
                         }
                     }
-
-                });
-            }
-
-            if (isset($param['organizationId'])) {
-
-                $organizationID = $param['organizationId'];
-
-                $query->where(function ($query) use ($organizationID) {
-
-                    $query->where('organization_id', $organizationID);
 
                 });
             }
@@ -114,59 +110,33 @@ class MaintenanceService extends ApiService
 
 
         })
-        ->when(request()->input('search'), function($query,$param)
-        {
-            if(!isset($param['all']))
-                return 0;
+        ->when(request()->input('search'), function ($query, $param) {
+
+            if (!isset($param['all'])) return 0;
 
             $search = $param['all'];
 
             $query->where(function ($query) use ($search) {
+                    $string = $this->generateString($search);
 
-                $string = $this->generateString($search);
+                    $query->where(function ($query) use ($string) {
+                        $query->where('code', 'ILIKE', $string)
+                            ->orWhere('area', 'ILIKE', $string);
+                    })
+                    ->orWhereHas('inventoryGeneral', function ($query) use ($string) {
+                        $query->where('serial_number', 'ILIKE', $string)
+                            ->orWhere('national_code', 'ILIKE', $string);
+                    })
+                    ->orWhereHas('inventoryGeneral.product', function($query) use ($string) {
+                        $query->where('machine', 'ILIKE', $string)
+                            ->orWhere('brand', 'ILIKE', $string)
+                            ->orWhere('model', 'ILIKE', $string);
+                    });
 
-                $query->where('serial_number', 'ILIKE', $string)
-                ->orWhere('national_code','ILIKE', $string)
-                ->orWhere('code','ILIKE', $string);
-
-
-                $query->whereHas('product', function($query) use ($string) {
-                    $query->where('machine', 'ILIKE', $string)
-                    ->orWhere('brand','ILIKE', $string)
-                    ->orWhere('model','ILIKE', $string);
                 });
-
-                $query->orWhereHas('organization', function ($query) use ($string) {
-                    $query->where('search', 'ILIKE', $string);
-                });
-            });
-
 
         })
-        ->when(request()->input('organization'), function($query,$param)
-        {
-            if(isset($param['name']))
-            {
-                $organizationName = $param['name'];
-                $organizations = $this->parseQuery($organizationName);
 
-
-                $query->whereHas('organization', function($query) use($organizations)
-                {
-                    $query->where('name',$organizations[0]);
-                    if(count($organizations) > 1)
-                    {
-                        array_shift($organizations);
-
-                        foreach($organizations as $organization)
-                        {
-                            $query->orWhere('name',$organization);
-                        }
-                    }
-                });
-            }
-
-        })
         ->when(request()->input('orderBy'), function($query,$param){
 
             if(request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
@@ -175,30 +145,8 @@ class MaintenanceService extends ApiService
                 $orderDirection = 'desc';
 
 
-            if($param == 'code')
-            {
-                $query->orderBy('code',$orderDirection);
-            }
+            $query->orderBy('created_at',$orderDirection);
 
-
-            else if($param == 'arrival_date')
-            {
-
-                $query->orderBy('created_at',$orderDirection);
-            }
-
-            else if($param == 'arrival_time')
-            {
-                $query->orderBy('arrival_time',$orderDirection);
-            }
-
-            else if($param == 'organizationObj')
-            {
-
-                $query->orderByRaw(
-                    '(SELECT "name" FROM "organizations" WHERE "organizations"."id" = "entry_generals"."organization_id" LIMIT 1) ' . $orderDirection
-                );
-            }
         })
         ->unless(request()->input('entity'), function($query) use($userEntityCode) {
 
@@ -211,7 +159,7 @@ class MaintenanceService extends ApiService
         })
         ->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
 
-        return $entries;
+        return $maintenances;
 
     }
 
