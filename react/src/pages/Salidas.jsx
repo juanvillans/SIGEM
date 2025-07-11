@@ -546,7 +546,7 @@ export default function Salidas(props) {
   const deleteRegister = async (obj, fnEmptyRows) => {
     console.log({ obj });
     try {
-      await axios.post(`/dashboard/cancellation/2`, obj).then((response) => {
+      await axios.delete(`/dashboard/outputs/${obj.ID}`).then((response) => {
         // setDataTable((prev) => prev.filter((eachU) => eachU.id != id_user));
         setParametersURL((prev) => ({
           ...prev,
@@ -785,6 +785,7 @@ export default function Salidas(props) {
     setRowProps: (row, dataIndex, rowIndex) => {
       if (dataTable[dataIndex].status == "2") {
         return {
+        className: 'strikethrough-row',
           style: {
             opacity: ".8",
             textDecoration: "line-through",

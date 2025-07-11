@@ -854,7 +854,7 @@ tableSearchText={tableSearchText}
           color={"red"}
           text="Nueva Solicitud"
           icon={"add"}
-          fClick={(e) => {
+          onClick={(e) => {
             if (submitStatus == "Editar") {
               setNewRegister({
                 code: "",
@@ -1168,7 +1168,7 @@ tableSearchText={tableSearchText}
               className="mt-3 col-span-4 "
               color={submitStatus == "Crear solicitud" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={(e) => {}}
+              onClick={(e) => {}}
             />
           </form>
         }

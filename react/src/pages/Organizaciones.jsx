@@ -488,7 +488,7 @@ export default function Organizaciones(props) {
           color={"red"}
           text={`Nuevo`}
           icon={"add"}
-          fClick={(e) => {
+          onClick={(e) => {
             if (submitStatus == "Editar") {
               setNewRegister({
                 name: "",
@@ -574,7 +574,7 @@ export default function Organizaciones(props) {
               className="mt-2 col-span-2"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={(e) => {}}
+              onClick={(e) => {}}
             />
           </form>
         }

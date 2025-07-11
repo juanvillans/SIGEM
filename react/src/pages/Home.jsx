@@ -235,7 +235,7 @@ export default function Home() {
               className="mt-3"
               color={loginTypeUser == "Secretaria" ? "red" : "blue1"}
               text={submitStatus}
-              fClick={(e) => {}}
+              onClick={(e) => {}}
             />
             <a
               className="text-right underline"

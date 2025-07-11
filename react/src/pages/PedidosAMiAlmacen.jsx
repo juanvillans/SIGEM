@@ -1936,7 +1936,7 @@ tableSearchText={tableSearchText}
                 className="mt-2 col-span-3"
                 color={submitStatus == "Crear" ? "blue1" : "blue2"}
                 text={submitStatus}
-                fClick={(e) => {}}
+                onClick={(e) => {}}
               />
             </div>
           </form>

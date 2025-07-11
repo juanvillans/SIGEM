@@ -550,7 +550,7 @@ export default function Usuarios(props) {
           color={"red"}
           text="Nuevo"
           icon={"add"}
-          fClick={(e) => {
+          onClick={(e) => {
             if (submitStatus == "Editar") {
               setNewUserData({
                 entityCode: "",
@@ -676,7 +676,7 @@ export default function Usuarios(props) {
               className="mt-2 col-span-2"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={(e) => {}}
+              onClick={(e) => {}}
             />
           </form>
         }

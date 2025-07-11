@@ -748,6 +748,7 @@ export default function Entradas(props) {
     setRowProps: (row, dataIndex) => {
       if (dataTable[dataIndex].status == "2") {
         return {
+          className: 'strikethrough-row',
           style: {
             opacity: ".8",
             textDecoration: "line-through",
@@ -1311,7 +1312,7 @@ export default function Entradas(props) {
               className="mt-2 col-span-4"
               color={submitStatus == "Crear entrada" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={() => {}}
+              onClick={() => {}}
             />
           </form>
         }

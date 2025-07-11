@@ -349,7 +349,7 @@ import React, {
               color={"blue1"}
               text="Nuevo"
               icon={"add"}
-              fClick={(e) => {
+              onClick={(e) => {
                 if (submitStatus == "Editar") {
                   setNewUserData({
                     entityID: "",
@@ -459,7 +459,7 @@ import React, {
                 className="mt-2 col-span-2"
                 color={"blue1"}
                 text={submitStatus}
-                fClick={(e) => {}}
+                onClick={(e) => {}}
               />
             </form>
           }
