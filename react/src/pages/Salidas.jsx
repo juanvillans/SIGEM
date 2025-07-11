@@ -8,14 +8,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
 import SearchIcon from "@mui/icons-material/Search";
-import { PDFViewer } from "@react-pdf/renderer";
 import BadgeIcon from "@mui/icons-material/Badge";
-import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
-import Select from "@mui/material/Select";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import HistoryIcon from "@mui/icons-material/History";
 import InputAdornment from "@mui/material/InputAdornment";
-import ExpandRowProducts from "../components/ExpandRowProducts";
 import MicIcon from "@mui/icons-material/Mic";
 
 // import Chip from '@material-ui/core/Chip';
@@ -33,7 +28,6 @@ import Alert from "../components/Alert";
 import Input from "../components/Input";
 import InputWhite from "../components/InputWhite";
 
-import OuputGuide from "../components/OuputGuide4.jsx";
 import Button3D from "../components/Button3D";
 import CircularProgress from "@mui/material/CircularProgress";
 // import { NavLink } from "react-router-dom";
@@ -89,16 +83,7 @@ export default function Salidas(props) {
   });
 
   const [organizations, setOrganizations] = useState([]);
-  const [infoBill, setInfoBill] = useState({
-    code: "",
-    id: "",
-    authorityFullname: "",
-    authorityCi: "",
-    authorityObj: { authorityFullname: "", authorityCi: "" },
-    guide: "new",
-    products: [],
-    departure_date: new Date().toISOString().split("T")[0],
-  });
+
   const [relation, setRelation] = useState(true);
 
   const [parametersURL, setParametersURL] = useState({
@@ -126,23 +111,15 @@ export default function Salidas(props) {
   const [NewRegister, setNewRegister] = useState({
     id: "",
     area: "",
-    inventory_general_id:"",
+    inventory_general_id: "",
     departure_time: getCurrentTime(),
     description: "",
     organizationObject: { name: "", organizationId: null },
-    products: [],
     departure_date: new Date().toISOString().split("T")[0],
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchHidden, setIsSearchHidden] = useState("hidden");
   const [localStorageForm, setLocalStorageForm] = useState(false);
-  const [showAllStock, setShowAllStock] = useState(false);
-
-  let selectedRowRquest = false;
-
-  function handleSelectRow(row) {
-    selectedRowRquest = row;
-  }
 
   useEffect(() => {
     document.title = "SISMED | Salidas";
@@ -183,11 +160,7 @@ export default function Salidas(props) {
     entitiesObject: {},
   });
 
-  useEffect(() => {
-    if (NewRegister.products.length >= 1) {
-      localStorage.setItem("outputForm", JSON.stringify(NewRegister));
-    }
-  }, [NewRegister]);
+
 
   // useEffect(() => {
   //   localStorage.setItem('outputForm', JSON.stringify(NewRegister))
@@ -488,19 +461,6 @@ export default function Salidas(props) {
     }
   }, 290);
 
-  const [isThereARecentGuide, setIsThereARecentGuide] = useState("");
-  const checkIfHasARecentGuide = useDebounce(async (ci) => {
-    try {
-      const response = await axios.get(`dashboard/outputs/verify/${ci}`);
-      setIsThereARecentGuide(response.data);
-
-      // Realiza las acciones necesarias con la respuesta de la solicitud
-    } catch (error) {
-      // Maneja los errores de la solicitud
-      setIsThereARecentGuide("");
-    }
-  }, 300);
-
   const handleSearchOrganizations = useDebounce(async (searchText) => {
     if (searchText.trim().length > 0) {
       try {
@@ -552,14 +512,9 @@ export default function Salidas(props) {
         organizationId: value.id,
         organization_id: value.id,
         organizationName: value?.name,
-        receiverFullname: value?.authorityFullname,
-        receiverCi: value?.authorityCi,
         organizationObject: {
           organizationId: value.id,
           name: value?.name,
-          authorityFullname: value?.authorityFullname,
-          authorityCi: value?.authorityCi,
-          code: value?.code,
         },
         municipalityId: value?.municipalityId,
         parishId: value?.parishId,
@@ -631,123 +586,27 @@ export default function Salidas(props) {
     }
   };
 
-  const dispatch = async (selectedRows) => {
-    const indx = selectedRows.data[0].dataIndex;
-    const dataOfIndx = structuredClone(dataTable[indx]);
-    if (
-      !window.confirm(
-        `Una vez guardado como Despachado no se podrá eliminar ni editar ${
-          dataOfIndx.organizationCode.toLowerCase() !== "nocode" &&
-          dataOfIndx.organizationCode
-            ? "y los productos enviados se añadirán al inventario de " +
-              dataOfIndx.organizationName
-            : ""
-        }. ¿Está seguro de continuar?`
-      )
-    ) {
-      return;
-    }
-    try {
-      await axios
-        .get(`/dashboard/outputs/dispatch/${dataOfIndx.id}`)
-        .then((response) => {
-          setParametersURL((prev) => ({
-            ...prev,
-            page: 1,
-            rowsPerPage: parametersURL.rowsPerPage,
-            search: "",
-            orderBy: "",
-            orderDirection: "",
-            filter: `&outputs[entityCode]=${prev.filterObjectValues.entityCode}`,
-            filterObjectValues: {
-              entityCode: prev.filterObjectValues.entityCode,
-            },
-            filterObject,
-            total: 0,
-          }));
-          setAlert({
-            open: true,
-            status: "Exito",
-          });
-        });
-    } catch (error) {
-      setAlert({
-        open: true,
-        status: "Error",
-        message: error.response.data?.errors
-          ? Object.values(error.response.data.errors)[0][0]
-          : error.response?.data?.message || "Algo salió mal",
-      });
-    }
-  };
-  const editIconClick = async (
-    selectedRows,
-    submitText,
-    isJustForCopy = false
-  ) => {
-    const indx = selectedRows.data[0].dataIndex;
-    const dataOfIndx = structuredClone(selectedRowRquest);
-    if (isJustForCopy && dataOfIndx.status == 2) {
-      dataOfIndx.status = 1;
-    }
-    try {
-      await axios
-        .post(`dashboard/products/get-stock`, {
-          inventories: dataOfIndx.products.map((product) => ({
-            inventoryDetailID: product.inventoryDetailID,
-          })),
-        })
-        .then((response) => {
-          dataOfIndx.products.forEach((product) => {
-            product.stock = isJustForCopy
-              ? response.data[product.id].stock
-              : response.data[product.id].stock + product.quantity;
-            product.conditionId = response.data[product.id].condition;
-          });
-          setOrganizations([
-            {
-              id: dataOfIndx.organizationId || null,
-              name: dataOfIndx.organizationName,
-            },
-          ]);
-          setNewRegister({
-            ...dataOfIndx,
-            inventoryDetailID: dataOfIndx.inventoryID,
-            outputCode: isJustForCopy ? null : dataOfIndx.outputCode,
-            organizationObject: {
-              organizationId: dataOfIndx.organizationId,
-              name: dataOfIndx?.organizationName,
-              authorityFullname: dataOfIndx?.authorityFullname,
-              authorityCi: dataOfIndx?.authorityCi,
-              code: dataOfIndx?.organizationCode,
-            },
-          });
-          // fnEmptyRows([]);
-        });
-    } catch (error) {
-      setAlert({
-        open: true,
-        status: "Error",
-        message: error?.response?.data?.errors
-          ? Object.values(error.response.data.errors)[0][0]
-          : error.response?.data?.message || "Algo salió mal",
-      });
-    }
+  console.log({ NewRegister });
+  const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
+    console.log({ rowData });
+    setOrganizations([
+      {
+        id: rowData.organization_id || null,
+        name: rowData.organization_name,
+      },
+    ]);
+    setNewRegister({
+      ...rowData,
+      departure_date: new Date(rowData.departure_date)
+        .toISOString()
+        .split("T")[0],
+      organizationObject: {
+        organizationId: rowData.organization_id,
+        name: rowData?.organization_name,
+        code: rowData?.organization_code,
+      },
+    });
 
-    // if (isJustForCopy) {
-
-    // }
-    // setNewRegister({
-    //   ...dataOfIndx,
-    //   outputCode: isJustForCopy ? null : dataOfIndx.outputCode,
-    //   organizationObject: {
-    //     organizationId: dataOfIndx.organizationId,
-    //     name: dataOfIndx?.organizationName,
-    //     authorityFullname: dataOfIndx?.authorityFullname,
-    //     authorityCi: dataOfIndx?.authorityCi,
-    //   },
-    // });
-    setTypeOfGuide("nueva");
     setOpen(true);
     setSubmitStatus(submitText);
   };
@@ -826,9 +685,6 @@ export default function Salidas(props) {
     selectableRowsOnClick: true,
     selectableRowsHideCheckboxes: true,
     selectableRows: "single",
-    onRowSelectionChange: () => {
-      selectedRowRquest = false;
-    },
     fixedHeader: true,
     textLabels: {
       body: {
@@ -870,71 +726,29 @@ export default function Salidas(props) {
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+      console.log({ displayData, selectedRows });
+      const dataIndex = selectedRows.data[0].dataIndex;
+      const rowData = dataTable[dataIndex];
       return (
         <div>
-          <IconButton
+          {/* <IconButton
             title="copiar"
             onClick={async () => {
-              if (selectedRowRquest.id) {
-                await editIconClick(selectedRows, "Crear", true);
-              } else {
-                window.alert("> Despliegue los productos");
-              }
+              console.log(selectedRows, displayData, setSelectedRows);
+              const selectedRow = selectedRows.data[0];
+              await editIconClick(rowData, "Crear", true);
             }}
           >
             <ContentCopyIcon />
-          </IconButton>
-          <IconButton
-            title="Descargar factura de la guia"
-            onClick={() => {
-              // requestGuide(
-              //   "id",
-              //   dataTable[selectedRows.data[0].dataIndex].id,
-              //   true
-              if (selectedRowRquest.id) {
-                setInfoBill(selectedRowRquest);
-                setModalPdf(true);
-              } else {
-                window.alert("> Despliegue los productos");
-              }
-              // );
-            }}
-          >
-            <BadgeIcon />
-          </IconButton>
+          </IconButton> */}
+
           {dataTable[selectedRows.data[0].dataIndex]?.status != 2 &&
             dataTable[selectedRows.data[0].dataIndex]?.status != 3 && (
               <>
                 <IconButton
-                  title="Despachar"
-                  onClick={
-                    async () => {
-                      if (selectedRowRquest.id) {
-                        dispatch(selectedRows);
-                      } else {
-                        window.alert("> Despliegue los productos");
-                      }
-                      // await editIconClick(selectedRows, "Crear", true);
-                    }
-                    // setIsButtonDisabled(true);
-                  }
-                >
-                  <div
-                    className={`border rounded border-green text-green px-3 text-sm font-bold`}
-                  >
-                    <span className="mr-2">DESPACHAR</span>
-                    <LocalShippingIcon />
-                  </div>
-                </IconButton>
-
-                <IconButton
                   title="Editar"
                   onClick={() => {
-                    if (selectedRowRquest.id) {
-                      editIconClick(selectedRows, "Editar");
-                    } else {
-                      window.alert("> Despliegue los productos");
-                    }
+                    editIconClick(rowData, "Editar", true);
                   }}
                 >
                   <EditIcon />
@@ -1023,21 +837,7 @@ export default function Salidas(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (NewRegister?.status == 3) {
-      if (
-        !window.confirm(
-          `Una vez guardado como Despachado no se podrá eliminar ni editar ${
-            NewRegister.organizationObject.code !== "nocode" &&
-            NewRegister.organizationObject.code
-              ? "y los productos enviados se añadirán al inventario de " +
-                NewRegister.organizationName
-              : ""
-          }. ¿Está seguro de continuar?`
-        )
-      ) {
-        return;
-      }
-    }
+   
     if (submitStatus === "Cargando...") {
       return;
     }
@@ -1055,14 +855,13 @@ export default function Salidas(props) {
           .then((response) => {});
       }
 
-      setSubmitStatus("Crear");
       setAlert({
         open: true,
         status: "Exito",
         message: "Salida guardada",
       });
       setOpen(false);
-
+      
       setParametersURL((prev) => ({
         ...prev,
         page: 1,
@@ -1075,33 +874,22 @@ export default function Salidas(props) {
         filterObject,
         total: 0,
       }));
-
+      
+      setSubmitStatus("Crear");
       setSearchProductText("");
       setProductsSearched([]);
 
-      const objauthority = {
-        ...authoritiesOptions,
-        [NewRegister.authorityCi]: {
-          authorityFullname: NewRegister.authorityFullname,
-          authorityCi: NewRegister.authorityCi,
-        },
-      };
+      
 
-      localStorage.setItem("authorities", JSON.stringify(objauthority));
       setNewRegister({
-        code: "",
         id: "",
         area: "",
+        inventory_general_id: "",
         departure_time: getCurrentTime(),
-        status: 1,
         description: "",
         organizationObject: { name: "", organizationId: null },
-        products: [],
         departure_date: new Date().toISOString().split("T")[0],
       });
-      setIsThereARecentGuide("");
-      setTypeOfGuide("nueva");
-      localStorage.removeItem("outputForm");
     } catch (error) {
       setAlert({
         open: true,
@@ -1111,10 +899,36 @@ export default function Salidas(props) {
           : error.response?.data?.message || "Algo salió mal",
       });
       setSubmitStatus(() =>
-        NewRegister.outputCode != null ? "Editar" : "Crear"
+        NewRegister.id != null ? "Editar" : "Crear"
       );
     }
   };
+    const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
+
+
+    useEffect(() => {
+      if (!hasLoadedRelations) {
+        axios.get(`/dashboard/relation?entities=true&outputsYears=true`)
+          .then((res) => {
+            if (res.data.entities) {
+              const entitiesObject = {};
+              res.data.entities.forEach((obj) => {
+                entitiesObject[obj.name] = obj.name;
+              });
+              setGeneralData((prev) => ({
+                ...prev,
+                entitiesObject,
+                entities: res.data.entities,
+                years:res.data.outputsYears
+              }));
+            }
+            setHasLoadedRelations(true);
+          })
+          .catch((err) => {
+            console.error("Error al cargar datos relacionados:", err);
+          });
+      }
+    }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
 
   const [tabla, setTabla] = useState();
   useEffect(() => {
@@ -1178,26 +992,12 @@ export default function Salidas(props) {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    // setNewRegister((prev) => ({ ...prev, [name]: value }));
-    if (name.includes("_")) {
-      // Campo dentro de products
-      const [fieldName, index] = name.split("_");
-      setNewRegister((prev) => {
-        const updatedProducts = [...prev.products];
-
-        updatedProducts[index][fieldName] = value;
-        return {
-          ...prev,
-          products: updatedProducts,
-        };
-      });
-    } else {
-      // Otro campo en newRegister
+    
       setNewRegister((prev) => ({
         ...prev,
         [name]: value,
       }));
-    }
+    
   }, []);
   const [alert, setAlert] = useState({
     open: false,
@@ -1227,35 +1027,15 @@ export default function Salidas(props) {
                 ...prev,
                 departure_time: getCurrentTime(),
               }));
-              if (NewRegister.outputCode) {
+              if (submitStatus == "Editar") {
                 setNewRegister({
-                  status: 1,
-                  authorityCi: "",
-                  authorityFullname: "",
-                  departure_time: getCurrentTime(),
-                  organizationId: "",
-                  organization_id: "",
-                  organizationName: "",
-                  organizationObject: { name: "" },
-                  code: "",
-                  municipalityId: 14,
-                  parishId: null,
                   id: "",
-                  name: "",
-                  categoryId: "",
-                  medicamentId: "",
-                  typePresentationId: "",
-                  typeAdministrationId: "",
-                  receiverFullname: "",
-                  receiverCi: "",
-                  unitPerPackage: "",
-                  concentrationSize: "",
-                  categoryObj: { name: "", id: "" },
-                  medicamentObj: { name: "N/A", id: 1 },
-                  typePresentationObj: { name: "N/A", id: 1 },
-                  typeAdministrationObj: { name: "N/A", id: 1 },
-                  guide: "new",
-                  products: [],
+                  area: "",
+                  inventory_general_id: "",
+                  departure_time: getCurrentTime(),
+                  description: "",
+                  organizationObject: { name: "", organizationId: null },
+                  departure_date: new Date().toISOString().split("T")[0],
                 });
               }
               setOpen(true);
@@ -1269,7 +1049,6 @@ export default function Salidas(props) {
               onClick={(e) => {
                 setOpen(true);
                 setNewRegister(localStorageForm);
-                setIsThereARecentGuide("");
                 setLocalStorageForm(false);
               }}
             >
@@ -1461,8 +1240,9 @@ export default function Salidas(props) {
                               setIsSearchHidden("hidden");
                               setNewRegister((prev) => ({
                                 ...prev,
-                                inventory_general_id:product.id, // This ID is inventory_general_id
-                                products: [product],
+                                inventory_general_id: product.id, // This ID is inventory_general_id
+                                ...product,
+                                area: "",
                               }));
                             }}
                           >
@@ -1513,45 +1293,47 @@ export default function Salidas(props) {
                 </thead>
                 {/* <div className="body px-2 grid grid-cols-subgrid px-30  items-center text-sm justify-between"> */}
                 <tbody className="">
-                  {NewRegister?.products?.map((product, i) => {
-                    return (
-                      <tr
-                        key={product.inventoryDetailID + "x_" + i}
-                        className="body px-2  px-30  text-dark items-center text-sm justify-between"
-                      >
-                        <td className="p-4 px-5">{product.product_code}</td>
-                        <td className="p-4 px-5">{product.product_name}</td>
-                        <td className="p-4 px-5">{product.product_brand}</td>
-                        <td className="p-4 px-5">{product.product_model}</td>
-                        <td className="p-4 px-5">{product.serial_number}</td>
-                        <td className="p-4 px-5">{product.national_code}</td>
-                        <td className="p-4 px-5">
-                          {product.machine_status_name}
-                        </td>
-                        <td className="p-4 px-5">
-                          {product.components &&
-                            Object.keys(product.components).join(", ")}
-                        </td>
+                  <tr
+                    key={NewRegister.inventoryDetailID}
+                    className="body px-2  px-30  text-dark items-center text-sm justify-between"
+                  >
+                    <td className="p-4 px-5">{NewRegister.product_code}</td>
+                    <td className="p-4 px-5">{NewRegister.product_name}</td>
+                    <td className="p-4 px-5">{NewRegister.product_brand}</td>
+                    <td className="p-4 px-5">{NewRegister.product_model}</td>
+                    <td className="p-4 px-5">{NewRegister.serial_number}</td>
+                    <td className="p-4 px-5">{NewRegister.national_code}</td>
+                    <td className="p-4 px-5">
+                      {NewRegister.machine_status_name}
+                    </td>
+                    <td className="p-4 px-5">
+                      {NewRegister.components &&
+                        Object.keys(NewRegister.components).join(", ")}
+                    </td>
 
-                        <td className="p-4 px-5">
-                          <button
-                            onClick={(e) => {
-                              setNewRegister((prev) => ({
-                                ...prev,
-                                products: prev.products.filter(
-                                  (eachProduct, j) => i !== j
-                                ),
-                              }));
-                            }}
-                            type="button"
-                            className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
-                          >
-                            x
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                    <td className="p-4 px-5">
+                      <button
+                        onClick={(e) => {
+                          setNewRegister((prev) => ({
+                            ...prev,
+                            inventoryDetailID: "",
+                            product_code: "",
+                            product_name: "",
+                            product_brand: "",
+                            product_model: "",
+                            serial_number: "",
+                            national_code: "",
+                            machine_status_name: "",
+                            components: {},
+                          }));
+                        }}
+                        type="button"
+                        className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
+                      >
+                        x
+                      </button>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -1638,9 +1420,9 @@ export default function Salidas(props) {
 
             <Button3D
               className="mt-2 col-span-3"
+              type="submit"
               color={submitStatus == "Crear" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={(e) => {}}
             />
           </form>
         }
@@ -1663,10 +1445,6 @@ export default function Salidas(props) {
         isOpen={modalConfirm.isOpen}
         aceptFunction={() => modalConfirm.aceptFunction()}
       />
-
-      {/* <PDFViewer style={{ width: "1000px", height: "800px" }}>
-        <OuputGuide output={infoBill} userData={props.userData} />
-      </PDFViewer> */}
     </>
   );
 }
