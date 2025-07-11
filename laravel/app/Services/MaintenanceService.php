@@ -6,6 +6,7 @@ use Exception;
 use Carbon\Carbon;
 use App\Enums\TypeActivity;
 use App\Events\NewActivity;
+use App\Models\EntryGeneral;
 use App\Models\Maintenance;
 use App\Models\InventoryGeneral;
 use Illuminate\Support\Facades\DB;
@@ -251,25 +252,41 @@ class MaintenanceService extends ApiService
             try {
 
 
+                $inventoryGeneralID = $maintenance->inventory_general_id;
+                $maitenanceIdToDelete = $maintenance->id;
+                $maintenance->delete();
 
-                // $lastMaintenance = Maintenance::where('inventory_general_id',  )
-                // $maintenance->delete();
+                $lastMaintenance = Maintenance::where('inventory_general_id', $inventoryGeneralID)
+                ->latest()
+                ->first();
+
+                $inventoryGeneral = InventoryGeneral::where('id',$inventoryGeneralID)->first();
+                $entryGeneral = EntryGeneral::where('id', $inventoryGeneral->entry_general_id)->first();
+
+                $typeMaintenance = $lastMaintenance->type_maintenance_id ?? null;
+                $components = null;
+
+                if($typeMaintenance == null)
+                    $components = $entryGeneral->components;
+                else
+                    $components = $lastMaintenance->components;
 
 
-                $entryGeneral->update([
-                    'status' => InventoryMoveStatus::ELIMINADO->value,
+                $inventoryGeneral->update([
+                    'last_type_maintenance_id' => $typeMaintenance,
+                    'components' => $components
                 ]);
 
-                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_ENTRADA->value, $entryGeneral->id);
+                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_MANTENIMIENTO->value, $maitenanceIdToDelete->id);
 
-                return ['message' => 'Entrada Eliminada exitosamente'];
+                return ['message' => 'Mantenimiento eliminado exitosamente'];
 
 
 
             } catch (Exception $e) {
 
-                Log::error('EntryService -  Error al eliminar entrada: '. $e->getMessage(), [
-                'data' => [$inventory, $entryGeneral],
+                Log::error('MaintenanceService -  Error al eliminar mantenimiento: '. $e->getMessage(), [
+                'data' => [$maintenance, $inventoryGeneral, $entryGeneral],
                 'trace' => $e->getTraceAsString()
             ]);
 

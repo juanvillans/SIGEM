@@ -93,7 +93,7 @@ class MaintenanceController extends Controller
     {
         try{
 
-            $response = $this->maintenanceService->delete($output);
+            $response = $this->maintenanceService->delete($maintenance);
 
             return $response;
 

@@ -86,12 +86,13 @@ Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'mi
     Route::post('entries-to-confirm/reject',[EntryToConfirmedController::class,'reject'])->middleware('ability:7');
 
     // // ------------------------------------------------- Request products  ----------------------------------------------
-    // Route::middleware('ability:8')->apiResource('request-products', 'RequestProductController');
-    // Route::get('detail-request/{requestProduct}',[RequestProductController::class,'detailRequest'])->middleware('ability:8');
-    // Route::get('requests-to-my-inventory',[RequestProductController::class,'requestsToMyInventory'])->middleware('ability:5')->name('requestToMyInventory');
-    // Route::put('requests-to-my-inventory/{status}/{requestProduct}/{outputGeneralID?}', [RequestProductController::class,'confirmRequest'])->middleware('ability:5');
-    // Route::get('detail-request-to-my-inventory/{requestProduct}',[RequestProductController::class,'detailRequestToMyInventory'])->middleware('ability:5');
+    Route::middleware('ability:8')->apiResource('request-products', 'RequestProductController');
+    Route::get('requests-to-my-inventory',[RequestProductController::class,'requestsToMyInventory'])->middleware('ability:5')->name('requestToMyInventory');
+    Route::put('requests-to-my-inventory/{status}/{requestProduct}/{outputGeneralID?}', [RequestProductController::class,'confirmRequest'])->middleware('ability:5');
 
+
+// ------------------------------------------------- Maintenances ----------------------------------------------
+    Route::middleware('ability:9')->apiResource('maintenances', 'MaintenanceController');
 
 });
 

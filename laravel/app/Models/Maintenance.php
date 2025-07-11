@@ -14,8 +14,13 @@ class Maintenance extends Model
         'entity_code',
         'inventory_general_id',
         'type_maintenance_id',
+        'components',
         'description'
 
+    ];
+
+    protected $casts = [
+        'components' => 'array',
     ];
 
     public function entity(){
