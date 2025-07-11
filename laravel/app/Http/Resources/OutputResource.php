@@ -24,6 +24,7 @@ class OutputResource extends JsonResource
             "code" => $this->code,
             "area" => $this->area,
             "product_id"=> $this->inventoryGeneral->product->id,
+            "product_code"=> $this->inventoryGeneral->product->code,
             "product_name"=> $this->inventoryGeneral->product->machine,
             "product_brand"=> $this->inventoryGeneral->product->brand,
             "product_model"=> $this->inventoryGeneral->product->model,

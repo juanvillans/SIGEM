@@ -4,18 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\InventoryMoveStatus;
 use App\Http\Requests\OutputRequest;
-use App\Http\Resources\MunicipalityCollection;
 use App\Http\Resources\OutputCollection;
 use App\Http\Resources\OutputResource;
-use App\Models\HierarchyEntity;
-use App\Models\Municipality;
-use App\Models\Output;
 use App\Models\OutputGeneral;
 use App\Services\OutputService;
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OutputController extends Controller

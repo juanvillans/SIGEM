@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\MaintenanceCollection;
+use Exception;
 use App\Models\Maintenance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Services\MaintenanceService;
+use App\Http\Requests\MaintenanceRequest;
+use App\Http\Resources\MaintenanceCollection;
 
 class MaintenanceController extends Controller
 {
@@ -34,20 +37,31 @@ class MaintenanceController extends Controller
         ];
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(MaintenanceRequest $request)
     {
-        //
+        try {
+
+            $response = $this->maintenanceService->create($request->validated());
+
+            return $response;
+
+        } catch (Exception $e) {
+
+            Log::error("Error al crear mantenimiento: " . $e->getMessage(), [
+                'exception' => $e,
+                'request_data' => $request->validated(),
+            ]);
+
+            return response()->json([
+            'status' => false,
+            'message' => 'Error al crear mantenimiento: ' .$e->getMessage()
+            ], 500);
+
+        }
     }
 
     /**
