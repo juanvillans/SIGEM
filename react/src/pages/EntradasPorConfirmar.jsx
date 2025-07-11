@@ -906,7 +906,7 @@ export default function Entradas(props) {
               className="mt-7 col-span-3 w-full"
               color={submitStatus == "Confirmar" ? "blue1" : "blue2"}
               text={submitStatus}
-              fClick={(e) => {}}
+              onClick={(e) => {}}
             />
           </form>
         }

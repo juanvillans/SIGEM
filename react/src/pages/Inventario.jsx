@@ -38,6 +38,7 @@ const filterConfiguration = {
   year: "&inventories[year]=",
   minimunAlert: "&inventories[minimumAlert]=",
   last_type_maintenance_name: "&inventories[last_type_maintenance_id]=",
+  machine_status_name: "&inventories[machine_status_id]=",
 };
 let filterObject = {};
 const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -75,7 +76,6 @@ export default function Inventario(props) {
     modalInfo: false,
   });
   const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
-  
 
   const [reportData, setReportData] = useState([]);
 
@@ -92,8 +92,7 @@ export default function Inventario(props) {
     filterObjectValues: { entityCode: props.userData.entityCode },
   });
 
-   const columns = [
-   
+  const columns = [
     {
       name: "entity_name",
       label: "Entidad",
@@ -106,7 +105,7 @@ export default function Inventario(props) {
         sort: true,
       },
     },
-  
+
     {
       name: "product_name",
       label: "Equipo",
@@ -146,7 +145,11 @@ export default function Inventario(props) {
       name: "machine_status_name",
       label: "Estado",
       options: {
-        filter: false,
+        filter: true,
+        filterList: parametersURL?.filterList[6] || [],
+        filterOptions: {
+          names: generalData?.machine_status?.map((obj) => obj.name),
+        },
       },
     },
     {
@@ -236,10 +239,8 @@ export default function Inventario(props) {
         filterOptions: {
           names: generalData?.types_maintenance?.map((obj) => obj.name),
         },
-      
       },
     },
-
   ];
 
   // console.log(NewRegister);
@@ -270,7 +271,7 @@ export default function Inventario(props) {
     download: false,
 
     count: totalData,
-    selectToolbarPlacement: 'above',
+    selectToolbarPlacement: "above",
     rowsExpanded: [],
     rowsSelected: [],
     print: false,
@@ -323,10 +324,14 @@ export default function Inventario(props) {
     },
 
     onChangeRowsPerPage: (numberOfRows) => {
-      setParametersURL((prev) => ({ ...prev, rowsPerPage: numberOfRows, page:  (totalData / numberOfRows ) < prev.page ? 1 : prev.page }));
+      setParametersURL((prev) => ({
+        ...prev,
+        rowsPerPage: numberOfRows,
+        page: totalData / numberOfRows < prev.page ? 1 : prev.page,
+      }));
     },
 
-     onFilterChange: (
+    onFilterChange: (
       changedColumn,
       filterList,
       typeFilter,
@@ -341,7 +346,7 @@ export default function Inventario(props) {
         return;
       }
       if (arrValues.length > 0) {
-        console.log({changedColumn, columnIndex});
+        console.log({ changedColumn, columnIndex });
         if (changedColumn == "last_type_maintenance_name") {
           arrValues = arrValues.map((eachValue) => {
             const typeMaintenanceObject = generalData.types_maintenance.find(
@@ -349,7 +354,15 @@ export default function Inventario(props) {
             );
             return typeMaintenanceObject ? typeMaintenanceObject.id : null;
           });
-        } 
+        }
+        if (changedColumn == "machine_status_name") {
+          arrValues = arrValues.map((eachValue) => {
+            const machineStatusObject = generalData.machine_status.find(
+              (obj) => obj.name == eachValue
+            );
+            return machineStatusObject ? machineStatusObject.id : null;
+          });
+        }
         filterObject[changedColumn] = `${
           filterConfiguration[changedColumn]
         }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
@@ -421,8 +434,6 @@ export default function Inventario(props) {
 
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
-   
-
   };
 
   const getData = async (isJustForReport = false) => {
@@ -467,31 +478,34 @@ export default function Inventario(props) {
     });
   };
   useEffect(() => {
-      if (!hasLoadedRelations) {
-        axios.get(`/dashboard/relation?entities=true&machine_status=true&types_maintenance=true`)
-          .then((res) => {
-            if (res.data.entities) {
-              const entitiesObject = {};
-              res.data.entities.forEach((obj) => {
-                entitiesObject[obj.name] = obj.name;
-              });
-              setGeneralData((prev) => ({
-                ...prev,
-                entitiesObject,
-                entities: res.data.entities,
-                machine_status: res.data.machine_status,
-                types_maintenance: res.data.types_maintenance,
-                // conditions: res.data.conditions || prev.conditions,
-              }));
-            }
-            setHasLoadedRelations(true);
-          })
-          .catch((err) => {
-            console.error("Error al cargar datos relacionados:", err);
-          });
-      }
-    }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-    console.log({generalData});
+    if (!hasLoadedRelations) {
+      axios
+        .get(
+          `/dashboard/relation?entities=true&machine_status=true&types_maintenance=true`
+        )
+        .then((res) => {
+          if (res.data.entities) {
+            const entitiesObject = {};
+            res.data.entities.forEach((obj) => {
+              entitiesObject[obj.name] = obj.name;
+            });
+            setGeneralData((prev) => ({
+              ...prev,
+              entitiesObject,
+              entities: res.data.entities,
+              machine_status: res.data.machine_status,
+              types_maintenance: res.data.types_maintenance,
+              // conditions: res.data.conditions || prev.conditions,
+            }));
+          }
+          setHasLoadedRelations(true);
+        })
+        .catch((err) => {
+          console.error("Error al cargar datos relacionados:", err);
+        });
+    }
+  }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
+  console.log({ generalData });
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -501,7 +515,7 @@ export default function Inventario(props) {
           <div>
             <div className="flex flex-col md:flex-row gap-3 min-h-[55px]  pt-3">
               <h1 className="text-grey md:text-xl relative top-1 ">
-                Inventario  {props.userData.entityCode == 1 && "de"}
+                Inventario {props.userData.entityCode == 1 && "de"}
               </h1>
               {props.userData.entityCode == 1 && (
                 <span className="relative -top-2">
