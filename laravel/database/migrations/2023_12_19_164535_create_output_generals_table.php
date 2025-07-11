@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('inventory_general_id');
             $table->integer('quantity')->default(1);
             $table->foreignId('organization_id')->nullable();
-            $table->string('description',200);
+            $table->string('description',200)->nullable();
             $table->integer('status');
             $table->string('departure_time');
             $table->timestamps();

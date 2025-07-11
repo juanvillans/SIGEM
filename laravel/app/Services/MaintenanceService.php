@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Maintenance;
 use Exception;
 use Carbon\Carbon;
+use App\Enums\TypeActivity;
+use App\Events\NewActivity;
+use App\Models\Maintenance;
+use App\Models\InventoryGeneral;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -173,26 +176,24 @@ class MaintenanceService extends ApiService
 
             try {
 
-                $newEntryCode = $this->generateNewEntryCode($user->entity_code);
+                $newMaintenance = Maintenance::create($data);
 
-                $data['code'] = $newEntryCode;
-                $data['entity_code'] = $user->entity_code;
-                $data['status'] = 1;
-                $data['updated_at'] = Carbon::parse($data['arrival_date']);
-                $data['user_id'] = $user->id;
+                InventoryGeneral::where('id', $newMaintenance->inventory_general_id)->update(
 
-                $newEntryGeneral = EntryGeneral::create($data);
+                    [
+                        'last_type_maintenance_id' => $newMaintenance->type_maintenance_id,
+                        'components' => $data['components']
+                    ]
+                );
 
-                EntryCreated::dispatch($newEntryGeneral);
+                NewActivity::dispatch($user->id, TypeActivity::ASIGNAR_MANTENIMIENTO->value, $newMaintenance->id);
 
-                NewActivity::dispatch($user->id, TypeActivity::CREAR_ENTRADA->value, $newEntryGeneral->id);
-
-                return ['message' => 'Entrada creada exitosamente'];
+                return ['message' => 'Mantenimiento creado exitosamente'];
 
 
             } catch (Exception $e) {
 
-                Log::error('EntryService -  Error al crear entrada: '. $e->getMessage(), [
+                Log::error('MaintenanceService -  Error al mantenimiento: '. $e->getMessage(), [
                 'data' => $data,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -205,38 +206,47 @@ class MaintenanceService extends ApiService
 
     }
 
-    public function update($data, $entryGeneral){
+    public function update($data, $maintenance){
+
+        return DB::transaction(function () use($data, $maintenance){
 
         try {
 
-            $this->delete($entryGeneral);
+        $maintenance->update($data);
+        InventoryGeneral::where('id', $maintenance->inventory_general_id)->update(
 
-            $this->create($data);
+                    [
+                        'last_type_maintenance_id' => $maintenance->type_maintenance_id,
+                        'components' => $data['components']
+                    ]
+                );
 
-            $user = auth()->user();
-            NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_ENTRADA->value, $entryGeneral->id);
 
-            return ['message' => 'Entrada Actualizada exitosamente'];
+        $userId = auth()->user()->id;
+        NewActivity::dispatch($userId, TypeActivity::ACTUALIZAR_MANTENIMIENTO->value,$maintenance->id);
 
+        return ['message' => 'Mantenimiento actualizado exitosamente'];
 
         } catch (Exception $e) {
 
-            Log::error('EntryService -  Error al actualizar entrada: '. $e->getMessage(), [
-            'data' => $data,
-            'trace' => $e->getTraceAsString()
-        ]);
+            Log::error('MaintenanceService -  Error al actualizar mantenimiento: '. $e->getMessage(), [
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
+            ]);
 
-        throw $e;
+            throw $e;
 
         }
 
+    });
+
     }
 
-    public function delete(EntryGeneral $entryGeneral){
+    public function delete(Maintenance $maintenance){
 
         $user = auth()->user();
 
-        return DB::transaction(function() use($entryGeneral, $user){
+        return DB::transaction(function() use($maintenance, $user){
 
             try {
 

@@ -37,6 +37,27 @@ class InventoryService extends ApiService
 
                 });
             }
+
+            if (isset($param['machine_status'])) {
+
+                $machine_status = $param['machine_status'];
+                $machine_statuses = $this->parseQuery($machine_status);
+
+
+                $query->whereHas('machineStatus', function($query) use($machine_statuses)
+                {
+                    $query->where('name',$machine_statuses[0]);
+                    if(count($machine_statuses) > 1)
+                    {
+                        array_shift($machine_statuses);
+
+                        foreach($machine_statuses as $organization)
+                        {
+                            $query->orWhere('name',$organization);
+                        }
+                    }
+                });
+            }
         })
         ->when(request()->input('orderBy'), function($query,$param)
         {

@@ -64,28 +64,26 @@ class MaintenanceController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Maintenance $maintenance)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Maintenance $maintenance)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Maintenance $maintenance)
+    public function update(MaintenanceRequest $request, Maintenance $maintenance)
     {
-        //
+        try {
+
+            $response = $this->maintenanceService->update($request->validated(), $maintenance);
+
+            return $response;
+
+
+        } catch (Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+                ], 500);
+        }
     }
 
     /**
@@ -93,6 +91,19 @@ class MaintenanceController extends Controller
      */
     public function destroy(Maintenance $maintenance)
     {
-        //
+        try{
+
+            $response = $this->maintenanceService->delete($output);
+
+            return $response;
+
+
+        }catch( Exception $e){
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
