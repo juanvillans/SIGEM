@@ -38,22 +38,22 @@ class InventoryService extends ApiService
                 });
             }
 
-            if (isset($param['machine_status'])) {
+            if (isset($param['machine_status_id'])) {
 
-                $machine_status = $param['machine_status'];
+                $machine_status = $param['machine_status_id'];
                 $machine_statuses = $this->parseQuery($machine_status);
 
 
                 $query->whereHas('machineStatus', function($query) use($machine_statuses)
                 {
-                    $query->where('name',$machine_statuses[0]);
+                    $query->where('id',$machine_statuses[0]);
                     if(count($machine_statuses) > 1)
                     {
                         array_shift($machine_statuses);
 
                         foreach($machine_statuses as $organization)
                         {
-                            $query->orWhere('name',$organization);
+                            $query->orWhere('id',$organization);
                         }
                     }
                 });
@@ -89,7 +89,8 @@ class InventoryService extends ApiService
                 $query->where('serial_number', 'ILIKE', $string)
                 ->orWhere('national_code','ILIKE', $string);
 
-                $query->whereHas('product', function($query) use ($string) {
+                $query->orWhereHas('product', function($query) use ($string) {
+
                     $query->where('machine', 'ILIKE', $string)
                     ->orWhere('brand','ILIKE', $string)
                     ->orWhere('model','ILIKE', $string);
@@ -106,7 +107,7 @@ class InventoryService extends ApiService
             $entity = auth()->user()->entity_code;
             $query->where('entity_code', $entity);
         })
-        ->unless(request()->input('orderBy'), function($query, $param)
+        ->unless(request()->input('orderBy'), function($query)
         {
             $query->orderBy('id','desc');
         })

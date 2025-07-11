@@ -250,11 +250,11 @@ class MaintenanceService extends ApiService
 
             try {
 
-                $inventory = InventoryGeneral::where('entry_general_id',$entryGeneral->id)->first();
-                if($inventory->quantity == 0)
-                    throw new Exception("No puede eliminarse esta entrada, ya que se le hizo una salida", 403);
 
-                $inventory->delete();
+
+                // $lastMaintenance = Maintenance::where('inventory_general_id',  )
+                // $maintenance->delete();
+
 
                 $entryGeneral->update([
                     'status' => InventoryMoveStatus::ELIMINADO->value,
