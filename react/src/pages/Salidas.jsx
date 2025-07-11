@@ -160,8 +160,6 @@ export default function Salidas(props) {
     entitiesObject: {},
   });
 
-
-
   // useEffect(() => {
   //   localStorage.setItem('outputForm', JSON.stringify(NewRegister))
   // }, [NewRegister]);
@@ -546,6 +544,7 @@ export default function Salidas(props) {
   }, [parametersURL]);
 
   const deleteRegister = async (obj, fnEmptyRows) => {
+    console.log({ obj });
     try {
       await axios.post(`/dashboard/cancellation/2`, obj).then((response) => {
         // setDataTable((prev) => prev.filter((eachU) => eachU.id != id_user));
@@ -759,32 +758,18 @@ export default function Salidas(props) {
                   onClick={() => {
                     setModalConfirm({
                       isOpen: true,
-                      // textInfo: 'textInfo',
                       modalInfo: (
                         <>
                           <p className="mb-2">
-                            Especifique porqué cancelará esta salida
-                          </p>{" "}
-                          <InputWhite
-                            key={832349}
-                            id={"cancelDescription"}
-                            name={"cancelDescription"}
-                            Color={"white"}
-                            required
-                            multiline
-                          />{" "}
+                            Está seguro que cancelará esta salida?
+                          </p>
                         </>
                       ),
-                      aceptFunction: (e) => {
-                        let cancelDescription =
-                          document.querySelector("#cancelDescription").value;
-                        deleteRegister(
-                          {
-                            ID: dataTable[selectedRows.data[0].dataIndex].id,
-                            cancelDescription,
-                          },
-                          setSelectedRows
-                        );
+                      aceptFunction: () => {
+                        console.log({ rowData });
+                        deleteRegister({
+                          ID: rowData.id,
+                        });
                       },
                     });
                   }}
@@ -837,7 +822,7 @@ export default function Salidas(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   
+
     if (submitStatus === "Cargando...") {
       return;
     }
@@ -861,7 +846,7 @@ export default function Salidas(props) {
         message: "Salida guardada",
       });
       setOpen(false);
-      
+
       setParametersURL((prev) => ({
         ...prev,
         page: 1,
@@ -874,12 +859,10 @@ export default function Salidas(props) {
         filterObject,
         total: 0,
       }));
-      
+
       setSubmitStatus("Crear");
       setSearchProductText("");
       setProductsSearched([]);
-
-      
 
       setNewRegister({
         id: "",
@@ -898,37 +881,35 @@ export default function Salidas(props) {
           ? Object.values(error.response.data.errors)[0][0]
           : error.response?.data?.message || "Algo salió mal",
       });
-      setSubmitStatus(() =>
-        NewRegister.id != null ? "Editar" : "Crear"
-      );
+      setSubmitStatus(() => (NewRegister.id != null ? "Editar" : "Crear"));
     }
   };
-    const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
+  const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
 
-
-    useEffect(() => {
-      if (!hasLoadedRelations) {
-        axios.get(`/dashboard/relation?entities=true&outputsYears=true`)
-          .then((res) => {
-            if (res.data.entities) {
-              const entitiesObject = {};
-              res.data.entities.forEach((obj) => {
-                entitiesObject[obj.name] = obj.name;
-              });
-              setGeneralData((prev) => ({
-                ...prev,
-                entitiesObject,
-                entities: res.data.entities,
-                years:res.data.outputsYears
-              }));
-            }
-            setHasLoadedRelations(true);
-          })
-          .catch((err) => {
-            console.error("Error al cargar datos relacionados:", err);
-          });
-      }
-    }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
+  useEffect(() => {
+    if (!hasLoadedRelations) {
+      axios
+        .get(`/dashboard/relation?entities=true&outputsYears=true`)
+        .then((res) => {
+          if (res.data.entities) {
+            const entitiesObject = {};
+            res.data.entities.forEach((obj) => {
+              entitiesObject[obj.name] = obj.name;
+            });
+            setGeneralData((prev) => ({
+              ...prev,
+              entitiesObject,
+              entities: res.data.entities,
+              years: res.data.outputsYears,
+            }));
+          }
+          setHasLoadedRelations(true);
+        })
+        .catch((err) => {
+          console.error("Error al cargar datos relacionados:", err);
+        });
+    }
+  }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
 
   const [tabla, setTabla] = useState();
   useEffect(() => {
@@ -992,12 +973,11 @@ export default function Salidas(props) {
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    
-      setNewRegister((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    
+
+    setNewRegister((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   }, []);
   const [alert, setAlert] = useState({
     open: false,
