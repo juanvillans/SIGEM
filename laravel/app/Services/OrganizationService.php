@@ -25,16 +25,6 @@ use App\Models\OutputGeneral;
 class OrganizationService extends ApiService
 {
 
-    protected $model;
-    protected $snakeCaseMap = [
-
-    'authorityFullname' =>'authority_fullname',
-    'authorityCi' => 'authority_ci',
-    'municipalityId' => 'municipality_id',
-    'parishId' => 'parish_id',
-    ];
-
-
 
     public function getData()
     {
@@ -211,14 +201,7 @@ class OrganizationService extends ApiService
     }
 
 
-    public function isCurrentUserDeletingIdMatch($id)
-    {
-        $userID = Auth::id();
 
-        if($userID == $id)
-            throw new GeneralExceptions('No puede eliminarse asi mismo',500);
-
-    }
 
     private function transformUpperCase($array)
     {
