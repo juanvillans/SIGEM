@@ -78,32 +78,15 @@ class OrganizationController extends Controller
 
     public function update(OrganizationRequest $request, Organization $organization)
     {
-        $dataToUpdateOrganization = $this->organizationService->convertToSnakeCase($request);
-
-        DB::beginTransaction();
 
         try {
 
-            $response = $this->organizationService->update($dataToUpdateOrganization,$organization);
-
-            DB::commit();
+            $response = $this->organizationService->update($request->validated(),$organization);
 
             return ['message' => $response['message']];
 
 
-        } catch (GeneralExceptions $e) {
-
-            DB::rollback();
-
-
-            if(null !== $e->getCustomCode())
-            {
-                return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-                ], $e->getCustomCode());
-
-            }
+        } catch (Exception $e) {
 
             return response()->json([
                 'status' => false,

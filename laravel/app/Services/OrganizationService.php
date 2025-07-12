@@ -131,28 +131,45 @@ class OrganizationService extends ApiService
     public function update($dataToUpdateOrganization,$organization)
     {
 
-        $municipalityName = null;
-        $parishName = null;
+        return DB::transaction(function () use($dataToUpdateOrganization, $organization){
 
-        if(isset($dataToUpdateOrganization['municipality_id']))
-            $municipalityName = Municipality::where('id',$dataToUpdateOrganization['municipality_id'])->first()->name;
+            try{
 
-        if(isset($dataToUpdateOrganization['parish_id']))
-            $parishName = Parish::where('id',$dataToUpdateOrganization['parish_id'])->first()->name;
+                $municipalityName = null;
+                $parishName = null;
 
-        $dataToUpdateOrganization = $this->transformUpperCase($dataToUpdateOrganization);
-        $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
-        $dataToUpdateOrganization['code'] = 'nocode';
+                if(isset($dataToUpdateOrganization['municipality_id']))
+                    $municipalityName = Municipality::where('id',$dataToUpdateOrganization['municipality_id'])->first()->name;
 
-        $organization->fill($dataToUpdateOrganization);
-        $organization->save();
-        $organization->fresh();
+                if(isset($dataToUpdateOrganization['parish_id']))
+                    $parishName = Parish::where('id',$dataToUpdateOrganization['parish_id'])->first()->name;
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 5, $organization->id);
+                $dataToUpdateOrganization = $this->transformUpperCase($dataToUpdateOrganization);
+                $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
+                $dataToUpdateOrganization['code'] = 'nocode';
+
+                $organization->fill($dataToUpdateOrganization);
+                $organization->save();
+
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, TypeActivity::ACTUALIZAR_ORGANIZACION->value, $organization->id);
 
 
-        return ['message' => 'Actualizado Exitosamente'];
+                return ['message' => 'Actualizado Exitosamente'];
+
+
+            }catch(Exception $e){
+
+                Log::error('OrganizationService -  Error al actualizar organizacion: '. $e->getMessage(), [
+                    'data' => $dataToUpdateOrganization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+            }
+
+        });
+
 
     }
 
