@@ -1,6 +1,6 @@
 # SIGEM 
 
-Web application for Inventory Machine management of Secretaria de Salud (Laravel + React -- Project from SISMED)
+Web application for Inventory Machine management of Secretaria de Salud (Laravel + React -- Project from [][SISMED](https://github.com/JDonquis/SISMED) )
 
 ## Installation
 
