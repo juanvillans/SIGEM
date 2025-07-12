@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
+use App\Models\EntryGeneral;
+use App\Models\OutputGeneral;
 
 class OrganizationService extends ApiService
 {
@@ -175,22 +177,36 @@ class OrganizationService extends ApiService
 
     public function delete($organization)
     {
-        $entry = Entry::where('organization_id',$organization->id)->first();
-        $output = Output::where('organization_id',$organization->id)->first();
 
-        if(isset($entry->id))
-            throw new GeneralExceptions('Existe una entrada con esta organizacion no puede ser eliminado',406);
+        return DB::transaction(function() use ($organization) {
+            try {
 
-         if(isset($output->id))
-            throw new GeneralExceptions('Existe una salida con esta organizacion no puede ser eliminado',406);
+                $entry = EntryGeneral::where('organization_id',$organization->id)->first();
+                $output = OutputGeneral::where('organization_id',$organization->id)->first();
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 6, $organization->id);
-        $organization->delete();
+                if(isset($entry->id))
+                    throw new Exception('Existe una entrada con esta organizacion no puede ser eliminado',406);
 
+                if(isset($output->id))
+                    throw new Exception('Existe una salida con esta organizacion no puede ser eliminado',406);
 
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, 6, $organization->id);
+                $organization->delete();
 
-        return ['message' => 'Eliminado con exito'];
+                return ['message' => 'Eliminado con exito'];
+
+            } catch (Exception $e) {
+
+                Log::error('OrganizationService -  Error al eliminar organizacion: '. $e->getMessage(), [
+                    'data' => $organization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+
+            }
+        });
 
     }
 
