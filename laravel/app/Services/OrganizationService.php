@@ -2,17 +2,20 @@
 
 namespace App\Services;
 
-use DB;
+use Exception;
 use App\Models\User;
 use App\Models\Entry;
 use App\Models\Output;
 use App\Models\Parish;
+use App\Enums\TypeActivity;
 use App\Events\NewActivity;
 use App\Models\Municipality;
 use App\Models\Organization;
 use App\Models\UserDeleteds;
 use App\Services\ApiService;
 use App\Models\HierarchyEntity;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
@@ -85,28 +88,44 @@ class OrganizationService extends ApiService
     public function create($dataToCreateOrganization)
     {
 
-        $municipalityName = null;
-        $parishName = null;
+        return DB::transaction(function () use ($dataToCreateOrganization){
 
-        if(isset($dataToCreateOrganization['municipality_id']))
-            $municipalityName = Municipality::where('id',$dataToCreateOrganization['municipality_id'])->first()->name;
+            try {
 
-        if(isset($dataToCreateOrganization['parish_id']))
-            $parishName = Parish::where('id',$dataToCreateOrganization['parish_id'])->first()->name;
+                $municipalityName = null;
+                $parishName = null;
 
-        $dataToCreateOrganization = $this->transformUpperCase($dataToCreateOrganization);
-        $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
-        $dataToCreateOrganization['code'] = 'nocode';
+                if(isset($dataToCreateOrganization['municipality_id']))
+                    $municipalityName = Municipality::where('id',$dataToCreateOrganization['municipality_id'])->first()->name;
 
-        $this->model->fill($dataToCreateOrganization);
-        $this->model->save();
-        $this->model->fresh();
+                if(isset($dataToCreateOrganization['parish_id']))
+                    $parishName = Parish::where('id',$dataToCreateOrganization['parish_id'])->first()->name;
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 4, $this->model->id);
+                $dataToCreateOrganization = $this->transformUpperCase($dataToCreateOrganization);
+                $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
+                $dataToCreateOrganization['code'] = 'nocode';
+
+                $newOrganization = Organization::create($dataToCreateOrganization);
+
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, TypeActivity::CREAR_ORGANIZACION->value, $newOrganization->id);
 
 
-        return ['message' => 'Creado Exitosamente', 'model' => $this->model];
+                return ['message' => 'Creado Exitosamente', 'model' => $newOrganization];
+
+            } catch (Exception $e) {
+
+                Log::error('OrganizationService -  Error al crear organizacion: '. $e->getMessage(), [
+                    'data' => $dataToCreateOrganization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+            }
+
+
+        });
+
     }
 
     public function update($dataToUpdateOrganization,$organization)

@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entry;
+use App\Models\Output;
+use App\Models\Inventory;
+use App\Models\Municipality;
+use App\Models\Organization;
+use Illuminate\Http\Request;
+use App\Models\HierarchyEntity;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\GeneralExceptions;
+use App\Services\OrganizationService;
 use App\Filters\OrganizationQueryFilter;
 use App\Http\Requests\OrganizationRequest;
 use App\Http\Resources\HierarchyCollection;
 use App\Http\Resources\MunicipalityCollection;
 use App\Http\Resources\OrganizationCollection;
-use App\Models\Entry;
-use App\Models\HierarchyEntity;
-use App\Models\Inventory;
-use App\Models\Municipality;
-use App\Models\Organization;
-use App\Models\Output;
-use App\Services\OrganizationService;
-use DB;
-use Illuminate\Http\Request;
+use Exception;
 
 class OrganizationController extends Controller
 {
@@ -47,43 +48,27 @@ class OrganizationController extends Controller
         $total = $organizations->total();
 
         return [
-            'data' => $organizationCollection, 
-            'municipalities' => $municipalitiesCollection, 
+            'data' => $organizationCollection,
+            'municipalities' => $municipalitiesCollection,
             'entities' => $hierarchies,
-            'total' => $total, 
+            'total' => $total,
             'message' => 'OK'
-        
+
         ];
 
     }
 
     public function store(OrganizationRequest $request)
-    {   
-
-        DB::beginTransaction();
+    {
 
         try {
-            
-            $dataToCreateOrganization = $this->organizationService->convertToSnakeCase($request);
-            $response = $this->organizationService->create($dataToCreateOrganization);
 
-            DB::commit();
+            $response = $this->organizationService->create($request->validated());
 
             return ['message' => $response['message'] ];
-            
-        } catch (GeneralExceptions $e) {
-            
-             DB::rollback();
 
-            if(null !== $e->getCustomCode())
-            {
-                return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-                ], $e->getCustomCode());
+        } catch (Exception $e) {
 
-            }
-            
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -105,9 +90,9 @@ class OrganizationController extends Controller
 
             return ['message' => $response['message']];
 
-            
+
         } catch (GeneralExceptions $e) {
-            
+
             DB::rollback();
 
 
@@ -119,29 +104,29 @@ class OrganizationController extends Controller
                 ], $e->getCustomCode());
 
             }
-            
+
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
-        
+
     }
 
     public function destroy(Organization $organization)
-    {   
+    {
 
         DB::beginTransaction();
         try {
 
             $response = $this->organizationService->delete($organization);
-            
+
             DB::commit();
             return ['message' => $response['message']];
 
-        }catch (GeneralExceptions $e) 
+        }catch (GeneralExceptions $e)
         {
-            
+
             DB::rollback();
 
             return response()->json([

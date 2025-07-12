@@ -26,17 +26,39 @@ class OrganizationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            
-            'name' => ['required','string'], 
+
+            'name' => ['required','string'],
             'municipality_id' => ['nullable','sometimes'],
             'parish_id' => ['nullable','sometimes'],
-            'authorityCi'=> ['sometimes'],
-            'authorityFullname'=> ['sometimes'],
+            'authority_ci'=> ['sometimes'],
+            'authority_fullname'=> ['sometimes'],
         ];
     }
 
-    protected function failedValidation(Validator $validator)
+     protected function prepareForValidation()
     {
-        throw new HttpResponseException(response()->json(['errors' => $validator->errors()], 422));
+        if ($this->has('authorityCi')) {
+            $this->merge([
+                'authority_ci' => $this->authorityCi,
+            ]);
+        }
+
+        if ($this->has('authorityFullname')) {
+            $this->merge([
+                'authority_fullname' => $this->authorityFullname,
+            ]);
+        }
+
+        if ($this->has('municipalityId')) {
+            $this->merge([
+                'municipality_id' => $this->municipalityId,
+            ]);
+        }
+
+        if ($this->has('parishId')) {
+            $this->merge([
+                'parish_id' => $this->parishId,
+            ]);
+        }
     }
 }
