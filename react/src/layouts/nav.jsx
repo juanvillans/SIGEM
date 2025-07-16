@@ -16,7 +16,7 @@ import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
 import StorageIcon from "@mui/icons-material/Storage";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-
+import ConstructionIcon from '@mui/icons-material/Construction';
 
 
 export default function nav(props) {
@@ -101,6 +101,12 @@ export default function nav(props) {
             <NavLink to={"/dashboard/Inventario"} key={"/dashboard/Inventario"} title={"Inventario"}>
               <MedicalServicesIcon />
               <span className="text_link"> Inventario</span>
+            </NavLink>
+          )}
+           {props.userData?.permissions[9] && (
+            <NavLink to={"/dashboard/Mantenimiento"} key={"/dashboard/Mantenimiento"} title={"Mantenimiento"}>
+              <ConstructionIcon />
+              <span className="text_link"> Mantenimiento</span>
             </NavLink>
           )}
 

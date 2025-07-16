@@ -12,10 +12,10 @@ const CheckableList = memo(({ components, onComponentsChange }) => {
 
     return (
         <div className="bg-white relative rounded-lg shadow p-4 max-h-64 overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Componentes requeridos</h3>
-            <FormGroup className="space-y-2">
+            {/* <h3 className="text-lg font-semibold text-gray-800 mb-3">Componentes requeridos</h3> */}
+            <FormGroup className="space-y-0.5">
                 {Object.keys(components).map((componentName) => (
-                    <div key={componentName} className="flex items-center p-2 hover:bg-gray-50 rounded">
+                    <div key={componentName} className="flex items-center p-2 py-0.5 hover:bg-gray-50 rounded">
                         <FormControlLabel
                             control={
                                 <Checkbox

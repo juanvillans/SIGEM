@@ -22,6 +22,7 @@ const Organizaciones = lazy(() => import("./pages/Organizaciones"));
 const Cambiar_contraseña = lazy(() => import("./pages/Cambiar_contraseña"));
 const SolicitarProductos = lazy(() => import("./pages/SolicitarProductos"));
 const PedidosAMiAlmacen = lazy(() => import("./pages/PedidosAMiAlmacen"));
+const Mantenimiento = lazy(() => import("./pages/Mantenimiento"));
 // const Pagos = lazy(() => import("./pages/Pagos"))
 // function showBrowserNotification(title, options) {
 //   if (Notification.permission === "granted") {
@@ -37,11 +38,10 @@ const PedidosAMiAlmacen = lazy(() => import("./pages/PedidosAMiAlmacen"));
 //   icon: "/path/to/icon.png",
 // });
 
-
 export default function app() {
   const navigate = useNavigate();
   const userData = JSON.parse(localStorage.getItem("userData"));
-  const [notificationsCount, setNotificationsCount ] = useState({})
+  const [notificationsCount, setNotificationsCount] = useState({});
   const [navStatus, setNavStatus] = useState(window.innerWidth >= 400);
   const location = useLocation();
 
@@ -49,7 +49,10 @@ export default function app() {
     const verifyLogin = async () => {
       try {
         const response = await axios.get(`check-session`);
-        setNotificationsCount({count: response.data.notifications, n: Math.random()})
+        setNotificationsCount({
+          count: response.data.notifications,
+          n: Math.random(),
+        });
       } catch (error) {
         if (error.response.status === 401) {
           localStorage.removeItem("userData");
@@ -58,7 +61,7 @@ export default function app() {
         }
       }
     };
-    
+
     verifyLogin();
   }, [navigate]); // Ensure navigate is included in the dependency array
 
@@ -78,7 +81,10 @@ export default function app() {
         <div
           className={`mainDashboard_container ${navStatus ? "small" : "large"}`}
         >
-          <TopNavbar userData={userData} notificationsCount={notificationsCount} />
+          <TopNavbar
+            userData={userData}
+            notificationsCount={notificationsCount}
+          />
           <main>
             <Suspense>
               <Routes forceRefresh={true}>
@@ -149,24 +155,28 @@ export default function app() {
                     element={<Inventario userData={userData} />}
                   ></Route>
                 )}
-{userData?.permissions[8] && (
-  <Route
-    key={"SolicitarProductos"}
-    path="/SolicitarProductos/"
-    element={<SolicitarProductos userData={userData} />}
-  ></Route>
-  
-)}
-{userData?.permissions[5] && (
-  <Route
-    key={"PedidosAMiAlmacen"}
-    path="/PedidosAMiAlmacen/"
-    element={<PedidosAMiAlmacen userData={userData} />}
-  ></Route>
-  
-)}
-
-        </Routes>
+                {userData?.permissions[8] && (
+                  <Route
+                    key={"SolicitarProductos"}
+                    path="/SolicitarProductos/"
+                    element={<SolicitarProductos userData={userData} />}
+                  ></Route>
+                )}
+                {userData?.permissions[5] && (
+                  <Route
+                    key={"PedidosAMiAlmacen"}
+                    path="/PedidosAMiAlmacen/"
+                    element={<PedidosAMiAlmacen userData={userData} />}
+                  ></Route>
+                )}
+                {userData?.permissions[9] && (
+                  <Route
+                    key={"Mantenimiento"}
+                    path="/Mantenimiento/"
+                    element={<Mantenimiento userData={userData} />}
+                  ></Route>
+                )}
+              </Routes>
             </Suspense>
           </main>
 
