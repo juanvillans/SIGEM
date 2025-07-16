@@ -2,33 +2,28 @@
 
 namespace App\Services;
 
-use DB;
+use Exception;
 use App\Models\User;
 use App\Models\Entry;
 use App\Models\Output;
 use App\Models\Parish;
+use App\Enums\TypeActivity;
 use App\Events\NewActivity;
 use App\Models\Municipality;
 use App\Models\Organization;
 use App\Models\UserDeleteds;
 use App\Services\ApiService;
 use App\Models\HierarchyEntity;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
+use App\Models\EntryGeneral;
+use App\Models\OutputGeneral;
 
 class OrganizationService extends ApiService
 {
-
-    protected $model;
-    protected $snakeCaseMap = [
-
-    'authorityFullname' =>'authority_fullname',
-    'authorityCi' => 'authority_ci',
-    'municipalityId' => 'municipality_id',
-    'parishId' => 'parish_id',
-    ];
-
 
 
     public function getData()
@@ -85,88 +80,128 @@ class OrganizationService extends ApiService
     public function create($dataToCreateOrganization)
     {
 
-        $municipalityName = null;
-        $parishName = null;
+        return DB::transaction(function () use ($dataToCreateOrganization){
 
-        if(isset($dataToCreateOrganization['municipality_id']))
-            $municipalityName = Municipality::where('id',$dataToCreateOrganization['municipality_id'])->first()->name;
+            try {
 
-        if(isset($dataToCreateOrganization['parish_id']))
-            $parishName = Parish::where('id',$dataToCreateOrganization['parish_id'])->first()->name;
+                $municipalityName = null;
+                $parishName = null;
 
-        $dataToCreateOrganization = $this->transformUpperCase($dataToCreateOrganization);
-        $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
-        $dataToCreateOrganization['code'] = 'nocode';
+                if(isset($dataToCreateOrganization['municipality_id']))
+                    $municipalityName = Municipality::where('id',$dataToCreateOrganization['municipality_id'])->first()->name;
 
-        $this->model->fill($dataToCreateOrganization);
-        $this->model->save();
-        $this->model->fresh();
+                if(isset($dataToCreateOrganization['parish_id']))
+                    $parishName = Parish::where('id',$dataToCreateOrganization['parish_id'])->first()->name;
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 4, $this->model->id);
+                $dataToCreateOrganization = $this->transformUpperCase($dataToCreateOrganization);
+                $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
+                $dataToCreateOrganization['code'] = 'nocode';
+
+                $newOrganization = Organization::create($dataToCreateOrganization);
+
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, TypeActivity::CREAR_ORGANIZACION->value, $newOrganization->id);
 
 
-        return ['message' => 'Creado Exitosamente', 'model' => $this->model];
+                return ['message' => 'Creado Exitosamente', 'model' => $newOrganization];
+
+            } catch (Exception $e) {
+
+                Log::error('OrganizationService -  Error al crear organizacion: '. $e->getMessage(), [
+                    'data' => $dataToCreateOrganization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+            }
+
+
+        });
+
     }
 
     public function update($dataToUpdateOrganization,$organization)
     {
 
-        $municipalityName = null;
-        $parishName = null;
+        return DB::transaction(function () use($dataToUpdateOrganization, $organization){
 
-        if(isset($dataToUpdateOrganization['municipality_id']))
-            $municipalityName = Municipality::where('id',$dataToUpdateOrganization['municipality_id'])->first()->name;
+            try{
 
-        if(isset($dataToUpdateOrganization['parish_id']))
-            $parishName = Parish::where('id',$dataToUpdateOrganization['parish_id'])->first()->name;
+                $municipalityName = null;
+                $parishName = null;
 
-        $dataToUpdateOrganization = $this->transformUpperCase($dataToUpdateOrganization);
-        $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
-        $dataToUpdateOrganization['code'] = 'nocode';
+                if(isset($dataToUpdateOrganization['municipality_id']))
+                    $municipalityName = Municipality::where('id',$dataToUpdateOrganization['municipality_id'])->first()->name;
 
-        $organization->fill($dataToUpdateOrganization);
-        $organization->save();
-        $organization->fresh();
+                if(isset($dataToUpdateOrganization['parish_id']))
+                    $parishName = Parish::where('id',$dataToUpdateOrganization['parish_id'])->first()->name;
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 5, $organization->id);
+                $dataToUpdateOrganization = $this->transformUpperCase($dataToUpdateOrganization);
+                $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
+                $dataToUpdateOrganization['code'] = 'nocode';
+
+                $organization->fill($dataToUpdateOrganization);
+                $organization->save();
+
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, TypeActivity::ACTUALIZAR_ORGANIZACION->value, $organization->id);
 
 
-        return ['message' => 'Actualizado Exitosamente'];
+                return ['message' => 'Actualizado Exitosamente'];
+
+
+            }catch(Exception $e){
+
+                Log::error('OrganizationService -  Error al actualizar organizacion: '. $e->getMessage(), [
+                    'data' => $dataToUpdateOrganization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+            }
+
+        });
+
 
     }
 
     public function delete($organization)
     {
-        $entry = Entry::where('organization_id',$organization->id)->first();
-        $output = Output::where('organization_id',$organization->id)->first();
 
-        if(isset($entry->id))
-            throw new GeneralExceptions('Existe una entrada con esta organizacion no puede ser eliminado',406);
+        return DB::transaction(function() use ($organization) {
+            try {
 
-         if(isset($output->id))
-            throw new GeneralExceptions('Existe una salida con esta organizacion no puede ser eliminado',406);
+                $entry = EntryGeneral::where('organization_id',$organization->id)->first();
+                $output = OutputGeneral::where('organization_id',$organization->id)->first();
 
-        $userID = auth()->user()->id;
-        NewActivity::dispatch($userID, 6, $organization->id);
-        $organization->delete();
+                if(isset($entry->id))
+                    throw new Exception('Existe una entrada con esta organizacion no puede ser eliminado',406);
 
+                if(isset($output->id))
+                    throw new Exception('Existe una salida con esta organizacion no puede ser eliminado',406);
 
+                $userID = auth()->user()->id;
+                NewActivity::dispatch($userID, 6, $organization->id);
+                $organization->delete();
 
-        return ['message' => 'Eliminado con exito'];
+                return ['message' => 'Eliminado con exito'];
+
+            } catch (Exception $e) {
+
+                Log::error('OrganizationService -  Error al eliminar organizacion: '. $e->getMessage(), [
+                    'data' => $organization,
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                throw $e;
+
+            }
+        });
 
     }
 
 
-    public function isCurrentUserDeletingIdMatch($id)
-    {
-        $userID = Auth::id();
 
-        if($userID == $id)
-            throw new GeneralExceptions('No puede eliminarse asi mismo',500);
-
-    }
 
     private function transformUpperCase($array)
     {

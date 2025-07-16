@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreignId('inventory_general_id');
             $table->foreignId('type_maintenance_id');
             $table->string('description');
+            $table->json('components');
             $table->timestamps();
         });
     }

@@ -20,6 +20,7 @@ class MaintenanceResource extends JsonResource
             "entity_code" => $this->entity_code,
             'inventory_general_id' => $this->inventory_general_id,
             "product_id"=> $this->inventoryGeneral->product->id,
+            "product_id"=> $this->inventoryGeneral->product->code,
             "product_name"=> $this->inventoryGeneral->product->machine,
             "product_brand"=> $this->inventoryGeneral->product->brand,
             "product_model"=> $this->inventoryGeneral->product->model,
