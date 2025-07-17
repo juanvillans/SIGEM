@@ -34,6 +34,11 @@ class MaintenanceRequest extends FormRequest
                 'integer',
                 'exists:type_maintenances,id'
             ],
+            'machine_status_id' => [
+                'required',
+                'integer',
+                'exists:machine_statuses,id'
+            ],
             'components' => [
                 'array'
             ],

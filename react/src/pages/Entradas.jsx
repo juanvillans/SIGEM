@@ -517,7 +517,7 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  console.log(generalData)
+  console.log({NewRegister})
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -1263,6 +1263,8 @@ export default function Entradas(props) {
               onChange={(e, newValue) => {
                 handleOptionSelectOrganizations(e, newValue);
               }}
+                inputValue={NewRegister?.organizationName || ''} // Add this line
+
               renderOption={(propsAutocomplete, option) => {
                 const { key, ...optionProps } = propsAutocomplete;
                 return (

@@ -36,6 +36,7 @@ class MaintenanceResource extends JsonResource
             'type_maintenance_name' => $this->typeMaintenance->name,
             "machine_status_id" => $this->inventoryGeneral->machine_status_id,
             "machine_status_name" => $this->inventoryGeneral->machineStatus->name,
+            'description' => $this->description,
             'created_at' => $this->created_at->format('F d, Y'),
             'time' => $this->created_at->format('H:i'),
 

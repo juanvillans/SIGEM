@@ -647,9 +647,8 @@ export default function Salidas(props) {
         return;
       }
       if (arrValues.length > 0) {
-        filterObject[changedColumn] = `${
-          filterConfiguration[changedColumn]
-        }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
+        filterObject[changedColumn] = `${filterConfiguration[changedColumn]
+          }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
         delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
@@ -785,7 +784,7 @@ export default function Salidas(props) {
     setRowProps: (row, dataIndex, rowIndex) => {
       if (dataTable[dataIndex].status == "2") {
         return {
-        className: 'strikethrough-row',
+          className: 'strikethrough-row',
           style: {
             opacity: ".8",
             textDecoration: "line-through",
@@ -832,13 +831,13 @@ export default function Salidas(props) {
         setSubmitStatus("Cargando...");
         await axios
           .post(`/dashboard/outputs`, NewRegister)
-          .then((response) => {});
+          .then((response) => { });
       }
       if (submitStatus === "Editar") {
         setSubmitStatus("Cargando...");
         await axios
           .put(`/dashboard/outputs/${NewRegister.id}`, NewRegister)
-          .then((response) => {});
+          .then((response) => { });
       }
 
       setAlert({
@@ -949,7 +948,7 @@ export default function Salidas(props) {
                         filterObject,
                       }));
                     }}
-                    // value={user_type_selected}
+                  // value={user_type_selected}
                   >
                     {generalData.entities?.map((option) => (
                       <MenuItem key={option.code} value={option.code}>
@@ -1237,8 +1236,18 @@ export default function Salidas(props) {
                               {product.machine_status_name}
                             </td>
                             <td className="p-2 px-6">
-                              {product.components &&
-                                Object.keys(product.components).join(", ")}
+                              <div className="flex flex-wrap gap-2">
+                                {product?.components &&
+                                  Object.entries(product.components).map(([component, isPresent], i) => (
+                                    <div
+                                      key={component + i}
+                                      className={`text-xs bg-opacity-90 px-3 py-1 rounded-md text-white font-medium ${isPresent ? "bg-green" : "bg-red"
+                                        }`}
+                                    >
+                                      {component}
+                                    </div>
+                                  ))}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -1280,8 +1289,19 @@ export default function Salidas(props) {
                       {NewRegister.machine_status_name}
                     </td>
                     <td className="p-4 px-5">
-                      {NewRegister.components &&
-                        Object.keys(NewRegister.components).join(", ")}
+                              <div className="flex flex-wrap gap-2">
+
+                      {NewRegister?.components &&
+                        Object.entries(NewRegister.components).map(([component, isPresent], i) => (
+                          <div
+                            key={component + i}
+                            className={`text-xs bg-opacity-90 px-3 py-1 rounded-md text-white font-medium ${isPresent ? "bg-green" : "bg-red"
+                              }`}
+                          >
+                            {component}
+                          </div>
+                        ))}
+                        </div>
                     </td>
 
                     <td className="p-4 px-5">
@@ -1344,8 +1364,8 @@ export default function Salidas(props) {
                 onInputChange={(e, newValue) => {
                   handleSearchOrganizations(
                     e?.target?.value ||
-                      NewRegister?.organizationObject?.name ||
-                      ""
+                    NewRegister?.organizationObject?.name ||
+                    ""
                   );
                 }}
                 renderInput={(params) => (

@@ -22,6 +22,8 @@ return new class extends Migration
                   ->onUpdate("cascade");
             $table->unsignedBigInteger('inventory_general_id');
             $table->foreign('inventory_general_id')->references('id')->on('inventory_generals')->onDelete('cascade');
+            $table->unsignedBigInteger('machine_status_id');
+            $table->foreign('machine_status_id')->references('id')->on('machine_statuses')->onDelete('restrict');
             $table->foreignId('type_maintenance_id');
             $table->string('description');
             $table->json('components');

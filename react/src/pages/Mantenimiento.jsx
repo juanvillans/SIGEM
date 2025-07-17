@@ -115,6 +115,7 @@ export default function Mantenimiento(props) {
     organization_id: null,
     machine_status_id: 1,
     components: {},
+    description: "",
     type_maintenance_id: {},
   });
   useEffect(() => {
@@ -186,13 +187,7 @@ export default function Mantenimiento(props) {
         sort: true,
       },
     },
-    {
-      name: "id",
-      label: "Cód.",
-      options: {
-        filter: false,
-      },
-    },
+
     {
       name: "created_at",
       label: "Fecha",
@@ -343,6 +338,10 @@ export default function Mantenimiento(props) {
         },
       },
     },
+    {
+      name: "description",
+      label: "Descripción",
+    }
 
   ];
 
@@ -750,14 +749,15 @@ export default function Mantenimiento(props) {
 
       setNewRegister({
         code: "",
-        id: null,
-        entity_code: props.userData.entityCode,
-        area: "",
-        product_id: null,
-        organization_id: null,
-        machine_status_id: 1,
-        components: {},
-        type_maintenance_id: {},
+    id: null,
+    entity_code: props.userData.entityCode,
+    area: "",
+    product_id: null,
+    organization_id: null,
+    machine_status_id: 1,
+    components: {},
+    description: "",
+    type_maintenance_id: {},
       });
       setOrganizations([]);
     } catch (error) {
@@ -862,6 +862,7 @@ export default function Mantenimiento(props) {
                   organization_id: null,
                   machine_status_id: 1,
                   components: {},
+                  description: "",
                   type_maintenance_id: {},
                 });
               }
@@ -1100,6 +1101,7 @@ export default function Mantenimiento(props) {
                               organization_id: null,
                               machine_status_id: 1,
                               components: {},
+                              description: "",
                               type_maintenance_id: {},
                             }));
                           }}

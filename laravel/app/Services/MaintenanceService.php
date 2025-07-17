@@ -182,6 +182,7 @@ class MaintenanceService extends ApiService
                 InventoryGeneral::where('id', $newMaintenance->inventory_general_id)->update(
 
                     [
+                        'machine_status_id' => $newMaintenance->machine_status_id,
                         'last_type_maintenance_id' => $newMaintenance->type_maintenance_id,
                         'components' => $data['components']
                     ]
@@ -217,6 +218,7 @@ class MaintenanceService extends ApiService
         InventoryGeneral::where('id', $maintenance->inventory_general_id)->update(
 
                     [
+                        'machine_status_id' => $maintenance->machine_status_id,
                         'last_type_maintenance_id' => $maintenance->type_maintenance_id,
                         'components' => $data['components']
                     ]
@@ -266,14 +268,22 @@ class MaintenanceService extends ApiService
 
                 $typeMaintenance = $lastMaintenance->type_maintenance_id ?? null;
                 $components = null;
+                $machine_status_id = null;
 
-                if($typeMaintenance == null)
+
+                if($typeMaintenance == null){
                     $components = $entryGeneral->components;
-                else
+                    $machine_status_id = $entryGeneral->machine_status_id;
+                }
+                else{
                     $components = $lastMaintenance->components;
+                    $machine_status_id = $lastMaintenance->machine_status_id;
+
+                }
 
 
                 $inventoryGeneral->update([
+                    'machine_status_id' => $machine_status_id,
                     'last_type_maintenance_id' => $typeMaintenance,
                     'components' => $components
                 ]);
