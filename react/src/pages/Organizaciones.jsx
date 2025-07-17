@@ -33,7 +33,7 @@ export default function Organizaciones(props) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "SISMED | Organizaciones";
+    document.title = "SIGEM | Organizaciones";
   }, []);
 
   // 559 573 719 724

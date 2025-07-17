@@ -55,7 +55,7 @@ export default function Inventario(props) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "SISMED | Inventario";
+    document.title = "SIGEM | Inventario";
   }, []);
 
   // 559 573 719 724

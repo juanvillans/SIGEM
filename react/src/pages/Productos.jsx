@@ -415,6 +415,7 @@ export default function Productos() {
                 {producto.required_components?.map((component, index) => (
                   <div key={index} className="flex gap-2">
                     <Input
+                    required={true}
                       value={component}
                       onChange={(e) => handleComponentChange(index, e.target.value)}
                       placeholder="Nombre del componente"

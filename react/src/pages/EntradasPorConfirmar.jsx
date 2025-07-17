@@ -59,7 +59,7 @@ export default function Entradas(props) {
   const  [transformToSend, setTransformToSend] = useState({})
 
   useEffect(() => {
-    document.title = "SISMED | Entradas por confirmar";
+    document.title = "SIGEM | Entradas por confirmar";
 
     if (localStorage.getItem("entryForm")) {
       setLocalStorageForm(JSON.parse(localStorage.getItem("entryForm")));

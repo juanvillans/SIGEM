@@ -39,7 +39,7 @@ export default function Usuarios(props) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "SISMED | Usuarios";
+    document.title = "SIGEM | Usuarios";
   }, []);
 
   const [usuarios, setUsuarios] = useState([]);

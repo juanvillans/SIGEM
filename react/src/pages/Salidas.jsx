@@ -122,7 +122,7 @@ export default function Salidas(props) {
   const [localStorageForm, setLocalStorageForm] = useState(false);
 
   useEffect(() => {
-    document.title = "SISMED | Salidas";
+    document.title = "SIGEM | Salidas";
 
     if (localStorage.getItem("outputForm")) {
       setLocalStorageForm(JSON.parse(localStorage.getItem("outputForm")));

@@ -110,7 +110,7 @@ export default function nav(props) {
             </NavLink>
           )}
 
-          {props.userData?.permissions[8] && (
+          {/* {props.userData?.permissions[8] && (
             <NavLink
               to={"/dashboard/SolicitarProductos"} key={"/dashboard/SolicitarProductos"}
               title={"SolicitarProductos"}
@@ -131,7 +131,7 @@ export default function nav(props) {
               <AssignmentIcon />
               <span className="text_link text-xs ">Pedidos a mi almacén</span>
             </NavLink>
-          )}
+          )} */}
           {/* <NavLink
             to={"/dashboard/SolicitarProductos"}
             title={"SolicitarProductos"}
