@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class MaintenanceResource extends JsonResource
@@ -14,6 +15,9 @@ class MaintenanceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        Log::info('InventoryGeneral');
+        Log::info($this->inventoryGeneral);
+
         return [
 
             'id' => $this->id,
@@ -32,6 +36,8 @@ class MaintenanceResource extends JsonResource
             'type_maintenance_name' => $this->typeMaintenance->name,
             "machine_status_id" => $this->inventoryGeneral->machine_status_id,
             "machine_status_name" => $this->inventoryGeneral->machineStatus->name,
+            'created_at' => $this->created_at->format('F d, Y'),
+            'time' => $this->created_at->format('H:i'),
 
 
         ];

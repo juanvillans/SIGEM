@@ -16,8 +16,10 @@ class HierarchyEntitySeeder extends Seeder
         $fields =
         [
             ['name' => 'Electro Medicina', 'code' => '1'],
-         ];
+
+        ];
 
          DB::table('hierarchy_entities')->insert($fields);
+
     }
 }

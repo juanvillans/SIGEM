@@ -25,6 +25,9 @@ class MaintenanceController extends Controller
     public function index()
     {
         $maintenances = $this->maintenanceService->getData();
+        Log::info('Que fastidio esta vaina');
+        Log::info($maintenances);
+
         $maintenanceCollection = new MaintenanceCollection($maintenances);
         $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
 

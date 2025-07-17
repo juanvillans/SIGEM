@@ -42,6 +42,9 @@ class MaintenanceRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
+            'entity_code' => [
+                'nullable'
+            ]
         ];
     }
 

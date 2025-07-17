@@ -12,16 +12,11 @@ class Kernel extends ConsoleKernel
      */
 
      protected $commands = [
-        \App\Console\Commands\HelloWorld::class, // Asegúrate que esté incluido
     ];
 
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('app:search-delayed-outputs')->dailyAt('5:00');
-        // $schedule->command('app:verify-conditions-inventory')->dailyAt('5:10');
-        $schedule->command('app:hello-world')
-        ->everyMinute()
-        ->appendOutputTo(storage_path('logs/cronelog.log'));
+
 
     }
 

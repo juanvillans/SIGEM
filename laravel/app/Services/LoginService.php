@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Support\Str;
@@ -11,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Exceptions\GeneralExceptions;
 
 class LoginService
 {
@@ -27,10 +27,10 @@ class LoginService
 		$user = User::where('ci',$dataUser['ci'])->first();
 
 		if(!Auth::attempt($dataUser))
-			throw new GeneralExceptions('Datos incorrectos',401);
+			throw new Exception('Datos incorrectos',401);
 
 		if($user->status == 2)
-			throw new GeneralExceptions('Este usuario ha sido eliminado',404);
+			throw new Exception('Este usuario ha sido eliminado',404);
 
 	}
 
@@ -52,13 +52,14 @@ class LoginService
 
 	public function tryChangePassword($data)
 	{
+        /** @var \App\Models\User $user */
 		$user = Auth::user();
 
 		if (!Hash::check($data['oldPassword'], $user->password))
-			throw new GeneralExceptions('Contraseña actual incorrecta',422);
+			throw new Exception('Contraseña actual incorrecta',422);
 
 		if(!$data['newPassword'] == $data['confirmPassword'])
-			throw new GeneralExceptions('La nueva contraseña no coincide con la confirmación',422);
+			throw new Exception('La nueva contraseña no coincide con la confirmación',422);
 
 		$user->password = Hash::make($data['newPassword']);
     	$user->save();
@@ -71,7 +72,7 @@ class LoginService
 
 
 		if(!isset($user->id))
-			  throw new GeneralExceptions('Cedula incorrecta o invalida',400);
+			  throw new Exception('Cedula incorrecta o invalida',400);
 
 	   $token = Str::random(32);
 
@@ -91,14 +92,14 @@ class LoginService
 		$token = PasswordResetToken::where('token',$tokenRequest)->first();
 
         if(!isset($token->id))
-            throw new GeneralExceptions('El token no existe.',400);
+            throw new Exception('El token no existe.',400);
 
         $statusToken = PasswordResetToken::verifyStatusToken($token->expires_at);
 
         if($statusToken == false)
         {
             PasswordResetToken::where('id',$token->id)->delete();
-        	throw new GeneralExceptions('Este token ha vencido',400);
+        	throw new Exception('Este token ha vencido',400);
         }
 
         $personal = $this->userModel->select('name')->where('id',$token->user_id)->first();
@@ -110,19 +111,19 @@ class LoginService
 	{
 
 		if($request->new_password != $request->confirmation)
-			throw new GeneralExceptions('La nueva contraseña no coincide con la confirmación',400);
+			throw new Exception('La nueva contraseña no coincide con la confirmación',400);
 
         $token = PasswordResetToken::where('token',$request->token)->first();
 
         if(!isset($token->id))
-        	throw new GeneralExceptions('El token no existe',400);
+        	throw new Exception('El token no existe',400);
 
         $statusToken = PasswordResetToken::verifyStatusToken($token->expires_at);
 
         if($statusToken == false)
         {
             PasswordResetToken::where('id',$token->id)->delete();
-        	throw new GeneralExceptions('Este token ha vencido',400);
+        	throw new Exception('Este token ha vencido',400);
         }
 
         $this->userModel->where('id',$token->user_id)->update(['password' => Hash::make($request->new_password)]);

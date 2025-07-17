@@ -254,6 +254,7 @@ class MaintenanceService extends ApiService
 
                 $inventoryGeneralID = $maintenance->inventory_general_id;
                 $maitenanceIdToDelete = $maintenance->id;
+
                 $maintenance->delete();
 
                 $lastMaintenance = Maintenance::where('inventory_general_id', $inventoryGeneralID)
@@ -277,7 +278,7 @@ class MaintenanceService extends ApiService
                     'components' => $components
                 ]);
 
-                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_MANTENIMIENTO->value, $maitenanceIdToDelete->id);
+                NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_MANTENIMIENTO->value, $maitenanceIdToDelete);
 
                 return ['message' => 'Mantenimiento eliminado exitosamente'];
 

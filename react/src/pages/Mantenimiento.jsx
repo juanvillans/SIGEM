@@ -13,8 +13,6 @@ import {
   IconButton,
   TextField,
   MenuItem,
-  Autocomplete,
-  Box,
 } from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
@@ -36,12 +34,12 @@ function getCurrentTime() {
 }
 
 function limitObjectSize(obj, maxSize = 6) {
-  const entries = Object.entries(obj);
-  if (entries.length > maxSize) {
-    const sortedEntries = entries.sort(
+  const maintenances = Object.maintenances(obj);
+  if (maintenances.length > maxSize) {
+    const sortedmaintenances = maintenances.sort(
       (a, b) => b[1]._timestamp - a[1]._timestamp
     );
-    return sortedEntries.slice(0, maxSize);
+    return sortedmaintenances.slice(0, maxSize);
   }
   return obj;
 }
@@ -59,10 +57,10 @@ const filterConfiguration = {
   typePresentationName: "&typePresentation[name]=",
   medicamentName: "&medicament[name]=",
   organizationName: "&organization[name]=",
-  day: "&entries[day]=",
-  month: "&entries[month]=",
-  year: "&entries[year]=",
-  status: "&entries[status]=",
+  day: "&maintenances[day]=",
+  month: "&maintenances[month]=",
+  year: "&maintenances[year]=",
+  status: "&maintenances[status]=",
 };
 let filterObject = {};
 
@@ -87,36 +85,6 @@ export default function Mantenimiento(props) {
 
   const [organizations, setOrganizations] = useState([]);
 
-  const handleSearchOrganizations = useDebounce(async (searchText) => {
-    if (searchText.trim().length > 0) {
-      try {
-        const response = await axios.get(
-          `dashboard/organizations?search[all]=${searchText}`
-        );
-        const responseSearch = response.data.data;
-        setOrganizations(responseSearch);
-      } catch (error) {
-        // Maneja los errores de la solicitud
-      }
-    }
-  }, 290);
-
-  const handleOptionSelectOrganizations = (event, value) => {
-    if (value) {
-      setNewRegister((prev) => ({
-        ...prev,
-        organization_id: value.id,
-        organizationName: value?.name,
-        organizationObject: {
-          organizationId: value.id,
-          name: value?.name,
-          code: value?.code,
-        },
-        municipalityId: value?.municipalityId,
-        parishId: value?.parishId,
-      }));
-    }
-  };
 
   const [dataTable, setDataTable] = useState([]);
   const [generalData, setGeneralData] = useState({
@@ -140,19 +108,14 @@ export default function Mantenimiento(props) {
 
   const [NewRegister, setNewRegister] = useState({
     code: "",
-    id: "",
+    id: null,
     entity_code: props.userData.entityCode,
     area: "",
     product_id: null,
-    quantity: 1,
-    serial_number: "",
-    national_code: "",
     organization_id: null,
     machine_status_id: 1,
     components: {},
-    arrival_time: getCurrentTime(),
-    arrival_date: new Date().toISOString().split("T")[0],
-    status: 1,
+    type_maintenance_id: {},
   });
   useEffect(() => {
     if (NewRegister?.product_id) {
@@ -216,7 +179,7 @@ export default function Mantenimiento(props) {
       label: "Entidad",
       options: {
         display:
-          parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*"
+          parametersURL?.filterObject?.entity_code == "&maintenances[entity_code]=*"
             ? "true"
             : "excluded",
         filter: false,
@@ -224,45 +187,22 @@ export default function Mantenimiento(props) {
       },
     },
     {
-      name: "code",
+      name: "id",
       label: "Cód.",
       options: {
         filter: false,
       },
     },
     {
-      name: "arrival_date",
+      name: "created_at",
       label: "Fecha",
       options: {
         filter: false,
       },
     },
+    
     {
-      name: "organizationObj",
-      label: "Origen",
-      options: {
-        filter: false,
-        customBodyRender: (value) => {
-          if (value.code.toLowerCase() !== "nocode") {
-            return (
-              <div className="flex">
-                <p>
-                  {" "}
-                  <span className="text-blue1">
-                    <StoreIcon style={{ fontSize: "15px" }} />
-                  </span>{" "}
-                  {value.name}
-                </p>
-              </div>
-            );
-          } else {
-            return <p>{value.name}</p>;
-          }
-        },
-      },
-    },
-    {
-      name: "arrival_time",
+      name: "time",
       label: "Hora",
       options: {
         filter: false,
@@ -403,14 +343,7 @@ export default function Mantenimiento(props) {
         },
       },
     },
-    {
-      name: "user_name",
-      label: "Registrado por",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
+
   ];
 
   const searchRef = useRef(null);
@@ -500,14 +433,14 @@ export default function Mantenimiento(props) {
         )
         .then((res) => {
           console.log(res.data);
-            setGeneralData((prev) => ({
-              ...prev,
-              entities: res.data.entities,
-              machine_status: res.data.machine_status,
-              years: res.data.maintenanceYears,
-              types_maintenance: res.data.types_maintenance,
-              // conditions: res.data.conditions || prev.conditions,
-            }));
+          setGeneralData((prev) => ({
+            ...prev,
+            entities: res.data.entities,
+            machine_status: res.data.machine_status,
+            years: res.data.maintenanceYears,
+            types_maintenance: res.data.types_maintenance,
+            // conditions: res.data.conditions || prev.conditions,
+          }));
           setHasLoadedRelations(true);
         })
         .catch((err) => {
@@ -519,7 +452,7 @@ export default function Mantenimiento(props) {
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
-    let url = `dashboard/maintenance?entity=${parametersURL.filterObjectValues.entityCode}`;
+    let url = `dashboard/maintenances?entity=${parametersURL.filterObjectValues.entityCode}`;
     url += `&page=${parametersURL.page}`;
     url += `&rowsPerPage=${parametersURL.rowsPerPage}`;
 
@@ -538,7 +471,7 @@ export default function Mantenimiento(props) {
   const deleteRegister = async (obj) => {
     try {
       await axios
-        .delete(`/dashboard/maintenance/${obj.ID}`)
+        .delete(`/dashboard/maintenances/${obj.ID}`)
         .then((response) => {
           setParametersURL((prev) => ({
             ...prev,
@@ -546,7 +479,7 @@ export default function Mantenimiento(props) {
             search: "",
             orderBy: "",
             orderDirection: "",
-            filter: `&entries[entity_code]=${prev.filterObjectValues.entityCode}`,
+            filter: `&maintenances[entity_code]=${prev.filterObjectValues.entityCode}`,
             filterObjectValues: {
               entityCode: prev.filterObjectValues.entityCode,
             },
@@ -621,9 +554,8 @@ export default function Mantenimiento(props) {
       }
       if (arrValues.length > 0) {
         console.log({ changedColumn, columnIndex });
-        filterObject[changedColumn] = `${
-          filterConfiguration[changedColumn]
-        }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
+        filterObject[changedColumn] = `${filterConfiguration[changedColumn]
+          }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
         delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
@@ -690,27 +622,17 @@ export default function Mantenimiento(props) {
     tableBodyMaxHeight: "68vh",
     rowsPerPageOptions: [10, 25, 50, 100],
     customToolbarSelect: (selectedRows) => {
+      const dataIndex = selectedRows.data[0].dataIndex;
+      const rowData = dataTable[dataIndex];
       return (
         <div>
-          {dataTable[selectedRows.data[0].dataIndex]?.status == 1 && (
             <>
-              <IconButton
-                title="Copiar"
-                onClick={() => {
-                  editIconClick(
-                    dataTable[selectedRows.data[0].dataIndex],
-                    "Registrar mantenimiento",
-                    true
-                  );
-                }}
-              >
-                <ContentCopyIcon />
-              </IconButton>
+             
               <IconButton
                 title="Editar"
                 onClick={() => {
                   editIconClick(
-                    dataTable[selectedRows.data[0].dataIndex],
+                    rowData,
                     "Editar mantenimiento",
                     false
                   );
@@ -732,7 +654,7 @@ export default function Mantenimiento(props) {
                     ),
                     aceptFunction: () => {
                       deleteRegister({
-                        ID: dataTable[selectedRows.data[0].dataIndex].id,
+                        ID: rowData.id,
                       });
                     },
                   });
@@ -741,7 +663,6 @@ export default function Mantenimiento(props) {
                 <DeleteIcon />
               </IconButton>
             </>
-          )}
         </div>
       );
     },
@@ -760,65 +681,29 @@ export default function Mantenimiento(props) {
     },
   };
 
-  function editIconClick(selectedRows, submitText, isJustForCopy = false) {
-    const copySelectedRowRquest = structuredClone(selectedRows);
-    if (isJustForCopy) {
-      copySelectedRowRquest.serial_number = "_" + createHashFromTime();
-      copySelectedRowRquest.national_code = "_" + createHashFromTime();
-
-      copySelectedRowRquest.components =
-        copySelectedRowRquest.product.required_components.reduce(
-          (acc, component) => ({
-            ...acc,
-            [component]: true,
-          }),
-          {}
-        );
-    } else {
-      copySelectedRowRquest.components =
-        copySelectedRowRquest?.components || {};
-    }
-
+   const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
+    console.log({ rowData });
     setOrganizations([
       {
-        id: copySelectedRowRquest.organization_id,
-        name: copySelectedRowRquest.organization_name,
+        id: rowData.organization_id || null,
+        name: rowData.organization_name,
       },
     ]);
-
     setNewRegister({
-      ...copySelectedRowRquest,
-      code: isJustForCopy ? "" : copySelectedRowRquest.code,
-      product: {
-        brand: copySelectedRowRquest.product_brand,
-        name: copySelectedRowRquest.product_name,
-        model: copySelectedRowRquest.product_model,
-        id: copySelectedRowRquest.product_id,
-        required_components: copySelectedRowRquest.product_required_components,
-        serial_number: copySelectedRowRquest.serial_number,
-        national_code: copySelectedRowRquest.national_code,
-      },
-      organizationObject: {
-        organizationId: copySelectedRowRquest.organization_id,
-        name: copySelectedRowRquest?.organization_name,
-        code: copySelectedRowRquest?.organization_code,
-      },
-      organization_id: copySelectedRowRquest.organization_id,
-      organizationName: copySelectedRowRquest.organization_name,
-      arrival_date: new Date(copySelectedRowRquest.arrival_date)
-        .toISOString()
-        .split("T")[0],
+      ...rowData,
     });
-    setSubmitStatus(submitText);
+
     setOpen(true);
-  }
+    setSubmitStatus(submitText);
+  };
 
   const getData = async (url) => {
     await axios.get(url).then((response) => {
       setIsLoading(true);
       const res = response.data;
+      console.log(res)
       setTotalData(res.total);
-      setDataTable(res.entries);
+      setDataTable(res.maintenances);
       setIsLoading(false);
     });
   };
@@ -834,12 +719,12 @@ export default function Mantenimiento(props) {
     try {
       if (submitStatus === "Registrar mantenimiento") {
         setSubmitStatus("Cargando...");
-        await axios.post(`/dashboard/maintenance`, NewRegister);
+        await axios.post(`/dashboard/maintenances`, NewRegister);
       }
       if (submitStatus === "Editar mantenimiento") {
         setSubmitStatus("Cargando...");
         await axios.put(
-          `/dashboard/maintenance/${NewRegister.id}`,
+          `/dashboard/maintenances/${NewRegister.id}`,
           NewRegister
         );
       }
@@ -855,7 +740,7 @@ export default function Mantenimiento(props) {
         search: "",
         orderBy: "",
         orderDirection: "",
-        filter: `&entries[entity_code]=${prev.filterObjectValues.entityCode}`,
+        filter: `&maintenances[entity_code]=${prev.filterObjectValues.entityCode}`,
         filterObjectValues: { entityCode: prev.filterObjectValues.entityCode },
         filterObject,
         rowsPerPage: parametersURL.rowsPerPage,
@@ -865,26 +750,14 @@ export default function Mantenimiento(props) {
 
       setNewRegister({
         code: "",
-        id: "",
+        id: null,
         entity_code: props.userData.entityCode,
         area: "",
         product_id: null,
-        quantity: 1,
-        serial_number: "",
-        national_code: "",
         organization_id: null,
         machine_status_id: 1,
         components: {},
-        organizationObject: {
-          organizationId: null,
-          name: "",
-          code: "",
-        },
-        organization_id: null,
-        organizationName: "",
-        arrival_time: getCurrentTime(),
-        arrival_date: new Date().toISOString().split("T")[0],
-        status: 1,
+        type_maintenance_id: {},
       });
       setOrganizations([]);
     } catch (error) {
@@ -902,7 +775,7 @@ export default function Mantenimiento(props) {
           : error.response?.data?.message || "Algo salió mal",
       });
       setSubmitStatus(() =>
-        NewRegister.code ? "Editar mantenimiento" : "Registrar mantenimiento"
+        NewRegister.id ? "Editar mantenimiento" : "Registrar mantenimiento"
       );
     }
   };
@@ -932,7 +805,7 @@ export default function Mantenimiento(props) {
                     onChange={(e) => {
                       filterObject[
                         "entityCode"
-                      ] = `&entries[entity_code]=${e.target.value}`;
+                      ] = `&maintenances[entity_code]=${e.target.value}`;
                       setParametersURL((prev) => ({
                         ...prev,
                         filter: Object.values(filterObject).join(""),
@@ -982,26 +855,14 @@ export default function Mantenimiento(props) {
               if (submitStatus == "Editar mantenimiento") {
                 setNewRegister({
                   code: "",
-                  id: "",
+                  id: null,
                   entity_code: props.userData.entityCode,
                   area: "",
                   product_id: null,
-                  quantity: 1,
-                  serial_number: "",
-                  national_code: "",
                   organization_id: null,
                   machine_status_id: 1,
                   components: {},
-                  organizationObject: {
-                    organizationId: null,
-                    name: "",
-                    code: "",
-                  },
-                  organization_id: null,
-                  organizationName: "",
-                  arrival_time: getCurrentTime(),
-                  arrival_date: new Date().toISOString().split("T")[0],
-                  status: 1,
+                  type_maintenance_id: {},
                 });
               }
               setOpen(true);
@@ -1179,94 +1040,94 @@ export default function Mantenimiento(props) {
                 </thead>
                 {/* <div className="body px-2 grid grid-cols-subgrid px-30  items-center text-sm justify-between"> */}
                 {NewRegister.inventory_general_id ? (
-                 
 
-                <tbody className="">
-                  <tr
-                    key={NewRegister.inventoryDetailID}
-                    className="body px-2  px-30  text-dark items-center text-sm justify-between"
-                  >
-                    <td className="p-4 px-5">{NewRegister.product_code}</td>
-                    <td className="p-4 px-5">{NewRegister.product_name}</td>
-                    <td className="p-4 px-5">{NewRegister.product_brand}</td>
-                    <td className="p-4 px-5">{NewRegister.product_model}</td>
-                    <td className="p-4 px-5">{NewRegister.serial_number}</td>
-                    <td className="p-4 px-5">{NewRegister.national_code}</td>
-                    <td className="p-4 px-2 w-[200px]">
-                      <Input
-                        name="machine_status_id"
-                        id=""
-                        select
-                        value={NewRegister.machine_status_id}
-                        size="small"
-                        className="bg-blue/0 py-1 font-bold"
-                        onChange={(e) => {
-                          setNewRegister((prev) => ({
-                            ...prev,
-                            machine_status_id: e.target.value,
-                          }));
-                        }}
-                      >
-                        {generalData.machine_status?.map((option) => (
-                          <MenuItem key={option.id} value={option.id}>
-                            {option.name}
-                          </MenuItem>
-                        )) || <MenuItem value={""}></MenuItem>}
-                      </Input>
-                    </td>
-                    <td className="p-4 px-2">
-                      <CheckableList
-                        components={NewRegister.components || {}}
-                        onComponentsChange={(updatedComponents) => {
-                          setNewRegister((prev) => ({
-                            ...prev,
-                            components: updatedComponents,
-                          }));
-                        }}
-                      />
-                    </td>
 
-                    <td className="p-4 px-5">
-                      <button
-                        onClick={(e) => {
-                          setNewRegister((prev) => ({
-                            ...prev,
-                            inventoryDetailID: "",
-                            product_code: "",
-                            product_name: "",
-                            product_brand: "",
-                            product_model: "",
-                            serial_number: "",
-                            national_code: "",
-                            machine_status_id: "",
-                            components: {},
-                          }));
-                        }}
-                        type="button"
-                        className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
-                      >
-                        x
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-                  ) : ""}
+                  <tbody className="">
+                    <tr
+                      key={NewRegister.inventoryDetailID}
+                      className="body px-2  px-30  text-dark items-center text-sm justify-between"
+                    >
+                      <td className="p-4 px-5">{NewRegister.product_code}</td>
+                      <td className="p-4 px-5">{NewRegister.product_name}</td>
+                      <td className="p-4 px-5">{NewRegister.product_brand}</td>
+                      <td className="p-4 px-5">{NewRegister.product_model}</td>
+                      <td className="p-4 px-5">{NewRegister.serial_number}</td>
+                      <td className="p-4 px-5">{NewRegister.national_code}</td>
+                      <td className="p-4 px-2 w-[200px]">
+                        <Input
+                          name="machine_status_id"
+                          id=""
+                          select
+                          value={NewRegister.machine_status_id}
+                          size="small"
+                          className="bg-blue/0 py-1 font-bold"
+                          onChange={(e) => {
+                            setNewRegister((prev) => ({
+                              ...prev,
+                              machine_status_id: e.target.value,
+                            }));
+                          }}
+                        >
+                          {generalData.machine_status?.map((option) => (
+                            <MenuItem key={option.id} value={option.id}>
+                              {option.name}
+                            </MenuItem>
+                          )) || <MenuItem value={""}></MenuItem>}
+                        </Input>
+                      </td>
+                      <td className="p-4 px-2">
+                        <CheckableList
+                          components={NewRegister.components || {}}
+                          onComponentsChange={(updatedComponents) => {
+                            setNewRegister((prev) => ({
+                              ...prev,
+                              components: updatedComponents,
+                            }));
+                          }}
+                        />
+                      </td>
+
+                      <td className="p-4 px-5">
+                        <button
+                          onClick={(e) => {
+                            setNewRegister((prev) => ({
+                              ...prev,
+                              code: "",
+                              id: null,
+                              entity_code: props.userData.entityCode,
+                              area: "",
+                              product_id: null,
+                              organization_id: null,
+                              machine_status_id: 1,
+                              components: {},
+                              type_maintenance_id: {},
+                            }));
+                          }}
+                          type="button"
+                          className="bg-light p-1 pr-1 font-bold text-dark hover:bg-red hover:text-light rounded-md text-center"
+                        >
+                          x
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                ) : ""}
               </table>
             </div>
-                 
+
             <Input
               name="maintenance_type_id"
               id=""
-              label="Tipo de mantenimiento *"
+              label="Tipo de mantenimiento"
               select
-              value={NewRegister.maintenance_type_id}
+              value={NewRegister.type_maintenance_id}
               size="small"
               required={true}
               className="bg-blue/0  font-bold"
               onChange={(e) => {
                 setNewRegister((prev) => ({
                   ...prev,
-                  maintenance_type_id: e.target.value,
+                  type_maintenance_id: e.target.value,
                 }));
               }}
             >
@@ -1277,18 +1138,18 @@ export default function Mantenimiento(props) {
               )) || <MenuItem value={""}></MenuItem>}
             </Input>
 
-              <div className="col-span-2">
+            <div className="col-span-2">
 
-             <Input
-              label={"Descripción"}
-              value={NewRegister.description}
-              name={"description"}
-              onChange={handleChange}
-              size="small"
-              multiline={true}
+              <Input
+                label={"Descripción"}
+                value={NewRegister.description}
+                name={"description"}
+                onChange={handleChange}
+                size="small"
+                multiline={true}
 
-            />
-              </div>
+              />
+            </div>
 
             <Button3D
               className="mt-2 col-span-4"
@@ -1296,7 +1157,7 @@ export default function Mantenimiento(props) {
                 submitStatus == "Registrar mantenimiento" ? "blue1" : "blue2"
               }
               text={submitStatus}
-              onClick={() => {}}
+              onClick={() => { }}
             />
           </form>
         }

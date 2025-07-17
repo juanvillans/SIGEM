@@ -20,7 +20,8 @@ return new class extends Migration
                   ->constrained()
                   ->onDelete("restrict")
                   ->onUpdate("cascade");
-            $table->foreignId('inventory_general_id');
+            $table->unsignedBigInteger('inventory_general_id');
+            $table->foreign('inventory_general_id')->references('id')->on('inventory_generals')->onDelete('cascade');
             $table->foreignId('type_maintenance_id');
             $table->string('description');
             $table->json('components');

@@ -14,17 +14,14 @@ use App\Filters\UsersQueryFilter;
 use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Exceptions\GeneralExceptions;
 use App\Http\Resources\UserCollection;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Laravel\Sanctum\PersonalAccessToken;
 use App\Http\Resources\HierarchyResource;
-use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\HierarchyCollection;
 use App\Http\Requests\UpdatePasswordRequest;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -95,7 +92,7 @@ class UserController extends Controller
             DB::commit();
             return ['message' => $response['message'] ];
 
-        } catch (GeneralExceptions $e) {
+        } catch (Exception $e) {
 
             DB::rollback();
 
@@ -158,7 +155,7 @@ class UserController extends Controller
             DB::commit();
             return ['message' => $response['message']];
 
-        }catch (GeneralExceptions $e) {
+        }catch (Exception $e) {
 
             DB::rollback();
 
@@ -181,7 +178,9 @@ class UserController extends Controller
 
             $token = $this->loginService->generateToken($dataUser);
 
-            $user = auth()->user()->load('hierarchy');
+            /** @var \App\Models\User $user */
+            $user = auth()->user();
+            $user->load('hierarchy');
 
             $permissionsArray = $this->userService->getPermissions($user->id);
 
@@ -204,16 +203,8 @@ class UserController extends Controller
                 ]
             ], 200);
 
-        }catch (GeneralExceptions $e)
+        }catch (Exception $e)
         {
-            if($e->getCustomCode() == 401)
-            {
-                return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-                ], 401);
-
-            }
 
             return response()->json([
                 'status' => false,
@@ -245,7 +236,7 @@ class UserController extends Controller
                 'message' => 'Contraseña cambiada',
             ], 200);
 
-        } catch (GeneralExceptions $e) {
+        } catch (Exception $e) {
 
             if ($e->getCustomCode() == 401) {
                 return response()->json([
@@ -320,7 +311,7 @@ class UserController extends Controller
 
             return response(["Message" => 'Token checked', 'status' => $response['status'], 'personal_name'=> $response['personalName']], Response::HTTP_OK);
 
-        } catch (GeneralExceptions $e) {
+        } catch (Exception $e) {
           return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
 
         }
@@ -333,7 +324,7 @@ class UserController extends Controller
                 $this->loginService->restorePassword($request);
                 return response(["Message" => 'Contraseña actualizada correctamente'], Response::HTTP_OK);
 
-        }catch (GeneralExceptions $e)
+        }catch (Exception $e)
         {
 
           return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
