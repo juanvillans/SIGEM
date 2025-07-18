@@ -23,16 +23,13 @@ use App\Http\Controllers\EntryToConfirmedController;
 */
 
 // ------------------------------------------------- Login and Forgot Password ----------------------------------------------
-// Route::post('login',[UserController::class,'login']);
+Route::post('login',[UserController::class,'login']);
 Route::get('fail-login',[UserController::class,'failLogin']);
 Route::post('forgot-password',[UserController::class,'forgotPassword']);
 Route::get('forgot-password/{token}',[UserController::class,'checkTokenPassword']);
 Route::post('restore-password',[UserController::class,'restorePassword']);
 //Route::get('check',[UserController::class,'check']);
 
-Route::post('login', function (Request $request) {
-    return 'OK';
-});
 
 // ------------------------------------------------- Check Session ----------------------------------------------
 Route::get('check-session',[UserController::class,'checkSession']);
