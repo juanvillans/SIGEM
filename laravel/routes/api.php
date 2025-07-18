@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Controllers\EntryToConfirmedController;
-use App\Http\Controllers\InventoryController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RelationController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\RequestProductController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EntryToConfirmedController;
 
 
 /*
@@ -22,15 +23,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 // ------------------------------------------------- Login and Forgot Password ----------------------------------------------
-Route::post('login',[UserController::class,'login']);
+// Route::post('login',[UserController::class,'login']);
 Route::get('fail-login',[UserController::class,'failLogin']);
 Route::post('forgot-password',[UserController::class,'forgotPassword']);
 Route::get('forgot-password/{token}',[UserController::class,'checkTokenPassword']);
 Route::post('restore-password',[UserController::class,'restorePassword']);
 //Route::get('check',[UserController::class,'check']);
 
-
-
+Route::post('login', function (Request $request) {
+    return 'OK';
+});
 
 // ------------------------------------------------- Check Session ----------------------------------------------
 Route::get('check-session',[UserController::class,'checkSession']);
