@@ -631,6 +631,7 @@ export default function Usuarios(props) {
               id={"outlined-textarea"}
               label={"Dirección"}
               multiline
+              required
               name={"address"}
               value={newUserData?.address}
               onChange={handleChange}
