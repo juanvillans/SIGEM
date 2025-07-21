@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use DB;
+use Exception;
 use App\Models\User;
 use App\Models\Module;
 use Illuminate\Http\Request;
@@ -11,7 +11,9 @@ use Illuminate\Http\Response;
 use App\Services\LoginService;
 use App\Models\HierarchyEntity;
 use App\Filters\UsersQueryFilter;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\UserCollection;
@@ -21,8 +23,6 @@ use Laravel\Sanctum\PersonalAccessToken;
 use App\Http\Resources\HierarchyResource;
 use App\Http\Resources\HierarchyCollection;
 use App\Http\Requests\UpdatePasswordRequest;
-use Exception;
-use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -96,14 +96,6 @@ class UserController extends Controller
 
             DB::rollback();
 
-            if(null !== $e->getCustomCode())
-            {
-                return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-                ], $e->getCustomCode());
-
-            }
 
             return response()->json([
                 'status' => false,
