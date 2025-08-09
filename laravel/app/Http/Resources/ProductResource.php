@@ -20,6 +20,7 @@ class ProductResource extends JsonResource
             'machine' => $this->machine,
             'brand' => $this->brand,
             'model' => $this->model,
+            'level' => $this->level,
             'required_components' => $this->required_components ?: [],
         ];
     }
