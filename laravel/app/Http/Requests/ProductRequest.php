@@ -41,6 +41,8 @@ class ProductRequest extends FormRequest
             'model' => ['required', 'string', 'max:100'],
             'required_components' => ['nullable', 'array'],
             'required_components.*' => ['string', 'max:255'],
+            'level' => ['string', 'required'],
+
         ];
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('machine');
             $table->string('brand');
             $table->string('model');
-            $table->json('required_components');
+            $table->string('level');
             $table->timestamps();
         });
     }

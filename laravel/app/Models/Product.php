@@ -13,11 +13,12 @@ class Product extends Model
 {
     use HasFactory;
 
-     protected $fillable = [
+    protected $fillable = [
         'code',
         'machine',
         'brand',
         'model',
+        'level',
         'required_components',
         'created_at',
         'updated_at'
@@ -26,6 +27,4 @@ class Product extends Model
     protected $casts = [
         'required_components' => 'array',
     ];
-
-
 }
