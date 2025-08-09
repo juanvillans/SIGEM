@@ -7,6 +7,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+
 class CreateUserRequest extends FormRequest
 {
     /**
@@ -26,15 +27,30 @@ class CreateUserRequest extends FormRequest
     {
         return [
 
-            'entityCode' => ['required',Rule::exists('hierarchy_entities', 'code'),], 
-            'charge'=> ['required','max:100'],
-            'name'=> ['required'],
-            'lastName'=> ['required'],
-            'ci'=> ['required','unique:users'],
-            'phoneNumber'=> ['required','max:13'],
-            'address'=> ['max:100'],
-            'email'=> ['required','email','unique:users'],
+            'entityCode' => ['required', Rule::exists('hierarchy_entities', 'code'),],
+            'charge' => ['required', 'max:100'],
+            'name' => ['required', 'max:20'],
+            'lastName' => ['required', 'max:20'],
+            'ci' => ['required', 'unique:users', 'max:9'],
+            'phoneNumber' => ['required', 'max:13'],
+            'address' => ['required', 'max:100'],
+            'email' => ['required', 'email', 'unique:users'],
             'permissions' => ['required'],
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'entityCode' => 'entidad',
+            'charge' => 'cargo',
+            'name' => 'nombre',
+            'lastName' => 'apellido',
+            'ci' => 'cédula',
+            'phoneNumber' => 'número de teléfono',
+            'address' => 'dirección',
+            'email' => 'correo electrónico',
+            'permissions' => 'permisos',
         ];
     }
 

@@ -26,17 +26,32 @@ class UpdateUserRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {   
-        $userId = $this->route('user'); 
+    {
+        $userId = $this->route('user');
         return [
-            'entityCode' => ['required',Rule::exists('hierarchy_entities', 'code')], 
-            'charge'=> ['required','max:100'],
-            'name'=> ['required'],
-            'lastName'=> ['required'],
-            'ci'=> ['required',Rule::unique(User::class)->ignore($userId)],
-            'phoneNumber'=> ['required','max:13'],
-            'address'=> ['required','max:100'],
-            'email'=> ['required','email',Rule::unique(User::class)->ignore($userId)],
+            'entityCode' => ['required', Rule::exists('hierarchy_entities', 'code')],
+            'charge' => ['required', 'max:100'],
+            'name' => ['required', 'max:20'],
+            'lastName' => ['required', 'max:20'],
+            'ci' => ['required', Rule::unique(User::class)->ignore($userId), 'max:9'],
+            'phoneNumber' => ['required', 'max:13'],
+            'address' => ['required', 'max:100'],
+            'email' => ['required', 'email', Rule::unique(User::class)->ignore($userId)],
+        ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'entityCode' => 'entidad',
+            'charge' => 'cargo',
+            'name' => 'nombre',
+            'lastName' => 'apellido',
+            'ci' => 'cédula',
+            'phoneNumber' => 'número de teléfono',
+            'address' => 'dirección',
+            'email' => 'correo electrónico',
+            'permissions' => 'permisos',
         ];
     }
 

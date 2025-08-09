@@ -38,36 +38,31 @@ class UserController extends Controller
         $this->loginService = new LoginService;
         $this->userService = new UserService;
         $this->queryFilter = new UsersQueryFilter;
-
     }
 
     public function index(Request $request)
     {
         $queryArray = $this->queryFilter->transformParamsToQuery($request);
 
-        $paginateArray = $this->queryFilter->getPaginateValues($request,'users');
+        $paginateArray = $this->queryFilter->getPaginateValues($request, 'users');
 
         $userEntityCode = auth()->user()->entity_code;
 
-        $users = $this->userService->getData($paginateArray,$queryArray,$userEntityCode);
+        $users = $this->userService->getData($paginateArray, $queryArray, $userEntityCode);
 
         $userCollection = new UserCollection($users);
 
         $total = $users->total();
 
-        $canSeeOthers = $userEntityCode == '1'?true:false;
+        $canSeeOthers = $userEntityCode == '1' ? true : false;
 
         $hierarchies = [];
 
 
-        if($canSeeOthers)
-        {
+        if ($canSeeOthers) {
             $hierarchies = new HierarchyCollection(HierarchyEntity::all());
-
-        }
-        else
-        {
-            $hierarchy = new HierarchyResource(HierarchyEntity::where('code',$userEntityCode)->first());
+        } else {
+            $hierarchy = new HierarchyResource(HierarchyEntity::where('code', $userEntityCode)->first());
             array_push($hierarchies, $hierarchy);
         }
 
@@ -76,13 +71,12 @@ class UserController extends Controller
         $modulesWithFormat = $this->userService->formatToPermissions($modules);
 
         return ['data' => $userCollection, 'total' => $total, 'entities' => $hierarchies, 'modules' => $modulesWithFormat, 'message' => 'OK'];
-
     }
 
 
     public function store(CreateUserRequest $request)
     {
-         DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
@@ -90,8 +84,7 @@ class UserController extends Controller
             $response = $this->userService->createUser($dataToCreateUser);
 
             DB::commit();
-            return ['message' => $response['message'] ];
-
+            return ['message' => $response['message']];
         } catch (Exception $e) {
 
             DB::rollback();
@@ -113,16 +106,14 @@ class UserController extends Controller
     {
         $dataToUpdateUser = $this->userService->convertToSnakeCase($request);
 
-         DB::beginTransaction();
+        DB::beginTransaction();
 
         try {
 
-            $response = $this->userService->updateUser($dataToUpdateUser,$user);
+            $response = $this->userService->updateUser($dataToUpdateUser, $user);
             DB::commit();
 
             return ['message' => $response['message']];
-
-
         } catch (Exception $e) {
 
             DB::rollback();
@@ -130,41 +121,34 @@ class UserController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-                ], $e->getCode());
+            ], 500);
         }
-
     }
 
     public function destroy($id)
     {
-        DB::beginTransaction();
 
         try {
 
             $this->userService->isCurrentUserDeletingIdMatch($id);
             $response = $this->userService->deleteUser($id);
 
-            DB::commit();
             return ['message' => $response['message']];
+        } catch (Exception $e) {
 
-        }catch (Exception $e) {
-
-            DB::rollback();
 
             return response()->json([
-            'status' => false,
-            'message' => $e->getMessage()
-            ], $e->getCustomCode());
-
+                'status' => false,
+                'message' => 'Hubo un error al eliminar el usuario'
+            ], 500);
         }
-
     }
 
     public function login(LoginRequest $request)
     {
         try {
 
-            $dataUser = ['ci' => $request->username,'password' => $request->password];
+            $dataUser = ['ci' => $request->username, 'password' => $request->password];
 
             $this->loginService->tryLoginOrFail($dataUser);
 
@@ -194,9 +178,7 @@ class UserController extends Controller
                     'permissions' => $permissionsWithFormat
                 ]
             ], 200);
-
-        }catch (Exception $e)
-        {
+        } catch (Exception $e) {
 
             return response()->json([
                 'status' => false,
@@ -227,26 +209,14 @@ class UserController extends Controller
                 'status' => true,
                 'message' => 'Contraseña cambiada',
             ], 200);
-
         } catch (Exception $e) {
 
-            if ($e->getCustomCode() == 401) {
-                return response()->json([
-                    'status' => false,
-                    'message' => $e->getMessage()
-                ], 401);
-            }
 
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
-
-    public function credentials()
-    {
-        return $this->request->only($this->username());
     }
 
 
@@ -270,29 +240,26 @@ class UserController extends Controller
         $code = 200;
         $notifications = null;
 
-        if($accessToken && $accessToken->tokenable){
+        if ($accessToken && $accessToken->tokenable) {
             $user = $accessToken->tokenable;
             $notifications = $user
                 ->unReadNotifications()
                 ->count();
-        }
-        else{
+        } else {
             // El token es invalido o el usuario no existe
             $message = 'Token inválido';
             $code = 401;
         }
 
-        return response()->json(['message' => $message , 'notifications' => $notifications], $code);
+        return response()->json(['message' => $message, 'notifications' => $notifications], $code);
     }
 
     public function forgotPassword(Request $request)
     {
 
-       $response =  $this->loginService->forgotPassword($request->ci);
+        $response =  $this->loginService->forgotPassword($request->ci);
 
         return response(["Message" => 'OK', 'personal_email' => $response->email], Response::HTTP_OK);
-
-
     }
 
     public function checkTokenPassword($token)
@@ -301,11 +268,9 @@ class UserController extends Controller
 
             $response = $this->loginService->checkTokenPassword($token);
 
-            return response(["Message" => 'Token checked', 'status' => $response['status'], 'personal_name'=> $response['personalName']], Response::HTTP_OK);
-
+            return response(["Message" => 'Token checked', 'status' => $response['status'], 'personal_name' => $response['personalName']], Response::HTTP_OK);
         } catch (Exception $e) {
-          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-
+            return response(["Message" => 'Hubo un error', 'ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -313,19 +278,16 @@ class UserController extends Controller
     {
         try {
 
-                $this->loginService->restorePassword($request);
-                return response(["Message" => 'Contraseña actualizada correctamente'], Response::HTTP_OK);
+            $this->loginService->restorePassword($request);
+            return response(["Message" => 'Contraseña actualizada correctamente'], Response::HTTP_OK);
+        } catch (Exception $e) {
 
-        }catch (Exception $e)
-        {
-
-          return response(["Message" => 'Hubo un error','ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-
+            return response(["Message" => 'Hubo un error', 'ErrorMessage' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
-
     }
 
-    public function notifications(Request $request){
+    public function notifications(Request $request)
+    {
 
         $token = $request->bearerToken();
         $accessToken = PersonalAccessToken::findToken($token);
@@ -349,7 +311,4 @@ class UserController extends Controller
 
         return response(['data' => $notifications]);
     }
-
-
 }
-

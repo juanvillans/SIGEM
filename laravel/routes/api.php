@@ -23,75 +23,68 @@ use App\Http\Controllers\EntryToConfirmedController;
 */
 
 // ------------------------------------------------- Login and Forgot Password ----------------------------------------------
-Route::post('login',[UserController::class,'login']);
-Route::get('fail-login',[UserController::class,'failLogin']);
-Route::post('forgot-password',[UserController::class,'forgotPassword']);
-Route::get('forgot-password/{token}',[UserController::class,'checkTokenPassword']);
-Route::post('restore-password',[UserController::class,'restorePassword']);
+Route::post('login', [UserController::class, 'login']);
+Route::get('fail-login', [UserController::class, 'failLogin']);
+Route::post('forgot-password', [UserController::class, 'forgotPassword']);
+Route::get('forgot-password/{token}', [UserController::class, 'checkTokenPassword']);
+Route::post('restore-password', [UserController::class, 'restorePassword']);
 //Route::get('check',[UserController::class,'check']);
 
 
 // ------------------------------------------------- Check Session ----------------------------------------------
-Route::get('check-session',[UserController::class,'checkSession']);
+Route::get('check-session', [UserController::class, 'checkSession']);
 
 
-Route::group(['prefix' => 'dashboard','namespace' => 'App\Http\Controllers', 'middleware' => ['auth:sanctum','ability:origin,branch']], function() {
+Route::group(['prefix' => 'dashboard', 'namespace' => 'App\Http\Controllers', 'middleware' => ['auth:sanctum', 'ability:origin,branch']], function () {
 
-    Route::get('notifications', [UserController::class,'notifications']);
+    Route::get('notifications', [UserController::class, 'notifications']);
 
-// ------------------------------------------------- Notifications ----------------------------------------------
+    // ------------------------------------------------- Notifications ----------------------------------------------
 
 
-// ------------------------------------------------- Logout ----------------------------------------------
+    // ------------------------------------------------- Logout ----------------------------------------------
     Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 
-// ------------------------------------------------- Change Password ----------------------------------------------
-    Route::post('change-password', [UserController::class,'changePassword']);
+    // ------------------------------------------------- Change Password ----------------------------------------------
+    Route::post('change-password', [UserController::class, 'changePassword']);
 
 
-// ------------------------------------------------- Relation Data ----------------------------------------------
+    // ------------------------------------------------- Relation Data ----------------------------------------------
 
-    Route::get('relation',RelationController::class);
+    Route::get('relation', RelationController::class);
 
-// ------------------------------------------------- Organizations ----------------------------------------------
-    Route::middleware('ability:1,5')->apiResource('organizations', 'OrganizationController');
+    // ------------------------------------------------- Organizations ----------------------------------------------
+    Route::middleware('ability:1,4,5,6')->apiResource('organizations', 'OrganizationController');
 
 
-// ------------------------------------------------- Users ----------------------------------------------
+    // ------------------------------------------------- Users ----------------------------------------------
     Route::middleware('ability:2')->apiResource('users', 'UserController');
 
 
-// ------------------------------------------------- Products ----------------------------------------------
+    // ------------------------------------------------- Products ----------------------------------------------
     Route::middleware('ability:3')->apiResource('products', 'ProductController');
 
 
-// ------------------------------------------------- Entries ----------------------------------------------
+    // ------------------------------------------------- Entries ----------------------------------------------
     Route::middleware('ability:4')->apiResource('entries', 'EntryController');
 
 
-// ------------------------------------------------- Outputs ----------------------------------------------
+    // ------------------------------------------------- Outputs ----------------------------------------------
     Route::middleware('ability:5')->apiResource('outputs', 'OutputController');
-    Route::get('outputs/dispatch/{output}',[OutputController::class,'dispatch'])->middleware('ability:5');
+    Route::get('outputs/dispatch/{output}', [OutputController::class, 'dispatch'])->middleware('ability:5');
 
 
-// ------------------------------------------------- Inventories ----------------------------------------------
+    // ------------------------------------------------- Inventories ----------------------------------------------
     Route::middleware('ability:6,5')->apiResource('inventories', 'InventoryController');
 
 
-// ------------------------------------------------- Entries To Be Confirmed  ----------------------------------------------
-    Route::get('entries-to-confirm',[EntryToConfirmedController::class,'index'])->middleware('ability:7');
-    Route::post('entries-to-confirm/confirm',[EntryToConfirmedController::class,'confirmEntry'])->middleware('ability:7');
-    Route::post('entries-to-confirm/reject',[EntryToConfirmedController::class,'reject'])->middleware('ability:7');
-
-    // // ------------------------------------------------- Request products  ----------------------------------------------
-    // Route::middleware('ability:8')->apiResource('request-products', 'RequestProductController');
-    // Route::get('requests-to-my-inventory',[RequestProductController::class,'requestsToMyInventory'])->middleware('ability:5')->name('requestToMyInventory');
-    // Route::put('requests-to-my-inventory/{status}/{requestProduct}/{outputGeneralID?}', [RequestProductController::class,'confirmRequest'])->middleware('ability:5');
+    // ------------------------------------------------- Entries To Be Confirmed  ----------------------------------------------
+    Route::get('entries-to-confirm', [EntryToConfirmedController::class, 'index'])->middleware('ability:7');
+    Route::post('entries-to-confirm/confirm', [EntryToConfirmedController::class, 'confirmEntry'])->middleware('ability:7');
+    Route::post('entries-to-confirm/reject', [EntryToConfirmedController::class, 'reject'])->middleware('ability:7');
 
 
-// ------------------------------------------------- Maintenances ----------------------------------------------
-    Route::middleware('ability:9')->apiResource('maintenances', 'MaintenanceController');
-
+    // ------------------------------------------------- Maintenances ----------------------------------------------
+    Route::middleware('ability:8')->apiResource('maintenances', 'MaintenanceController');
 });
-
