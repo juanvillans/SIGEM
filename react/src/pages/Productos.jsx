@@ -301,6 +301,7 @@ export default function Productos() {
         machine: producto.machine,
         brand: producto.brand,
         model: producto.model,
+        level: producto.level,
         required_components: producto.required_components
       };
 
@@ -321,6 +322,7 @@ export default function Productos() {
         id: "",
         machine: "",
         brand: "",
+        level: "low",
         model: "",
         required_components: [],
       });
@@ -423,17 +425,14 @@ export default function Productos() {
             <Input
               name="maintenance_type_id"
               id=""
-              label="Tipo de mantenimiento"
+              label="Nivel"
               select
               value={producto.level}
               size="small"
               required={true}
               className="bg-blue/0  font-bold"
               onChange={(e) => {
-                setNewRegister((prev) => ({
-                  ...prev,
-                  level: e.target.value,
-                }));
+                setProducto(prev => ({...prev, level: e.target.value}));
               }}
             >
               {levels?.map((level) => (
