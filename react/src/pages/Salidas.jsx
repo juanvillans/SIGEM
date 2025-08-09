@@ -229,7 +229,7 @@ export default function Salidas(props) {
     },
     {
       name: "organizationObj",
-      label: "Origen",
+      label: "Destino",
       options: {
         filter: false,
         customBodyRender: (value) => {
@@ -803,14 +803,7 @@ export default function Salidas(props) {
 
       setTotalData(res.total);
 
-      if (relation == true) {
-        let entitiesObject = {};
-
-        setGeneralData({
-          ...res,
-          entitiesObject,
-        });
-      }
+    
       setDataTable(res.outputs);
       setIsLoading(false);
     });
@@ -911,6 +904,7 @@ export default function Salidas(props) {
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
 
+  console.log(generalData.entities);
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -969,7 +963,7 @@ export default function Salidas(props) {
         options={options}
       />
     );
-  }, [dataTable]);
+  }, [dataTable, generalData.entities]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
