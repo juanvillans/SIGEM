@@ -20,7 +20,7 @@ import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import InventoryReport from "../components/InventoryReport";
 import CheckIcon from "@mui/icons-material/Check";
-
+import ProductSummary from "../components/ProductSummary";
 // import { NavLink } from "react-router-dom";
 import * as XLSX from "xlsx";
 // import { NavLink } from "react-router-dom";
@@ -103,26 +103,16 @@ export default function Inventario(props) {
     },
 
     {
-      name: "product_name",
+      name: "productObj",
       label: "Equipo",
       options: {
         filter: false,
+        customBodyRender: (value) => {
+          return <ProductSummary product={value} />;
+        },
       },
     },
-    {
-      name: "product_brand",
-      label: "Marca",
-      options: {
-        filter: false,
-      },
-    },
-    {
-      name: "product_model",
-      label: "Modelo",
-      options: {
-        filter: false,
-      },
-    },
+   
     {
       name: "serial_number",
       label: "Serial",

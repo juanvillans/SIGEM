@@ -14,7 +14,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import useDebounce from "../components/useDebounce";
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
+import MenuItem from "@mui/material/MenuItem";
 
+const levels = [{value: "low", label: "Bajo", color:"green"}, {value: "medium", label: "Medio", color:"yellow"}, {value: "high", label: "Alto", color:"red"}];
 export default function Productos() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState([]);
@@ -30,6 +32,7 @@ export default function Productos() {
     brand: "",
     model: "",
     required_components: [],
+    level: "low",
   });
 
   const [queryParams, setQueryParams] = useState({
@@ -73,6 +76,15 @@ export default function Productos() {
       options: {
         filter: false,
         sort: true,
+      },
+    },
+    {
+      name: "level",
+      label: "Nivel",
+      options: {
+        filter: false,
+        sort: true,
+       
       },
     },
     {
@@ -269,6 +281,7 @@ export default function Productos() {
       brand: selectedData.brand,
       model: selectedData.model,
       required_components: selectedData.required_components,
+      level: selectedData.level,
       id: isCopy ? "" : selectedData.id
     });
     setOpen(true);
@@ -368,6 +381,7 @@ export default function Productos() {
               brand: "",
               model: "",
               required_components: [],
+              level: "low",
             });
             setOpen(true);
             setSubmitStatus("Crear");
@@ -406,6 +420,28 @@ export default function Productos() {
               className="col-span-2"
 
             />
+            <Input
+              name="maintenance_type_id"
+              id=""
+              label="Tipo de mantenimiento"
+              select
+              value={producto.level}
+              size="small"
+              required={true}
+              className="bg-blue/0  font-bold"
+              onChange={(e) => {
+                setNewRegister((prev) => ({
+                  ...prev,
+                  level: e.target.value,
+                }));
+              }}
+            >
+              {levels?.map((level) => (
+                <MenuItem key={level.value} value={level.value}>
+                  {level.label}
+                </MenuItem>
+              )) || <MenuItem value={""}></MenuItem>}
+            </Input>
             
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">

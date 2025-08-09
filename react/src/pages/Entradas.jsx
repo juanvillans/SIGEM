@@ -27,6 +27,7 @@ import Input from "../components/Input";
 import CheckableList from "../components/CheckableList";
 import CheckIcon from "@mui/icons-material/Check";
 import InputWhite from "../components/InputWhite";
+import ProductSummary from "../components/ProductSummary";
 
 function getCurrentTime() {
   const now = new Date();
@@ -150,7 +151,7 @@ export default function Entradas(props) {
       { id: 3, name: "PENDIENTE DE VALIDACIÓN" },
     ],
     entitiesObject: {},
-    entities:[],
+    entities: [],
     years: [],
   });
 
@@ -260,7 +261,7 @@ export default function Entradas(props) {
         filter: false,
       },
     },
-     {
+    {
       name: "organizationObj",
       label: "Origen",
       options: {
@@ -292,29 +293,13 @@ export default function Entradas(props) {
       },
     },
     {
-      name: "product_name",
+      name: "productObj",
       label: "Equipo",
       options: {
         filter: false,
-        sort:false,
-      },
-    },
-    {
-      name: "product_brand",
-      label: "Marca",
-      options: {
-        filter: false,
-        sort:false,
-
-      },
-    },
-    {
-      name: "product_model",
-      label: "Modelo",
-      options: {
-        filter: false,
-        sort:false,
-
+        customBodyRender: (value) => {
+          return <ProductSummary product={value} />;
+        },
       },
     },
     {
@@ -322,8 +307,7 @@ export default function Entradas(props) {
       label: "Serial",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -331,8 +315,7 @@ export default function Entradas(props) {
       label: "Bien Nacional",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -340,8 +323,7 @@ export default function Entradas(props) {
       label: "Estado",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
     {
@@ -349,7 +331,7 @@ export default function Entradas(props) {
       label: "Componentes",
       options: {
         filter: false,
-        sort:false,
+        sort: false,
         customBodyRender: (value, tableMeta) => {
           // Si no hay componentes o el objeto está vacío
           if (!value || Object.keys(value).length === 0) return "N/A";
@@ -428,8 +410,7 @@ export default function Entradas(props) {
       label: "Registrado por",
       options: {
         filter: false,
-        sort:false,
-
+        sort: false,
       },
     },
   ];
@@ -518,7 +499,10 @@ export default function Entradas(props) {
 
   useEffect(() => {
     if (!hasLoadedRelations) {
-      axios.get(`/dashboard/relation?entities=true&machine_status=true&entriesYears=true`)
+      axios
+        .get(
+          `/dashboard/relation?entities=true&machine_status=true&entriesYears=true`
+        )
         .then((res) => {
           if (res.data.entities) {
             const entitiesObject = {};
@@ -530,7 +514,7 @@ export default function Entradas(props) {
               entitiesObject,
               entities: res.data.entities,
               machine_status: res.data.machine_status,
-              years:res.data.entriesYears
+              years: res.data.entriesYears,
               // conditions: res.data.conditions || prev.conditions,
             }));
           }
@@ -541,7 +525,7 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  console.log({NewRegister})
+  console.log({ NewRegister });
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -644,7 +628,7 @@ export default function Entradas(props) {
         return;
       }
       if (arrValues.length > 0) {
-        console.log({changedColumn, columnIndex});
+        console.log({ changedColumn, columnIndex });
         filterObject[changedColumn] = `${
           filterConfiguration[changedColumn]
         }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
@@ -772,7 +756,7 @@ export default function Entradas(props) {
     setRowProps: (row, dataIndex) => {
       if (dataTable[dataIndex].status == "2") {
         return {
-          className: 'strikethrough-row',
+          className: "strikethrough-row",
           style: {
             opacity: ".8",
             textDecoration: "line-through",
@@ -899,13 +883,13 @@ export default function Entradas(props) {
         components: {},
         organizationObject: null,
         organization_id: null,
-        
+
         organizationName: "",
         arrival_time: getCurrentTime(),
         arrival_date: new Date().toISOString().split("T")[0],
         status: 1,
       });
-      setOrganizations([])
+      setOrganizations([]);
     } catch (error) {
       if (error.response.status == 403) {
         localStorage.removeItem("userData");
@@ -1115,6 +1099,7 @@ export default function Entradas(props) {
                         <th className="py-2">Nombre del equipo</th>
                         <th className="py-2">Marca</th>
                         <th className="py-2">Modelo</th>
+                        <th className="py-2">Nivel</th>
                       </tr>
                     </thead>
                     {typeof productsSearched == "string" ? (
@@ -1149,6 +1134,13 @@ export default function Entradas(props) {
                             <td className="p-2 px-6">{product.machine}</td>
                             <td className="p-2 px-6">{product.brand}</td>
                             <td className="p-2 px-6">{product.model}</td>
+                            <td className="p-2 px-6">
+                              {" "}
+                              <span
+                                className={`w-10 h-10 rounded-full bg-${product.level?.color}`}
+                              ></span>{" "}
+                              {product.level?.label}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -1195,10 +1187,16 @@ export default function Entradas(props) {
                         <td className="p-4 px-2 w-[300px]">
                           {" "}
                           <b>{NewRegister.product.machine}</b>{" "}
-                          <span className="text-green font-semibold">
+                          <span className="text-blue1 font-semibold">
                             {NewRegister.product.brand}{" "}
                           </span>{" "}
-                          <small>{NewRegister.product.model}</small>
+                          <small className="text-grey font-bold">
+                            {NewRegister.product.model}
+                          </small>
+                          <span
+                            className={`w-10 h-10 rounded-full bg-${NewRegister.product.level?.color}`}
+                          ></span>{" "}
+                          {NewRegister.product.level?.label}
                         </td>
                         <td className="p-4 px-2 w-[200px]">
                           <Input
@@ -1280,13 +1278,16 @@ export default function Entradas(props) {
               name={"arrival_time"}
               onChange={handleChange}
             />
-             <>
+            <>
               <Autocomplete
                 options={organizations}
                 getOptionLabel={(option) => option?.name || ""}
                 value={NewRegister?.organizationObject || null}
                 isOptionEqualToValue={(option, value) => {
-                  return option?.id === value?.organizationId || option?.id === value?.id;
+                  return (
+                    option?.id === value?.organizationId ||
+                    option?.id === value?.id
+                  );
                 }}
                 onChange={(e, newValue) => {
                   handleOptionSelectOrganizations(e, newValue);
@@ -1319,11 +1320,7 @@ export default function Entradas(props) {
                   }
                 }}
                 renderInput={(params) => (
-                  <TextField
-                    required
-                    {...params}
-                    label="Origen"
-                  />
+                  <TextField required {...params} label="Origen" />
                 )}
               />
             </>
