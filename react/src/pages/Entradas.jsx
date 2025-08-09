@@ -102,6 +102,21 @@ export default function Entradas(props) {
   }, 290);
 
   const handleOptionSelectOrganizations = (event, value) => {
+    if (value && value?.code && value.code.toLowerCase() !== "nocode") {
+      setAlert({
+        open: true,
+        status: "Error",
+        message: `${value.name} debe registrar la salida de su inventario para recibirlo como entrada`,
+      });
+      setNewRegister((prev) => ({
+        ...prev,
+        organization_id: null,
+        organizationName: "",
+        organizationObject: null,
+      }));
+      return;
+    }
+
     if (value) {
       setNewRegister((prev) => ({
         ...prev,
@@ -109,11 +124,20 @@ export default function Entradas(props) {
         organizationName: value?.name,
         organizationObject: {
           organizationId: value.id,
+          id: value.id,
           name: value?.name,
           code: value?.code,
         },
         municipalityId: value?.municipalityId,
         parishId: value?.parishId,
+      }));
+    } else {
+      // Si se limpia la selección
+      setNewRegister((prev) => ({
+        ...prev,
+        organization_id: null,
+        organizationName: "",
+        organizationObject: null,
       }));
     }
   };
@@ -800,6 +824,7 @@ export default function Entradas(props) {
       },
       organizationObject: {
         organizationId: copySelectedRowRquest.organization_id,
+        id: copySelectedRowRquest.organization_id,
         name: copySelectedRowRquest?.organization_name,
         code: copySelectedRowRquest?.organization_code,
       },
@@ -872,12 +897,9 @@ export default function Entradas(props) {
         organization_id: null,
         machine_status_id: 1,
         components: {},
-        organizationObject: {
-          organizationId: null,
-          name: "",
-          code: "",
-        },
+        organizationObject: null,
         organization_id: null,
+        
         organizationName: "",
         arrival_time: getCurrentTime(),
         arrival_date: new Date().toISOString().split("T")[0],
@@ -1001,6 +1023,8 @@ export default function Entradas(props) {
                   status: 1,
                 });
               }
+              // Resetear organizaciones para nueva entrada
+              setOrganizations([]);
               setOpen(true);
               setSubmitStatus("Crear entrada");
             }}
@@ -1256,46 +1280,53 @@ export default function Entradas(props) {
               name={"arrival_time"}
               onChange={handleChange}
             />
-            <Autocomplete
-              options={organizations}
-              getOptionLabel={(option) => option.name}
-              value={NewRegister?.organizationObject}
-              onChange={(e, newValue) => {
-                handleOptionSelectOrganizations(e, newValue);
-              }}
-                inputValue={NewRegister?.organizationName || ''} // Add this line
-
-              renderOption={(propsAutocomplete, option) => {
-                const { key, ...optionProps } = propsAutocomplete;
-                return (
-                  <Box
-                    key={option.name + option.id}
-                    component="li"
-                    sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                    {...optionProps}
-                  >
-                    {option.code !== props?.userData?.entityCode && (
-                      <p>
-                        <span style={{ color: "#011140", marginRight: "5px" }}>
-                          {option.code !== "nocode" && <StoreIcon />}
-                        </span>
-                        {option.name}
-                      </p>
-                    )}
-                  </Box>
-                );
-              }}
-              onInputChange={(e, newValue) => {
-                handleSearchOrganizations(
-                  e?.target?.value ||
-                    NewRegister?.organizationObject?.name ||
-                    ""
-                );
-              }}
-              renderInput={(params) => (
-                <TextField required key={params} {...params} label="Origen" />
-              )}
-            />
+             <>
+              <Autocomplete
+                options={organizations}
+                getOptionLabel={(option) => option?.name || ""}
+                value={NewRegister?.organizationObject || null}
+                isOptionEqualToValue={(option, value) => {
+                  return option?.id === value?.organizationId || option?.id === value?.id;
+                }}
+                onChange={(e, newValue) => {
+                  handleOptionSelectOrganizations(e, newValue);
+                }}
+                renderOption={(propsAutocomplete, option) => {
+                  const { key, ...optionProps } = propsAutocomplete;
+                  return (
+                    <Box
+                      key={option.name + option.id}
+                      component="li"
+                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                      {...optionProps}
+                    >
+                      {option.code !== props?.userData?.entityCode && (
+                        <p>
+                          <span
+                            style={{ color: "#011140", marginRight: "5px" }}
+                          >
+                            {option.code !== "nocode" && <StoreIcon />}
+                          </span>
+                          {option.name}
+                        </p>
+                      )}
+                    </Box>
+                  );
+                }}
+                onInputChange={(_, newValue) => {
+                  if (newValue && newValue.trim().length > 0) {
+                    handleSearchOrganizations(newValue);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    required
+                    {...params}
+                    label="Origen"
+                  />
+                )}
+              />
+            </>
 
             <Input
               label={"Área"}
