@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\LevelProductEnum;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rule;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class ProductRequest extends FormRequest
 {
@@ -41,8 +43,31 @@ class ProductRequest extends FormRequest
             'model' => ['required', 'string', 'max:100'],
             'required_components' => ['nullable', 'array'],
             'required_components.*' => ['string', 'max:255'],
-            'level' => ['string', 'required'],
+            'level' => [
+                'string',
+                'required',
+                Rule::in(['BAJO', 'MEDIO', 'ALTO'])
+            ],
 
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        if ($this->has('level')) {
+
+            $level = $this->level;
+
+            $newLevel = match ($level) {
+                LevelProductEnum::LOW->value => 'BAJO',
+                LevelProductEnum::MEDIUM->value => 'MEDIO',
+                LevelProductEnum::HIGH->value => 'ALTO',
+                default => 'Valor desconocido'
+            };
+
+            $this->merge(
+                ['level' => $newLevel]
+            );
+        }
     }
 }

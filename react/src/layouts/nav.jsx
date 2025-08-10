@@ -103,7 +103,7 @@ export default function nav(props) {
               <span className="text_link"> Inventario</span>
             </NavLink>
           )}
-           {props.userData?.permissions[9] && (
+           {props.userData?.permissions[8] && (
             <NavLink to={"/dashboard/Mantenimiento"} key={"/dashboard/Mantenimiento"} title={"Mantenimiento"}>
               <ConstructionIcon />
               <span className="text_link"> Mantenimiento</span>

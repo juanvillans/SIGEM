@@ -2,16 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Filters\EntryToConfirmQueryFilter;
-use App\Http\Requests\ConfirmEntryToConfirmRequest;
 use App\Http\Requests\EntryToConfirmRequest;
 use App\Http\Resources\EntryToConfirmCollection;
-use App\Models\EntryToConfirmed;
-use App\Models\HierarchyEntity;
 use App\Services\EntryToConfirmService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EntryToConfirmedController extends Controller
@@ -38,7 +33,6 @@ class EntryToConfirmedController extends Controller
             'total' => $total,
             'message' => 'OK'
         ];
-
     }
 
     /**
@@ -51,8 +45,6 @@ class EntryToConfirmedController extends Controller
 
             $this->entryToConfirmService->confirmEntry($request->validated());
             return ['message' => 'Entrada confirmada exitosamente'];
-
-
         } catch (Exception $e) {
 
             Log::error("Error al confirmar entrada: " . $e->getMessage(), [
@@ -61,10 +53,9 @@ class EntryToConfirmedController extends Controller
             ]);
 
             return response()->json([
-            'status' => false,
-            'message' => 'Error al confirmar entrada: ' .$e->getMessage()
+                'status' => false,
+                'message' => 'Error al confirmar entrada: ' . $e->getMessage()
             ], 500);
-
         }
     }
 
@@ -77,8 +68,6 @@ class EntryToConfirmedController extends Controller
             $this->entryToConfirmService->rejectEntry($request->validated());
 
             return ['message' => 'Entrada rechazada exitosamente'];
-
-
         } catch (Exception $e) {
 
             Log::error("Error al rechazar entrada: " . $e->getMessage(), [
@@ -87,13 +76,9 @@ class EntryToConfirmedController extends Controller
             ]);
 
             return response()->json([
-            'status' => false,
-            'message' => 'Error al recharzar entrada: ' . $e->getMessage()
+                'status' => false,
+                'message' => 'Error al recharzar entrada: ' . $e->getMessage()
             ], 500);
-
         }
     }
-
-
-
 }

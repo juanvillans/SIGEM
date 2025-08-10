@@ -13,7 +13,6 @@ use App\Models\InventoryGeneral;
 use App\Services\InventoryService;
 use Illuminate\Support\Facades\Log;
 
-use App\Filters\InventoryQueryFilter;
 use App\Http\Resources\InventoryCollection;
 use App\Http\Resources\InventoryReportCollection;
 
@@ -28,16 +27,21 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
+        $inventoryCollection = null;
+        $total = 0;
         $inventories = $this->inventoryService->getData();
 
-        if($request->input('report') == 'true')
+        if ($request->input('report') == 'true') {
             $inventoryCollection = new InventoryReportCollection($inventories);
-        else
+            $total = $inventories->count();
+        } else {
+
             $inventoryCollection = new InventoryCollection($inventories);
+            $total = $inventories->total();
+        }
 
-        $total = $inventories->total();
 
-        $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
+        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
 
 
         return [
@@ -46,8 +50,5 @@ class InventoryController extends Controller
             'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'
         ];
-
     }
-
-
 }

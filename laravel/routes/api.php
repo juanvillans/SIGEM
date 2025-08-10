@@ -79,6 +79,7 @@ Route::group(['prefix' => 'dashboard', 'namespace' => 'App\Http\Controllers', 'm
     Route::middleware('ability:6,5')->apiResource('inventories', 'InventoryController');
 
 
+
     // ------------------------------------------------- Entries To Be Confirmed  ----------------------------------------------
     Route::get('entries-to-confirm', [EntryToConfirmedController::class, 'index'])->middleware('ability:7');
     Route::post('entries-to-confirm/confirm', [EntryToConfirmedController::class, 'confirmEntry'])->middleware('ability:7');
