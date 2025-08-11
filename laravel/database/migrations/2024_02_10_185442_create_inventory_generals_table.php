@@ -15,34 +15,33 @@ return new class extends Migration
             $table->id();
             $table->string('entity_code');
             $table->foreign('entity_code')
-                  ->references('code')
-                  ->on('hierarchy_entities')
-                  ->constrained()
-                  ->onDelete("restrict")
-                  ->onUpdate("cascade");
+                ->references('code')
+                ->on('hierarchy_entities')
+                ->constrained()
+                ->onDelete("restrict")
+                ->onUpdate("cascade");
             $table->foreignId('product_id');
-            $table->string('serial_number', 30);
+            $table->string('serial_number', 30)->unique();
             $table->string('national_code', 30);
             $table->foreignId('machine_status_id');
             $table->foreignId('organization_id');
             $table->json('components');
-            $table->string('area');
+            $table->string('area')->nullable()->default('No especificada');
             $table->integer('quantity');
             $table->unsignedInteger('entry_general_id');
             $table->foreign('entry_general_id')
-            ->references('id')
-            ->on('entry_generals')
-            ->onDelete('cascade')
-            ->onUpdate('cascade');
+                ->references('id')
+                ->on('entry_generals')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
             $table->unsignedInteger('last_type_maintenance_id')->nullable();
             $table->foreign('last_type_maintenance_id')
-                  ->references('id')
-                  ->on('type_maintenances')
-                  ->onDelete("restrict")
-                  ->onUpdate("cascade");
+                ->references('id')
+                ->on('type_maintenances')
+                ->onDelete("restrict")
+                ->onUpdate("cascade");
 
             $table->timestamps();
-
         });
 
         // Sin inventario detallado

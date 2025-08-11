@@ -49,6 +49,7 @@ class OutputResource extends JsonResource
             "departure_time" => $this->departure_time,
             "description" => $this->description,
             "departure_date" => $this->updated_at->format('F d, Y'),
+            "date" => $this->updated_at->format('F d, Y') . ' - ' . Carbon::createFromFormat('H:i', $this->departure_time)->format('h:i A'),
             "status" => $this->status,
 
         ];

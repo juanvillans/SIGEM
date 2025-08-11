@@ -48,6 +48,7 @@ class EntryResource extends JsonResource
             "components" => $this->components,
             "arrival_time" => $this->arrival_time,
             "arrival_date" => $this->updated_at->format('F d, Y'),
+            "date" => $this->updated_at->format('F d, Y') . ' - ' . Carbon::createFromFormat('H:i', $this->arrival_time)->format('h:i A'),
             "status" => $this->status,
 
         ];

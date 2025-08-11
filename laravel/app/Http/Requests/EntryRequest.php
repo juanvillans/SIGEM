@@ -93,9 +93,4 @@ class EntryRequest extends FormRequest
             'arrival_time.regex' => 'El formato de hora debe ser HH:MM',
         ];
     }
-
-
-
-
 }
-
