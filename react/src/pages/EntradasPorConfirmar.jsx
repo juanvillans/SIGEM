@@ -18,6 +18,7 @@ import ExpandRowProducts from "../components/ExpandRowProducts";
 import CircularProgress from "@mui/material/CircularProgress";
 // import { NavLink } from "react-router-dom";
 import Modal from "../components/Modal";
+import ProductSummary from "../components/ProductSummary";
 
 import useDebounce from "../components/useDebounce";
 // import { Suspense } from "react";
@@ -165,6 +166,16 @@ export default function Entradas(props) {
             : "excluded",
         filter: false,
         sort: true,
+      },
+    },
+    {
+      name: "productObj",
+      label: "Equipo",
+      options: {
+        filter: false,
+        customBodyRender: (value) => {
+          return <ProductSummary product={value} />;
+        },
       },
     },
     {
