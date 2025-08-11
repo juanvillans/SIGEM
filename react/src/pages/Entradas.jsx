@@ -799,6 +799,9 @@ export default function Entradas(props) {
     setNewRegister({
       ...copySelectedRowRquest,
       code: isJustForCopy ? "" : copySelectedRowRquest.code,
+      // Campos en el nivel raíz para que los inputs puedan acceder a ellos
+      serial_number: copySelectedRowRquest.serial_number,
+      national_code: copySelectedRowRquest.national_code,
       product: {
         brand: copySelectedRowRquest.product_brand,
         name: copySelectedRowRquest.product_name,
@@ -1113,7 +1116,7 @@ export default function Entradas(props) {
                       <tbody>
                         {productsSearched?.map((product, i) => (
                           <tr
-                            key={`${product.id}+_${i}`}
+                            key={`${product.id}+_${i}*`}
                             className="body border-b border-b-grey border-opacity-10 text-black items-center hover:bg-blue1 hover:text-white cursor-pointer py-3"
                             onMouseDown={() => {
                               setIsSearchHidden("hidden");
@@ -1176,7 +1179,6 @@ export default function Entradas(props) {
                     </thead>
                     <tbody className="">
                       <tr
-                        key={NewRegister.product.id}
                         className="body px-2  px-30  text-dark items-center text-sm "
                       >
                         <td className="p-4 px-2 w-[60px] ">
@@ -1190,7 +1192,7 @@ export default function Entradas(props) {
                         <td className="p-4 px-2 w-[200px]">
                           <Input
                             label={"Serial"}
-                            value={NewRegister.product?.serial_number}
+                            value={NewRegister.serial_number || ""}
                             name={`serial_number`}
                             size="small"
                             onChange={handleChange}
@@ -1199,7 +1201,7 @@ export default function Entradas(props) {
                         <td className="p-4 px-2 w-[200px]">
                           <Input
                             label={"Nacional"}
-                            value={NewRegister.product?.national_code}
+                            value={NewRegister.national_code || ""}
                             name={`national_code`}
                             size="small"
                             onChange={handleChange}
@@ -1221,7 +1223,7 @@ export default function Entradas(props) {
                             }}
                           >
                             {generalData.machine_status?.map((option) => (
-                              <MenuItem key={option.id} value={option.id}>
+                              <MenuItem key={"*"+option.id} value={option.id}>
                                 {option.name}
                               </MenuItem>
                             )) || <MenuItem value={""}></MenuItem>}
