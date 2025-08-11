@@ -157,20 +157,6 @@ export default function app() {
                 )}
                 {userData?.permissions[8] && (
                   <Route
-                    key={"SolicitarProductos"}
-                    path="/SolicitarProductos/"
-                    element={<SolicitarProductos userData={userData} />}
-                  ></Route>
-                )}
-                {userData?.permissions[5] && (
-                  <Route
-                    key={"PedidosAMiAlmacen"}
-                    path="/PedidosAMiAlmacen/"
-                    element={<PedidosAMiAlmacen userData={userData} />}
-                  ></Route>
-                )}
-                {userData?.permissions[9] && (
-                  <Route
                     key={"Mantenimiento"}
                     path="/Mantenimiento/"
                     element={<Mantenimiento userData={userData} />}

@@ -72,6 +72,7 @@ const days = [
 const currentDate = new Date();
 
 export default function Mantenimiento(props) {
+  console.log("mantenimietno")
   let selectedRowRquest = false;
   const [isLoading, setIsLoading] = useState(true);
   const [localStorageForm, setLocalStorageForm] = useState(false);
@@ -212,29 +213,16 @@ export default function Mantenimiento(props) {
       },
     },
     {
-      name: "product_name",
+      name: "productObj",
       label: "Equipo",
       options: {
         filter: false,
-        sort: false,
+        customBodyRender: (value) => {
+          return <ProductSummary product={value} />;
+        },
       },
     },
-    {
-      name: "product_brand",
-      label: "Marca",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
-    {
-      name: "product_model",
-      label: "Modelo",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
+    
     {
       name: "serial_number",
       label: "Serial",

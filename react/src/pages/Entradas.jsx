@@ -47,11 +47,6 @@ function limitObjectSize(obj, maxSize = 6) {
   return obj;
 }
 
-const createHashFromTime = () => {
-  const currentTimeInMillis = Date.now().toString();
-  const hash = CryptoJS.SHA256(currentTimeInMillis).toString();
-  return hash.substring(0, 6);
-};
 
 const filterConfiguration = {
   conditionName: "&condition[name]=",
@@ -285,13 +280,8 @@ export default function Entradas(props) {
         },
       },
     },
-    {
-      name: "arrival_time",
-      label: "Hora",
-      options: {
-        filter: false,
-      },
-    },
+ 
+
     {
       name: "productObj",
       label: "Equipo",
@@ -773,17 +763,7 @@ export default function Entradas(props) {
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
     if (isJustForCopy) {
-      copySelectedRowRquest.serial_number = "_" + createHashFromTime();
-      copySelectedRowRquest.national_code = "_" + createHashFromTime();
-
-      copySelectedRowRquest.components =
-        copySelectedRowRquest.product.required_components.reduce(
-          (acc, component) => ({
-            ...acc,
-            [component]: true,
-          }),
-          {}
-        );
+  
     } else {
       copySelectedRowRquest.components =
         copySelectedRowRquest?.components || {};
@@ -1123,8 +1103,8 @@ export default function Entradas(props) {
                               setNewRegister((prev) => ({
                                 ...prev,
                                 product_id: product.id,
-                                serial_number: "_" + createHashFromTime(),
-                                national_code: "_" + createHashFromTime(),
+                                serial_number: "",
+                                national_code: "",
                                 product: product,
                                 components: product.required_components.reduce(
                                   (acc, component) => ({

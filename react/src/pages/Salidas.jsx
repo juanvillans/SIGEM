@@ -228,6 +228,7 @@ export default function Salidas(props) {
         filter: false,
       },
     },
+    
     {
       name: "organizationObj",
       label: "Destino",
@@ -252,37 +253,18 @@ export default function Salidas(props) {
         },
       },
     },
+   
     {
-      name: "departure_time",
-      label: "Hora",
-      options: {
-        filter: false,
-      },
-    },
-    {
-      name: "product_name",
+      name: "productObj",
       label: "Equipo",
       options: {
         filter: false,
-        sort: false,
+        customBodyRender: (value) => {
+          return <ProductSummary product={value} />;
+        },
       },
     },
-    {
-      name: "product_brand",
-      label: "Marca",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
-    {
-      name: "product_model",
-      label: "Modelo",
-      options: {
-        filter: false,
-        sort: false,
-      },
-    },
+    
     {
       name: "serial_number",
       label: "Serial",
@@ -392,6 +374,7 @@ export default function Salidas(props) {
       options: {
         filter: false,
         sort: false,
+        display: "excluded",
       },
     },
   ];
@@ -1296,18 +1279,18 @@ export default function Salidas(props) {
 
                     <td className="p-4 px-5">
                       <button
+                      title="Eliminar producto"
                         onClick={(e) => {
                           setNewRegister((prev) => ({
                             ...prev,
-                            inventoryDetailID: "",
+                            inventory_general_id: "",
                             product_code: "",
-                            product_name: "",
-                            product_brand: "",
-                            product_model: "",
+                            productObj: null,
                             serial_number: "",
                             national_code: "",
                             machine_status_name: "",
                             components: {},
+
                           }));
                         }}
                         type="button"

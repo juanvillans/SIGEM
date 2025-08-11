@@ -491,7 +491,6 @@ export default function Inventario(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  console.log({ generalData });
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
