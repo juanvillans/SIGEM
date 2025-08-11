@@ -14,12 +14,12 @@ class HierarchyEntitySeeder extends Seeder
     public function run(): void
     {
         $fields =
-        [
-            ['name' => 'Electro Medicina', 'code' => '1'],
+            [
+                ['name' => 'Electro Medicina', 'code' => '1'],
+                ['name' => 'Casa de lupita', 'code' => '1-1'],
 
-        ];
+            ];
 
-         DB::table('hierarchy_entities')->insert($fields);
-
+        DB::table('hierarchy_entities')->insert($fields);
     }
 }

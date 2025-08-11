@@ -9,7 +9,7 @@ use App\Http\Controllers\RelationController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\RequestProductController;
 use App\Http\Controllers\EntryToConfirmedController;
-
+use App\Http\Controllers\MaintenanceController;
 
 /*
 |--------------------------------------------------------------------------
