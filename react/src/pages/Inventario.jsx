@@ -89,18 +89,7 @@ export default function Inventario(props) {
   });
 
   const columns = [
-    {
-      name: "entity_name",
-      label: "Entidad",
-      options: {
-        display:
-          parametersURL?.filterObject?.entity_code == "&entries[entity_code]=*"
-            ? "true"
-            : "excluded",
-        filter: false,
-        sort: true,
-      },
-    },
+ 
 
     {
       name: "productObj",
@@ -112,7 +101,15 @@ export default function Inventario(props) {
         },
       },
     },
-   
+      {
+      name: "entity_name",
+      label: "Entidad",
+      options: {
+        display:  "false",  
+        filter: false,
+        sort: false,
+      },
+    },
     {
       name: "serial_number",
       label: "Serial",
@@ -264,7 +261,6 @@ export default function Inventario(props) {
     rowsPerPage: parametersURL.rowsPerPage,
     page: parametersURL.page - 1,
     serverSide: true,
-    viewColumns: false,
 
     customToolbar: () => {
       return (

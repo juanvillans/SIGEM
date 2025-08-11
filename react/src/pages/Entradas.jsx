@@ -74,7 +74,6 @@ export default function Entradas(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [localStorageForm, setLocalStorageForm] = useState(false);
   const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
-
   useEffect(() => {
     if (localStorage.getItem("entryForm")) {
       setLocalStorageForm(JSON.parse(localStorage.getItem("entryForm")));
@@ -1114,6 +1113,16 @@ export default function Entradas(props) {
                                   {}
                                 ),
                               }));
+                              setTimeout(() => {
+                                // Buscar el último campo serial agregado (el del producto recién agregado)
+                                const serialInputs = document.querySelectorAll(
+                                  'input[name^="serial_"]'
+                                );
+                                const lastSerialInput = serialInputs[serialInputs.length - 1];
+                                if (lastSerialInput) {
+                                  lastSerialInput.focus();
+                                }
+                              }, 280);
                             }}
                           >
                             <td className="p-2 px-6">{product.code}</td>

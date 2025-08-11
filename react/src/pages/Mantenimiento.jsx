@@ -26,6 +26,8 @@ import CheckableList from "../components/CheckableList";
 import CheckIcon from "@mui/icons-material/Check";
 import InputWhite from "../components/InputWhite";
 
+import ProductSummary from "../components/ProductSummary";
+
 function getCurrentTime() {
   const now = new Date();
   const hours = String(now.getHours()).padStart(2, "0");
@@ -72,7 +74,6 @@ const days = [
 const currentDate = new Date();
 
 export default function Mantenimiento(props) {
-  console.log("mantenimietno")
   let selectedRowRquest = false;
   const [isLoading, setIsLoading] = useState(true);
   const [localStorageForm, setLocalStorageForm] = useState(false);
@@ -419,7 +420,6 @@ export default function Mantenimiento(props) {
           `/dashboard/relation?entities=true&machine_status=true&maintenanceYears=true&types_maintenance=true`
         )
         .then((res) => {
-          console.log(res.data);
           setGeneralData((prev) => ({
             ...prev,
             entities: res.data.entities,
@@ -435,7 +435,7 @@ export default function Mantenimiento(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  console.log(generalData);
+  
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -669,7 +669,6 @@ export default function Mantenimiento(props) {
   };
 
    const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
-    console.log({ rowData });
     setOrganizations([
       {
         id: rowData.organization_id || null,
@@ -688,7 +687,6 @@ export default function Mantenimiento(props) {
     await axios.get(url).then((response) => {
       setIsLoading(true);
       const res = response.data;
-      console.log(res)
       setTotalData(res.total);
       setDataTable(res.maintenances);
       setIsLoading(false);
@@ -953,9 +951,7 @@ export default function Mantenimiento(props) {
                     <thead>
                       <tr className="header pb-0 text-left bg-ligther text-dark text-xs">
                         <th className="py-2">Cód.</th>
-                        <th className="py-2">Nombre del equipo</th>
-                        <th className="py-2">Marca</th>
-                        <th className="py-2">Modelo</th>
+                        <th className="py-2">Equipo</th>
                         <th className="py-2">Serial</th>
                         <th className="py-2">Bien Nacional</th>
                         <th className="py-2">Estado</th>
@@ -983,13 +979,10 @@ export default function Mantenimiento(props) {
                             }}
                           >
                             <td className="p-2 px-6">{product.product_code}</td>
-                            <td className="p-2 px-6">{product.product_name}</td>
                             <td className="p-2 px-6">
-                              {product.product_brand}
+                              <ProductSummary product={product.productObj} />
                             </td>
-                            <td className="p-2 px-6">
-                              {product.product_model}
-                            </td>
+                           
                             <td className="p-2 px-6">
                               {product.serial_number}
                             </td>
@@ -1015,9 +1008,7 @@ export default function Mantenimiento(props) {
                 <thead className="header  text-dark text-xs px-  ">
                   <tr>
                     <th className="py-2">Cód.</th>
-                    <th className="py-2">Nombre del equipo</th>
-                    <th className="py-2">Marca</th>
-                    <th className="py-2">Modelo</th>
+                    <th className="py-2">Equipo</th>
                     <th className="py-2">Serial</th>
                     <th className="py-2">Bien Nacional</th>
                     <th className="py-2">Estado</th>
@@ -1037,9 +1028,9 @@ export default function Mantenimiento(props) {
                       className="body px-2  px-30  text-dark items-center text-sm justify-between"
                     >
                       <td className="p-4 px-5">{NewRegister.product_code}</td>
-                      <td className="p-4 px-5">{NewRegister.product_name}</td>
-                      <td className="p-4 px-5">{NewRegister.product_brand}</td>
-                      <td className="p-4 px-5">{NewRegister.product_model}</td>
+                      <td className="p-4 px-5">
+                        <ProductSummary product={NewRegister.productObj} />
+                      </td>
                       <td className="p-4 px-5">{NewRegister.serial_number}</td>
                       <td className="p-4 px-5">{NewRegister.national_code}</td>
                       <td className="p-4 px-2 w-[200px]">
