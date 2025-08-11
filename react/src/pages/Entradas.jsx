@@ -768,6 +768,8 @@ export default function Entradas(props) {
     },
   };
 
+  console.log({ NewRegister });
+
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
     if (isJustForCopy) {
@@ -805,6 +807,7 @@ export default function Entradas(props) {
         required_components: copySelectedRowRquest.product_required_components,
         serial_number: copySelectedRowRquest.serial_number,
         national_code: copySelectedRowRquest.national_code,
+        level: copySelectedRowRquest.product_level,
       },
       organizationObject: {
         organizationId: copySelectedRowRquest.organization_id,
@@ -1134,12 +1137,8 @@ export default function Entradas(props) {
                             <td className="p-2 px-6">{product.machine}</td>
                             <td className="p-2 px-6">{product.brand}</td>
                             <td className="p-2 px-6">{product.model}</td>
-                            <td className="p-2 px-6">
-                              {" "}
-                              <span
-                                className={`w-10 h-10 rounded-full bg-${product.level?.color}`}
-                              ></span>{" "}
-                              {product.level?.label}
+                            <td className="p-2 px-6 capitalize">
+                              {product.level}
                             </td>
                           </tr>
                         ))}
@@ -1186,22 +1185,11 @@ export default function Entradas(props) {
 
                         <td className="p-4 px-2 w-[300px]">
                           {" "}
-                          <b>{NewRegister.product.machine}</b>{" "}
-                          <span className="text-blue1 font-semibold">
-                            {NewRegister.product.brand}{" "}
-                          </span>{" "}
-                          <small className="text-grey font-bold">
-                            {NewRegister.product.model}
-                          </small>
-                          <span
-                            className={`w-10 h-10 rounded-full bg-${NewRegister.product.level?.color}`}
-                          ></span>{" "}
-                          {NewRegister.product.level?.label}
+                          <ProductSummary product={NewRegister.product} />
                         </td>
                         <td className="p-4 px-2 w-[200px]">
                           <Input
                             label={"Serial"}
-                            key={`nro_serial_${NewRegister.product.id}`}
                             value={NewRegister.product?.serial_number}
                             name={`serial_number`}
                             size="small"
@@ -1211,7 +1199,6 @@ export default function Entradas(props) {
                         <td className="p-4 px-2 w-[200px]">
                           <Input
                             label={"Nacional"}
-                            key={`national_code_${NewRegister.product.id}`}
                             value={NewRegister.product?.national_code}
                             name={`national_code`}
                             size="small"
