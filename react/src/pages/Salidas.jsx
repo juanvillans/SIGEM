@@ -13,6 +13,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import InputAdornment from "@mui/material/InputAdornment";
 import MicIcon from "@mui/icons-material/Mic";
 
+import ProductSummary from "../components/ProductSummary";
 // import Chip from '@material-ui/core/Chip';
 import {
   IconButton,
@@ -1183,9 +1184,8 @@ export default function Salidas(props) {
                     <thead>
                       <tr className="header pb-0 text-left bg-ligther text-dark text-xs">
                         <th className="py-2">Cód.</th>
-                        <th className="py-2">Nombre del equipo</th>
-                        <th className="py-2">Marca</th>
-                        <th className="py-2">Modelo</th>
+                        <th className="py-2">Equipo</th>
+                        
                         <th className="py-2">Serial</th>
                         <th className="py-2">Bien Nacional</th>
                         <th className="py-2">Estado</th>
@@ -1209,17 +1209,15 @@ export default function Salidas(props) {
                                 inventory_general_id: product.id, // This ID is inventory_general_id
                                 ...product,
                                 area: "",
+
                               }));
                             }}
                           >
                             <td className="p-2 px-6">{product.product_code}</td>
-                            <td className="p-2 px-6">{product.product_name}</td>
                             <td className="p-2 px-6">
-                              {product.product_brand}
+                              <ProductSummary product={product.productObj} />
                             </td>
-                            <td className="p-2 px-6">
-                              {product.product_model}
-                            </td>
+                            
                             <td className="p-2 px-6">
                               {product.serial_number}
                             </td>
@@ -1255,9 +1253,7 @@ export default function Salidas(props) {
                 <thead className="header  text-dark text-xs px-  ">
                   <tr>
                     <th className="py-2">Cód.</th>
-                    <th className="py-2">Nombre del equipo</th>
-                    <th className="py-2">Marca</th>
-                    <th className="py-2">Modelo</th>
+                    <th className="py-2">Equipo</th>
                     <th className="py-2">Serial</th>
                     <th className="py-2">Bien Nacional</th>
                     <th className="py-2">Estado</th>
@@ -1274,9 +1270,9 @@ export default function Salidas(props) {
                     className="body px-2  px-30  text-dark items-center text-sm justify-between"
                   >
                     <td className="p-4 px-5">{NewRegister.product_code}</td>
-                    <td className="p-4 px-5">{NewRegister.product_name}</td>
-                    <td className="p-4 px-5">{NewRegister.product_brand}</td>
-                    <td className="p-4 px-5">{NewRegister.product_model}</td>
+                    <td className="p-4 px-5">
+                      <ProductSummary product={NewRegister.productObj} />
+                    </td>
                     <td className="p-4 px-5">{NewRegister.serial_number}</td>
                     <td className="p-4 px-5">{NewRegister.national_code}</td>
                     <td className="p-4 px-5">
