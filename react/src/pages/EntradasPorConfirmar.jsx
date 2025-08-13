@@ -547,23 +547,9 @@ export default function Entradas(props) {
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
       return (
         <div>
-          {dataTable[selectedRows.data[0].dataIndex]?.status == 5 && (
+          {dataTable[selectedRows.data[0].dataIndex]?.status == 3 && (
             <>
-              <IconButton
-                title="Transformar"
-                onClick={async () => {
-                  if (selectedRowRquest.id) {
-                    handleTransform(selectedRowRquest);
-                  } else {
-                    window.alert("> Despliegue los productos");
-                  }
-                }}
-              >
-                <div className="border rounded px-3 text-sm font-bold">
-                  <span className="mr-2">Transformar</span>
-                  <PublishedWithChangesIcon />
-                </div>
-              </IconButton>
+             
               <IconButton
                 title="Confirmar"
                 onClick={
