@@ -27,115 +27,110 @@ class OutputService extends ApiService
             'user',
             'inventoryGeneral.product',
             'inventoryGeneral.machineStatus',
-            'inventoryGeneral.lastMaintenanceType',
+            'inventoryGeneral.maintenance',
 
         )
-        ->when(request()->input('entity'),function ($query, $param) use ($userEntityCode){
+            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
 
                 $entity = $param;
 
                 if (!$userEntityCode == '1') {
                     $query->where('entity_code', $userEntityCode);
                 } else {
-                    if($entity != '*')
+                    if ($entity != '*')
                         $query->where('entity_code', $entity);
                 }
-        })
+            })
 
-        ->when(request()->input('outputs'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('outputs'), function ($query, $param) use ($userEntityCode) {
 
 
 
-            if(isset($param['status']))
-            {
-                $status = $param['status'];
-                $statuses = $this->parseQuery($status);
+                if (isset($param['status'])) {
+                    $status = $param['status'];
+                    $statuses = $this->parseQuery($status);
 
-                $query->where(function ($query) use ($statuses){
+                    $query->where(function ($query) use ($statuses) {
 
-                    $query->where('status',$statuses[0]);
+                        $query->where('status', $statuses[0]);
 
-                    if(count($statuses) > 1)
-                    {
-                        array_shift($statuses);
+                        if (count($statuses) > 1) {
+                            array_shift($statuses);
 
-                        foreach($statuses as $status)
-                        {
-                            $query->orWhere('status',$status);
+                            foreach ($statuses as $status) {
+                                $query->orWhere('status', $status);
+                            }
                         }
-                    }
+                    });
+                }
 
-                });
-            }
+                if (isset($param['organizationId'])) {
 
-            if (isset($param['organizationId'])) {
+                    $organizationID = $param['organizationId'];
 
-                $organizationID = $param['organizationId'];
+                    $query->where(function ($query) use ($organizationID) {
 
-                $query->where(function ($query) use ($organizationID) {
+                        $query->where('organization_id', $organizationID);
+                    });
+                }
 
-                    $query->where('organization_id', $organizationID);
+                if (isset($param['day'])) {
+                    $days = $this->parseQuery($param['day']);
 
-                });
-            }
+                    $query->where(function ($query) use ($days) {
+                        $query->whereDay('created_at', $days[0]);
 
-            if(isset($param['day'])) {
-                $days = $this->parseQuery($param['day']);
-
-                $query->where(function ($query) use ($days) {
-                    $query->whereDay('created_at', $days[0]);
-
-                    if(count($days) > 1) {
-                        array_shift($days);
-                        foreach($days as $day) {
-                            $query->orWhereDay('created_at', $day);
+                        if (count($days) > 1) {
+                            array_shift($days);
+                            foreach ($days as $day) {
+                                $query->orWhereDay('created_at', $day);
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            if(isset($param['month'])) {
-                $months = $this->parseQuery($param['month']);
+                if (isset($param['month'])) {
+                    $months = $this->parseQuery($param['month']);
 
-                $query->where(function ($query) use ($months) {
-                    $query->whereMonth('created_at', $months[0]);
+                    $query->where(function ($query) use ($months) {
+                        $query->whereMonth('created_at', $months[0]);
 
-                    if(count($months) > 1) {
-                        array_shift($months);
-                        foreach($months as $month) {
-                            $query->orWhereMonth('created_at', $month);
+                        if (count($months) > 1) {
+                            array_shift($months);
+                            foreach ($months as $month) {
+                                $query->orWhereMonth('created_at', $month);
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            if(isset($param['year'])) {
-                $years = $this->parseQuery($param['year']);
+                if (isset($param['year'])) {
+                    $years = $this->parseQuery($param['year']);
 
-                $query->where(function ($query) use ($years) {
-                    $query->whereYear('created_at', $years[0]);
+                    $query->where(function ($query) use ($years) {
+                        $query->whereYear('created_at', $years[0]);
 
-                    if(count($years) > 1) {
-                        array_shift($years);
-                        foreach($years as $year) {
-                            $query->orWhereYear('created_at', $year);
+                        if (count($years) > 1) {
+                            array_shift($years);
+                            foreach ($years as $year) {
+                                $query->orWhereYear('created_at', $year);
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            if (isset($param['id'])) {
-                $query->where('id', $param['id']);
-            }
-        })
+                if (isset($param['id'])) {
+                    $query->where('id', $param['id']);
+                }
+            })
 
-        ->when(request()->input('search'), function ($query, $param) {
+            ->when(request()->input('search'), function ($query, $param) {
 
-            if (!isset($param['all'])) return 0;
+                if (!isset($param['all'])) return 0;
 
-            $search = $param['all'];
+                $search = $param['all'];
 
-            $query->where(function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
                     $string = $this->generateString($search);
 
                     $query->where(function ($query) use ($string) {
@@ -143,99 +138,90 @@ class OutputService extends ApiService
                         $query->where('code', 'ILIKE', $string)
                             ->orWhere('area', 'ILIKE', $string);
                     })
-                    ->orWhereHas('inventoryGeneral', function ($query) use ($string) {
-                        // Condiciones en inventoryGeneral
-                        $query->where('serial_number', 'ILIKE', $string)
-                            ->orWhere('national_code', 'ILIKE', $string);
-                    })
-                    ->orWhereHas('inventoryGeneral.product', function($query) use ($string) {
-                        // Condiciones en la relación product (anidada en inventoryGeneral)
-                        $query->where('machine', 'ILIKE', $string)
-                            ->orWhere('brand', 'ILIKE', $string)
-                            ->orWhere('model', 'ILIKE', $string);
-                    })
-                    ->orWhereHas('organization', function ($query) use ($string) {
-                        // Condiciones en la relación organization
-                        $query->where('search', 'ILIKE', $string);
-                    });
+                        ->orWhereHas('inventoryGeneral', function ($query) use ($string) {
+                            // Condiciones en inventoryGeneral
+                            $query->where('serial_number', 'ILIKE', $string)
+                                ->orWhere('national_code', 'ILIKE', $string);
+                        })
+                        ->orWhereHas('inventoryGeneral.product', function ($query) use ($string) {
+                            // Condiciones en la relación product (anidada en inventoryGeneral)
+                            $query->where('machine', 'ILIKE', $string)
+                                ->orWhere('brand', 'ILIKE', $string)
+                                ->orWhere('model', 'ILIKE', $string);
+                        })
+                        ->orWhereHas('organization', function ($query) use ($string) {
+                            // Condiciones en la relación organization
+                            $query->where('search', 'ILIKE', $string);
+                        });
                 });
+            })
 
-        })
-
-        ->when(request()->input('organization'), function($query,$param)
-        {
-            if(isset($param['name']))
-            {
-                $organizationName = $param['name'];
-                $organizations = $this->parseQuery($organizationName);
+            ->when(request()->input('organization'), function ($query, $param) {
+                if (isset($param['name'])) {
+                    $organizationName = $param['name'];
+                    $organizations = $this->parseQuery($organizationName);
 
 
-                $query->whereHas('organization', function($query) use($organizations)
-                {
-                    $query->where('name',$organizations[0]);
-                    if(count($organizations) > 1)
-                    {
-                        array_shift($organizations);
+                    $query->whereHas('organization', function ($query) use ($organizations) {
+                        $query->where('name', $organizations[0]);
+                        if (count($organizations) > 1) {
+                            array_shift($organizations);
 
-                        foreach($organizations as $organization)
-                        {
-                            $query->orWhere('name',$organization);
+                            foreach ($organizations as $organization) {
+                                $query->orWhere('name', $organization);
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
+            })
 
-        })
+            ->when(request()->input('orderBy'), function ($query, $param) {
+                $orderDirection = (request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
+                    ? request()->input('orderDirection')
+                    : 'desc';
 
-        ->when(request()->input('orderBy'), function($query, $param) {
-            $orderDirection = (request()->input('orderDirection') == 'asc' || request()->input('orderDirection') == 'desc')
-                ? request()->input('orderDirection')
-                : 'desc';
-
-            switch ($param) {
-                case 'code':
-                    $query->orderBy('code', $orderDirection);
-                    break;
+                switch ($param) {
+                    case 'code':
+                        $query->orderBy('code', $orderDirection);
+                        break;
 
 
-                case 'departureDate':
-                    $query->orderBy('created_at',$orderDirection);
-                    break;
+                    case 'departureDate':
+                        $query->orderBy('created_at', $orderDirection);
+                        break;
 
-                case 'departureTime':
-                    $query->orderBy('departure_time',$orderDirection);
-                    break;
+                    case 'departureTime':
+                        $query->orderBy('departure_time', $orderDirection);
+                        break;
 
-                case 'organizationObj':
-                    $query->orderByRaw(
-                        '(SELECT "name" FROM "organizations" WHERE "organizations"."id" = "output_generals"."organization_id" LIMIT 1) ' . $orderDirection
+                    case 'organizationObj':
+                        $query->orderByRaw(
+                            '(SELECT "name" FROM "organizations" WHERE "organizations"."id" = "output_generals"."organization_id" LIMIT 1) ' . $orderDirection
                         );
-                break;
+                        break;
+                }
+            })
 
-            }
-        })
+            ->unless(request()->input('entity'), function ($query) {
+                $entity = auth()->user()->entity_code;
+                $query->where('entity_code', $entity);
+            })
 
-        ->unless(request()->input('entity'), function($query) {
-            $entity = auth()->user()->entity_code;
-            $query->where('entity_code', $entity);
-        })
-
-        ->unless(request()->input('orderBy'), function($query) {
-            $query->orderBy('id', 'desc');
-        })->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
+            ->unless(request()->input('orderBy'), function ($query) {
+                $query->orderBy('id', 'desc');
+            })->paginate(request()->input('rowsPerPage'), ['*'], 'page', request()->input('page'));
 
 
         return $outputs;
-
     }
 
     public function create($data)
     {
         $user = auth()->user();
 
-        return DB::transaction(function () use($data, $user) {
+        return DB::transaction(function () use ($data, $user) {
 
-            try{
+            try {
 
                 $newOutputCode = $this->generateNewOutputCode($user->entity_code);
 
@@ -255,41 +241,39 @@ class OutputService extends ApiService
 
 
                 return ['message' => 'Salida creada exitosamente', 'outputGeneralID' => $newOutputGeneral->id];
+            } catch (Exception $e) {
 
+                Log::error('OutputService -  Error al crear salida: ' . $e->getMessage(), [
+                    'data' => $data,
+                    'trace' => $e->getTraceAsString()
+                ]);
 
+                throw $e;
             }
-            catch (Exception $e){
-
-            Log::error('OutputService -  Error al crear salida: '. $e->getMessage(), [
-                'data' => $data,
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            throw $e;
-
-            }
-
         });
     }
 
-    public function handleOutputToOtherInventory($newOutputGeneral){
+    public function handleOutputToOtherInventory($newOutputGeneral)
+    {
 
         $destiny = Organization::where('id', $newOutputGeneral->organization_id)->first();
 
-        if($destiny->code != 'nocode' && $destiny->code != 'NOCODE' && $newOutputGeneral->status == 3){
+        Log::info($destiny->code);
 
+        if ($destiny->code != 'nocode' && $destiny->code != 'NOCODE' && $newOutputGeneral->status == 1) {
+
+            Log::info('si esta entrando en la salida');
             $entryToConfirmService = new EntryToConfirmService();
             $entryToConfirmService->createGeneralEntry($newOutputGeneral, $destiny);
-
         }
 
         return 0;
-
     }
 
-    public function update($data, $outputGeneral){
+    public function update($data, $outputGeneral)
+    {
 
-        try{
+        try {
 
             $this->delete($outputGeneral);
             $this->create($data);
@@ -298,8 +282,7 @@ class OutputService extends ApiService
             NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_SALIDA->value, $outputGeneral->id);
 
             return ['message' => 'Salida Actualizada exitosamente'];
-
-        }catch (Exception $e){
+        } catch (Exception $e) {
 
             Log::error('OutputService - Error al actualizar salida: ' . $e->getMessage(), [
                 'data' => $data,
@@ -307,19 +290,17 @@ class OutputService extends ApiService
             ]);
 
             throw $e;
-
         }
-
-
     }
 
-    public function delete(OutputGeneral $outputGeneral){
+    public function delete(OutputGeneral $outputGeneral)
+    {
 
         $user = auth()->user();
 
-        return DB::transaction(function() use($outputGeneral, $user){
+        return DB::transaction(function () use ($outputGeneral, $user) {
 
-            try{
+            try {
 
                 $outputGeneral->update(
                     [
@@ -330,30 +311,26 @@ class OutputService extends ApiService
                 NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_SALIDA->value, $outputGeneral->id);
 
                 return ['message' => 'Salida Eliminada exitosamente'];
-
-
-            }catch( Exception $e ){
+            } catch (Exception $e) {
 
                 Log::error('OutputService - Error al eliminar salida: ' . $e->getMessage(), [
                     'data' => [$outputGeneral],
                     'trace' => $e->getTraceAsString(),
                 ]);
-
             }
-
         });
-
     }
 
 
-    public function generateNewOutputCode($entityCode){
+    public function generateNewOutputCode($entityCode)
+    {
 
-        $lastOutputCode = OutputGeneral::where('entity_code',$entityCode)
-        ->lockForUpdate()
-        ->orderBy('code','desc')
-        ->pluck('code')->first();
+        $lastOutputCode = OutputGeneral::where('entity_code', $entityCode)
+            ->lockForUpdate()
+            ->orderBy('code', 'desc')
+            ->pluck('code')->first();
 
-        if($lastOutputCode == null)
+        if ($lastOutputCode == null)
             $lastOutputCode = 0;
 
         return $lastOutputCode + 1;

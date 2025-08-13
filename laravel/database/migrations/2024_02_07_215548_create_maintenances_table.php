@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+
         Schema::create('maintenances', function (Blueprint $table) {
+
+
             $table->id();
             $table->string('entity_code');
             $table->foreign('entity_code')
-                  ->references('code')
-                  ->on('hierarchy_entities')
-                  ->constrained()
-                  ->onDelete("restrict")
-                  ->onUpdate("cascade");
-            $table->unsignedBigInteger('inventory_general_id');
-            $table->foreign('inventory_general_id')->references('id')->on('inventory_generals')->onDelete('cascade');
+                ->references('code')
+                ->on('hierarchy_entities')
+                ->constrained()
+                ->onDelete("restrict")
+                ->onUpdate("cascade");
+
             $table->unsignedBigInteger('machine_status_id');
             $table->foreign('machine_status_id')->references('id')->on('machine_statuses')->onDelete('restrict');
             $table->foreignId('type_maintenance_id');

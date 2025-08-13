@@ -40,8 +40,9 @@ class InventoryResource extends JsonResource
             "machine_status_id" => $this->machine_status_id,
             "machine_status_name" => $this->machineStatus->name,
             "components" => $this->components,
-            'last_type_maintenance_id' => $this->last_type_maintenance_id ?? null,
-            'last_type_maintenance_name' => $this->lastMaintenanceType->name ?? null,
+            'last_type_maintenance_id' => $this->maintenance->type_maintenance_id ?? null,
+            'last_type_maintenance_name' => $this->maintenance->typeMaintenance->name ?? null,
+            'maintenance_id' => $this->maintenance_id,
         ];
     }
 }

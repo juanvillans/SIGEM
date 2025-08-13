@@ -22,7 +22,13 @@ class EntryToConfirmResource extends JsonResource
             "outputCode" => $this->output_code,
             "createdAt" => $this->created_at,
             "updatedAt" => $this->updated_at,
-            "guide" => $this->guide,
+            "productObj" => (object) [
+                "name" => $this->product->machine,
+                "brand" => $this->product->brand,
+                "model" => $this->product->model,
+                "level" => $this->product->level,
+                'required_components' => $this->product->required_components,
+            ],
             "departureTime" => $this->departure_time,
             "departureDate" => Carbon::parse($this->departure_date)->format('Y-m-d'),
             "arrivalTime" => $this->arrival_time,
@@ -39,6 +45,5 @@ class EntryToConfirmResource extends JsonResource
             "entityFromCode" => $this->entityFrom->code,
             "entityFromName" => $this->entityFrom->name,
         ];
-         
     }
 }

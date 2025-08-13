@@ -46,15 +46,7 @@ const days = [
 ];
 const currentDate = new Date();
 export default function Entradas(props) {
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      const guideNumberInput = document.querySelector("#guideNumber");
-      if (guideNumberInput && guideNumberInput === document.activeElement) {
-        event.preventDefault();
-        requestGuide(guideNumberInput.value);
-      }
-    }
-  });
+ 
   const [isLoading, setIsLoading] = useState(true);
   const [localStorageForm, setLocalStorageForm] = useState(false);
   const  [transformToSend, setTransformToSend] = useState({})
@@ -95,7 +87,6 @@ export default function Entradas(props) {
     content: <></>,
   });
 
-  const [typeOfGuide, setTypeOfGuide] = useState("nueva");
 
   const [relation, setRelation] = useState(true);
   const [parametersURL, setParametersURL] = useState({
@@ -178,13 +169,7 @@ export default function Entradas(props) {
         },
       },
     },
-    {
-      name: "guide",
-      label: "nro. guia",
-      options: {
-        filter: false,
-      },
-    },
+
     {
       name: "departureDate",
       label: "F. De salida",
@@ -245,23 +230,6 @@ export default function Entradas(props) {
       },
     },
 
-    {
-      name: "authorityFullname",
-      label: "Encargado de recibir",
-      options: {
-        // display: "excluded",
-        sort: false,
-        filter: false,
-      },
-    },
-    {
-      name: "authorityCi",
-      label: "C.I de encargado de recibir",
-      options: {
-        sort: false,
-        filter: false,
-      },
-    },
   ];
   
   const [organizations, setOrganizations] = useState([]);
@@ -637,8 +605,8 @@ export default function Entradas(props) {
       );
     },
     expandableRowsHeader: false,
-    expandableRowsOnClick: true,
-    expandableRows: true,
+    expandableRowsOnClick: false,
+    expandableRows: false,
     renderExpandableRow: (rowData, rowMeta) => {
       const entry = dataTable[rowMeta.dataIndex];
       return (
@@ -682,7 +650,6 @@ export default function Entradas(props) {
       });
     }
 
-    setTypeOfGuide("nueva");
     setOpen(true);
     setSubmitStatus(submitText);
   }

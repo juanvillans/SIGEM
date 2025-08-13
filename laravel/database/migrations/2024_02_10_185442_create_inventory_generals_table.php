@@ -28,17 +28,17 @@ return new class extends Migration
             $table->json('components');
             $table->string('area')->nullable()->default('No especificada');
             $table->integer('quantity');
-            $table->unsignedInteger('entry_general_id');
+            $table->unsignedBigInteger('entry_general_id');
             $table->foreign('entry_general_id')
                 ->references('id')
                 ->on('entry_generals')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
-            $table->unsignedInteger('last_type_maintenance_id')->nullable();
-            $table->foreign('last_type_maintenance_id')
+            $table->unsignedBigInteger('maintenance_id')->nullable();
+            $table->foreign('maintenance_id')
                 ->references('id')
-                ->on('type_maintenances')
-                ->onDelete("restrict")
+                ->on('maintenances')
+                ->onDelete("set null")
                 ->onUpdate("cascade");
 
             $table->timestamps();
