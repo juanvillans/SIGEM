@@ -842,7 +842,7 @@ export default function Salidas(props) {
       setProductsSearched([]);
 
       setNewRegister({
-        id: "",
+        id: null,
         area: "",
         inventory_general_id: "",
         departure_time: getCurrentTime(),
@@ -980,7 +980,7 @@ export default function Salidas(props) {
               }));
               if (submitStatus == "Editar") {
                 setNewRegister({
-                  id: "",
+                  id: null,
                   area: "",
                   inventory_general_id: "",
                   departure_time: getCurrentTime(),
