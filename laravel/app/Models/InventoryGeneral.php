@@ -30,7 +30,7 @@ class InventoryGeneral extends Model
         'area',
         'quantity',
         'entry_general_id',
-        'last_type_maintenance_id'
+        'maintenance_id'
     ];
 
     /**
@@ -78,67 +78,8 @@ class InventoryGeneral extends Model
     /**
      * Get the last maintenance type performed on the inventory item.
      */
-    public function lastMaintenanceType(): BelongsTo
+    public function maintenance(): BelongsTo
     {
-        return $this->belongsTo(TypeMaintenance::class, 'last_type_maintenance_id');
+        return $this->belongsTo(Maintenance::class, 'maintenance_id');
     }
-
-
-    /**
-     * Scope a query to only include operational items.
-     */
-    public function scopeOperational($query)
-    {
-        return $query->where('machine_status_id', MachineStatus::OPERATIVO->value);
-
-    }
-
-    /**
-     * Scope a query to only include non-operational items.
-     */
-    public function scopeNonOperational($query)
-    {
-        return $query->where('machine_status_id', MachineStatus::INOPERATIVO->value);
-    }
-
-    public function scopeMaintenance($query)
-    {
-        return $query->where('machine_status_id', MachineStatus::MANTENIMIENTO->value);
-    }
-
-    public function scopePending($query)
-    {
-        return $query->where('machine_status_id', MachineStatus::PENDIENTE->value);
-    }
-
-    /**
-     * Scope a query to only include items in maintenance.
-     */
-    public function scopeWithoutMaintenance($query)
-    {
-        return $query->whereNull('last_type_maintenance_id');
-    }
-
-    public function scopeInInstalation($query)
-    {
-        return $query->where('last_type_maintenance_id', TypeMaintenance::INSTALACION->value);
-    }
-
-
-    public function scopeInPrevent($query)
-    {
-        return $query->where('last_type_maintenance_id', TypeMaintenance::PREVENTIVO->value);
-    }
-
-    public function scopeInCorrective($query)
-    {
-        return $query->where('last_type_maintenance_id', TypeMaintenance::CORRECTIVO->value);
-    }
-
-    public function scopeInTechnicalReview($query)
-    {
-        return $query->where('last_type_maintenance_id', TypeMaintenance::REVISION_TECNICA->value);
-    }
-
-
 }

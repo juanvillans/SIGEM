@@ -13,7 +13,7 @@ class InventoryService extends ApiService
         $userEntityCode = auth()->user()->entity_code;
 
         $query = InventoryGeneral::where('quantity', '>', 0)
-            ->with('entity', 'product', 'machineStatus', 'lastMaintenanceType')
+            ->with('entity', 'product', 'machineStatus', 'maintenance.typeMaintenance')
             ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
                 $entity = $param;
 
@@ -25,10 +25,12 @@ class InventoryService extends ApiService
                 }
             })
             ->when(request()->input('inventories'), function ($query, $param) use ($userEntityCode) {
+
                 if (isset($param['last_type_maintenance_id'])) {
-                    $last_type_id = $param['last_type_maintenance_id'];
-                    $query->where(function ($query) use ($last_type_id) {
-                        $query->where('last_type_maintenance_id', $last_type_id);
+
+                    $query->whereHas('maintenance', function ($query) use ($param) {
+                        $last_type_id = $param['last_type_maintenance_id'];
+                        $query->where('type_maintenance_id', $last_type_id);
                     });
                 }
 
@@ -76,6 +78,9 @@ class InventoryService extends ApiService
                         })
                         ->orWhereHas('organization', function ($query) use ($string) {
                             $query->where('search', 'ILIKE', $string);
+                        })
+                        ->orWhereHas('entity', function ($query) use ($string) {
+                            $query->where('name', 'ILIKE', $string);
                         });
                 });
             })
