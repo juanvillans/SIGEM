@@ -47,7 +47,6 @@ function limitObjectSize(obj, maxSize = 6) {
   return obj;
 }
 
-
 const filterConfiguration = {
   conditionName: "&condition[name]=",
   categoryName: "&category[name]=",
@@ -279,7 +278,6 @@ export default function Entradas(props) {
         },
       },
     },
- 
 
     {
       name: "productObj",
@@ -762,7 +760,6 @@ export default function Entradas(props) {
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
     if (isJustForCopy) {
-  
     } else {
       copySelectedRowRquest.components =
         copySelectedRowRquest?.components || {};
@@ -1013,6 +1010,83 @@ export default function Entradas(props) {
             </div>
           )}
         </div>
+        <Autocomplete
+          className="md:min-w-[290px] md:mr-28"
+          size={"small"}
+          id="destinyFilter"
+          options={organizations}
+          getOptionLabel={(option) => option?.name || ""} // Ensure a string is always returned
+          value={parametersURL?.filterObjectValues?.organizationObj || null} // Use null for empty value
+          onChange={(e, newValue) => {
+            // console.log(newValue);
+
+            // Update the filter object and parametersURL state
+            if (newValue) {
+              filterObject[
+                "organizationObj"
+              ] = `&entries[organizationId]=${newValue.id}`;
+            } else {
+              delete filterObject["organizationObj"]; // Remove the organization filter if newValue is null
+            }
+
+            setParametersURL((prev) => ({
+              ...prev,
+              filter: Object.values(filterObject).join(""),
+              page: 1,
+              filterObjectValues: {
+                ...prev.filterObjectValues,
+                organizationObj: newValue, // Set to null if cleared
+              },
+              filterObject,
+            }));
+          }}
+          onInputChange={(e, newValue, reason) => {
+            if (reason === "clear") {
+              // Handle the clear action explicitly
+              setParametersURL((prev) => ({
+                ...prev,
+                filterObjectValues: {
+                  ...prev.filterObjectValues,
+                  organizationObj: null, // Clear the value
+                },
+              }));
+            } else {
+              // Handle search input changes
+              handleSearchOrganizations(
+                e?.target?.value || NewRegister?.organizationObject?.name || ""
+              );
+            }
+          }}
+          renderOption={(propsAutocomplete, option) => {
+            const { key, ...optionProps } = propsAutocomplete;
+            return (
+              <Box
+                key={option.name + option.id}
+                component="li"
+                sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                {...optionProps}
+              >
+                {option.code !== props?.userData?.entityCode && (
+                  <p className="text-xs" style={{ fontSize: "14px" }}>
+                    <span style={{ color: "#011140", marginRight: "5px" }}>
+                      {option.code !== "nocode" && <StoreIcon />}
+                    </span>
+                    {option.name}
+                  </p>
+                )}
+              </Box>
+            );
+          }}
+          renderInput={(params) => (
+            <TextField
+              className="text-xs"
+              required
+              key={params}
+              {...params}
+              label="Filtrar por origen"
+            />
+          )}
+        />
       </div>
 
       <Modal
@@ -1118,7 +1192,8 @@ export default function Entradas(props) {
                                 const serialInputs = document.querySelectorAll(
                                   'input[name^="serial_"]'
                                 );
-                                const lastSerialInput = serialInputs[serialInputs.length - 1];
+                                const lastSerialInput =
+                                  serialInputs[serialInputs.length - 1];
                                 if (lastSerialInput) {
                                   lastSerialInput.focus();
                                 }
@@ -1167,9 +1242,7 @@ export default function Entradas(props) {
                       </tr>
                     </thead>
                     <tbody className="">
-                      <tr
-                        className="body px-2  px-30  text-dark items-center text-sm "
-                      >
+                      <tr className="body px-2  px-30  text-dark items-center text-sm ">
                         <td className="p-4 px-2 w-[60px] ">
                           {NewRegister.product.code}
                         </td>
@@ -1212,7 +1285,7 @@ export default function Entradas(props) {
                             }}
                           >
                             {generalData.machine_status?.map((option) => (
-                              <MenuItem key={"*"+option.id} value={option.id}>
+                              <MenuItem key={"*" + option.id} value={option.id}>
                                 {option.name}
                               </MenuItem>
                             )) || <MenuItem value={""}></MenuItem>}
