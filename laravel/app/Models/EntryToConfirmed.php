@@ -17,25 +17,30 @@ class EntryToConfirmed extends Model
         'quantity',
         'area',
         'serial_number',
+        'national_code',
         'machine_status_id',
         'departure_time',
         'arrival_time',
         'output_general_id',
         'status',
+        'components',
     ];
 
+    public $casts = [
+        'components' => 'array',
+    ];
 
-    public function entity(){
+    public function entity()
+    {
         return $this->belongsTo(HierarchyEntity::class, 'entity_code', 'code');
-
     }
 
-    public function entityFrom(){
+    public function entityFrom()
+    {
         return $this->belongsTo(HierarchyEntity::class, 'entity_code_from', 'code');
-
     }
 
-     public function product()
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }
@@ -63,8 +68,4 @@ class EntryToConfirmed extends Model
     {
         return $this->belongsTo(OutputGeneral::class);
     }
-
-
-
-
 }
