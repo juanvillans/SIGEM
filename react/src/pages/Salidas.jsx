@@ -110,7 +110,7 @@ export default function Salidas(props) {
   });
   let date = new Date().toISOString().split("T")[0];
   const [NewRegister, setNewRegister] = useState({
-    id: "",
+    id: null,
     area: "",
     inventory_general_id: "",
     departure_time: getCurrentTime(),
