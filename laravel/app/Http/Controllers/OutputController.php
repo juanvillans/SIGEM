@@ -17,10 +17,10 @@ class OutputController extends Controller
     private $outputService;
 
 
-    public function __construct(){
+    public function __construct()
+    {
 
         $this->outputService = new OutputService;
-
     }
 
     public function index(Request $request)
@@ -32,7 +32,7 @@ class OutputController extends Controller
 
         $total = $outputs->total();
 
-        $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
+        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
 
 
 
@@ -43,18 +43,20 @@ class OutputController extends Controller
             'canSeeOthers' => $canSeeOthers,
             'message' => 'OK'
         ];
-
     }
 
     public function store(OutputRequest $request)
     {
 
+
+
         try {
+
+            dd('error');
 
             $response = $this->outputService->create($request->validated());
 
             return $response;
-
         } catch (Exception $e) {
 
             Log::error("Error al crear salida: " . $e->getMessage(), [
@@ -63,10 +65,9 @@ class OutputController extends Controller
             ]);
 
             return response()->json([
-            'status' => false,
-            'message' => 'Error al crear salida: ' .$e->getMessage()
+                'status' => false,
+                'message' => 'Error al crear salida: ' . $e->getMessage()
             ], 500);
-
         }
     }
 
@@ -78,46 +79,43 @@ class OutputController extends Controller
             $response = $this->outputService->update($request->validated(), $output);
 
             return $response;
-
-
         } catch (Exception $e) {
-
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-                ], 500);
-        }
-
-    }
-
-    public function destroy(OutputGeneral $output){
-
-        try{
-
-            $response = $this->outputService->delete($output);
-
-            return $response;
-
-
-        }catch( Exception $e){
 
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
 
+    public function destroy(OutputGeneral $output)
+    {
+
+        try {
+
+            $response = $this->outputService->delete($output);
+
+            return $response;
+        } catch (Exception $e) {
+
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
 
     public function show(OutputGeneral $output)
     {
-        $output->load('entity',
+        $output->load(
+            'entity',
             'organization',
             'user',
             'inventoryGeneral.product',
             'inventoryGeneral.machineStatus',
-            'inventoryGeneral.lastMaintenanceType',);
+            'inventoryGeneral.lastMaintenanceType',
+        );
 
         return new OutputResource($output);
     }
@@ -129,8 +127,5 @@ class OutputController extends Controller
         $this->outputService->handleOutputToOtherInventory($outputGeneral);
 
         return ['message' => 'OK'];
-
     }
-
-
 }
