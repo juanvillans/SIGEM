@@ -526,7 +526,7 @@ export default function Salidas(props) {
     getData(url);
     // url += `search?${parametersURL.search}`
   }, [parametersURL]);
-
+  console.log({})
   const deleteRegister = async (obj, fnEmptyRows) => {
     console.log({ obj });
     try {
@@ -1191,6 +1191,7 @@ export default function Salidas(props) {
                                 ...prev,
                                 inventory_general_id: product.id, // This ID is inventory_general_id
                                 ...product,
+                                id: prev.id,
                                 area: "",
 
                               }));
