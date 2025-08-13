@@ -52,7 +52,6 @@ class OutputController extends Controller
 
         try {
 
-            dd('error');
 
             $response = $this->outputService->create($request->validated());
 
