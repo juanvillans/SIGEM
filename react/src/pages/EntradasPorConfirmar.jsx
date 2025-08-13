@@ -46,10 +46,9 @@ const days = [
 ];
 const currentDate = new Date();
 export default function Entradas(props) {
- 
   const [isLoading, setIsLoading] = useState(true);
   const [localStorageForm, setLocalStorageForm] = useState(false);
-  const  [transformToSend, setTransformToSend] = useState({})
+  const [transformToSend, setTransformToSend] = useState({});
 
   useEffect(() => {
     document.title = "SIGEM | Entradas por confirmar";
@@ -74,10 +73,9 @@ export default function Entradas(props) {
     ],
   });
 
-  
   const [NewRegister, setNewRegister] = useState({
     products: [],
-    id: null
+    id: null,
   });
 
   const [open, setOpen] = useState(false);
@@ -86,7 +84,6 @@ export default function Entradas(props) {
     modalInfo: false,
     content: <></>,
   });
-
 
   const [relation, setRelation] = useState(true);
   const [parametersURL, setParametersURL] = useState({
@@ -229,9 +226,8 @@ export default function Entradas(props) {
         },
       },
     },
-
   ];
-  
+
   const [organizations, setOrganizations] = useState([]);
 
   const [totalData, setTotalData] = useState(0);
@@ -325,13 +321,13 @@ export default function Entradas(props) {
         })
         .then((response) => {
           let responseData = response.data.data;
-          
+
           let newProductsUI = [];
-          let newTransformedToSend = {}
+          let newTransformedToSend = {};
           for (let i = 0; i < copySelectedRowRquest.products.length; i++) {
             const originalPr = copySelectedRowRquest.products[i];
             const responseProduct = responseData[i];
-            
+
             if (originalPr.type_product == 2) {
               newProductsUI.push({ ...originalPr, itWasTransformed: null });
             } else if (responseProduct.new === null) {
@@ -345,12 +341,14 @@ export default function Entradas(props) {
                 description: originalPr.description,
                 conditionId: originalPr.conditionId,
                 itWasTransformed: true,
-                entry_id: originalPr.entry_id
+                entry_id: originalPr.entry_id,
               });
-
+            }
           }
-        }
-          setNewRegister({id: copySelectedRowRquest.id, products: newProductsUI });
+          setNewRegister({
+            id: copySelectedRowRquest.id,
+            products: newProductsUI,
+          });
 
           // setNewRegister({products: response.data.data})
           setOpen(true);
@@ -368,20 +366,16 @@ export default function Entradas(props) {
   const handleTransformSave = async (e) => {
     e.preventDefault();
 
-    if (
-      !window.confirm(
-        `¿Está seguro de Confirmarlo?`
-      )
-    ) {
+    if (!window.confirm(`¿Está seguro de Confirmarlo?`)) {
       return;
     }
     try {
       await axios
         .post(`/dashboard/entries-to-confirm/transform/confirm`, {
-          entryToConfirmID: NewRegister.id, 
-          products: NewRegister.products
+          entryToConfirmID: NewRegister.id,
+          products: NewRegister.products,
         })
-        
+
         .then((response) => {
           setAlert({
             open: true,
@@ -549,19 +543,13 @@ export default function Entradas(props) {
         <div>
           {dataTable[selectedRows.data[0].dataIndex]?.status == 3 && (
             <>
-             
               <IconButton
                 title="Confirmar"
                 onClick={
-                  async () => {
-                    if (selectedRowRquest.id) {
-                      handleRespond(selectedRows, "confirm");
-                    } else {
-                      window.alert("> Despliegue los productos");
-                    }
-                    // await editIconClick(selectedRows, "Crear", true);
+                  () => {
+                    handleRespond(selectedRows, "confirm");
+
                   }
-                  // setIsButtonDisabled(true);
                 }
               >
                 <div className="border rounded border-blue2 text-blue2 px-3 text-sm font-bold">
@@ -571,13 +559,8 @@ export default function Entradas(props) {
               </IconButton>
               <IconButton
                 title="Rechazar"
-                onClick={async () => {
-                  if (selectedRowRquest.id) {
-                    handleRespond(selectedRows, "reject");
-                  } else {
-                    window.alert("> Despliegue los productos");
-                  }
-                  // await editIconClick(selectedRows, "Crear", true);
+                onClick={() => {
+                  handleRespond(selectedRows, "reject");
                 }}
               >
                 <div className="border rounded border-red text-red px-3 text-sm font-bold">
@@ -687,7 +670,6 @@ export default function Entradas(props) {
                       "status"
                     ] = `&entryToConfirm[status]=${e.target.value}`;
 
-
                     setParametersURL((prev) => ({
                       ...prev,
                       filter: Object.values(filterObject).join(""),
@@ -697,7 +679,10 @@ export default function Entradas(props) {
                         status: e.target.value,
                       },
                       filterObject,
-                      orderBy: e.target.value == 6 || e.target.value == 7 ? "updated_at" : "id",
+                      orderBy:
+                        e.target.value == 6 || e.target.value == 7
+                          ? "updated_at"
+                          : "id",
                       orderDirection: "desc",
                     }));
                   }}
@@ -722,11 +707,11 @@ export default function Entradas(props) {
       />
     );
   }, [dataTable]);
-  
-  function getColorTransformed(status){
+
+  function getColorTransformed(status) {
     if (status == true) {
-      return "#011140"
-    } else if ( status == false) {
+      return "#011140";
+    } else if (status == false) {
       return "#BF0404";
     } else {
       return "rgb(226, 226, 226)";
@@ -746,13 +731,27 @@ export default function Entradas(props) {
         width={"96%"}
         onClose={() => setOpen(false)}
         content={
-
           <form onSubmit={handleTransformSave}>
             <div className="flex flex-col gap-1 mb-3">
-            <div div className="h-6  border-l-8 pl-2 text-xs flex items-center border-blue1">Producto transformado a Detal</div>
-            <div div className="h-6  border-l-8 pl-2 text-xs flex items-center border-red">Producto Mayor que no se pudo transformar porque no tiene un Detal asociado</div>
-            <div div className="h-6  border-l-8 pl-2 text-xs flex items-center border-light">Ya era un producto Detal, no fue necesario transformarlo</div>
-              
+              <div
+                div
+                className="h-6  border-l-8 pl-2 text-xs flex items-center border-blue1"
+              >
+                Producto transformado a Detal
+              </div>
+              <div
+                div
+                className="h-6  border-l-8 pl-2 text-xs flex items-center border-red"
+              >
+                Producto Mayor que no se pudo transformar porque no tiene un
+                Detal asociado
+              </div>
+              <div
+                div
+                className="h-6  border-l-8 pl-2 text-xs flex items-center border-light"
+              >
+                Ya era un producto Detal, no fue necesario transformarlo
+              </div>
             </div>
             <table className="w-full">
               <thead className="border py-2 my-3 border-light w-full border-l-8 border-l-white">
@@ -781,7 +780,6 @@ export default function Entradas(props) {
                   <th className="noPadding uppercase text-dark text-left p-2 bg-th font-medium">
                     Observación
                   </th> */}
-                  
                 </tr>
               </thead>
               {/* <div className="body px-2 grid grid-cols-subgrid px-30  items-center text-sm justify-between"> */}
@@ -792,10 +790,13 @@ export default function Entradas(props) {
                       <tr
                         key={product.id + "a" + i}
                         className={`text-dark text-sm border-l-8 border-r-8`}
-                        style={{borderColor: getColorTransformed(NewRegister.products[i]?.itWasTransformed)}}
+                        style={{
+                          borderColor: getColorTransformed(
+                            NewRegister.products[i]?.itWasTransformed
+                          ),
+                        }}
                       >
-                        <td className="p-2 "
-                        >
+                        <td className="p-2 ">
                           {NewRegister?.products.length - i}
                         </td>
                         <td className="p-2   border-b border-opacity-80 min-w-[140px]  border-light">
@@ -807,7 +808,14 @@ export default function Entradas(props) {
                         <td className="p-2   border-b border-opacity-80 border-light">
                           <p>
                             <b>{product.name}</b>{" "}
-                            {product.unitPerPackage > 1 ? <span className="text-green font-semibold">{product.unitPerPackage}<small>x</small> </span> : <span>{product.unitPerPackage}</span>}{" "}
+                            {product.unitPerPackage > 1 ? (
+                              <span className="text-green font-semibold">
+                                {product.unitPerPackage}
+                                <small>x</small>{" "}
+                              </span>
+                            ) : (
+                              <span>{product.unitPerPackage}</span>
+                            )}{" "}
                             {product.typePresentationName != "N/A"
                               ? product.typePresentationName
                               : ""}{" "}
@@ -822,36 +830,37 @@ export default function Entradas(props) {
                         <td className="p-2   border-b border-opacity-80 border-light">
                           {NewRegister.products[i]?.itWasTransformed == true ? (
                             <Input
-                                  size="small"
-                                  // data-index={i}
-                                  label={"Cantidad"}
-                                  required
-                                  key={`quantity_${i}`}
-                                  id={`quantity_${i}`}
-                                  value={NewRegister.products[i]?.quantity}
-                                  name={`quantity_${i}`}
-                                  onChange={(e) => {
-                                    if (e.target.value > 0) {
-                                      setNewRegister((prev) => {
-                                        
-                                        const updatedProducts = [...prev.products];
-                                        updatedProducts[i].quantity = e.target.value;
-                                
-                                        return {
-                                          ...prev,
-                                          products: updatedProducts,
-                                        };
-                                      });
-                                    };
-                                  }}
-                                  type={"number"}
-                                />
+                              size="small"
+                              // data-index={i}
+                              label={"Cantidad"}
+                              required
+                              key={`quantity_${i}`}
+                              id={`quantity_${i}`}
+                              value={NewRegister.products[i]?.quantity}
+                              name={`quantity_${i}`}
+                              onChange={(e) => {
+                                if (e.target.value > 0) {
+                                  setNewRegister((prev) => {
+                                    const updatedProducts = [...prev.products];
+                                    updatedProducts[i].quantity =
+                                      e.target.value;
 
-                          ) : NewRegister.products[i]?.quantity}
+                                    return {
+                                      ...prev,
+                                      products: updatedProducts,
+                                    };
+                                  });
+                                }
+                              }}
+                              type={"number"}
+                            />
+                          ) : (
+                            NewRegister.products[i]?.quantity
+                          )}
                         </td>
 
                         <td className="p-2   border-b border-opacity-80 border-light">
-                        {NewRegister.products[i]?.expirationDate}
+                          {NewRegister.products[i]?.expirationDate}
                         </td>
                         {/* <td className="p-2   border-b border-opacity-80 border-light">
                         {NewRegister.products[i]?.conditionName}
@@ -859,7 +868,6 @@ export default function Entradas(props) {
                         <td className="p-2  pl-2 border-b border-opacity-80 border-light">
                           {NewRegister.products[i]?.description}
                         </td> */}
-                        
                       </tr>
                     );
                   }
