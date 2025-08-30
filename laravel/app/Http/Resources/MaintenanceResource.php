@@ -32,6 +32,7 @@ class MaintenanceResource extends JsonResource
             "serial_number" => $this->inventoryGeneral->serial_number,
             "national_code" => $this->inventoryGeneral->national_code,
             "components" => $this->inventoryGeneral->components,
+            "area" => $this->inventoryGeneral->area ?? null,
             "productObj" => (object) [
                 "name" => $this->inventoryGeneral->product->machine,
                 "brand" => $this->inventoryGeneral->product->brand,
