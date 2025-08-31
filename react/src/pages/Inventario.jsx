@@ -12,7 +12,6 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import { IconButton, MenuItem } from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
-import ExpandRowInventory from "../components/expandRowInventory";
 import Alert from "../components/Alert";
 import Input from "../components/Input";
 import CircularProgress from "@mui/material/CircularProgress";

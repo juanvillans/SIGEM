@@ -27,6 +27,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import InputWhite from "../components/InputWhite";
 
 import ProductSummary from "../components/ProductSummary";
+import PrintPage from "../components/MaintenancePDF";
 
 function getCurrentTime() {
   const now = new Date();
@@ -614,7 +615,9 @@ export default function Mantenimiento(props) {
       return (
         <div>
             <>
-             
+             <IconButton>
+              <PrintPage data={rowData} isHidden={true} />
+             </IconButton>
               <IconButton
                 title="Editar"
                 onClick={() => {
