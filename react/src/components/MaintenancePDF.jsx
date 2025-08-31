@@ -110,7 +110,7 @@ const PrintPage = React.memo(function PrintPage(props) {
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: `Mantenimiento_${props.data.id}_${props.data.type_maintenance_name}_${props.data.product_name}-${props.data.create_at}`,
+    documentTitle: `Mantenimiento_${props.data.id}_${props.data.type_maintenance_name}_${props.data.product_name}-${props.data.created_at}`,
     copyStyles: true,
     pageStyle: `
       @page {
