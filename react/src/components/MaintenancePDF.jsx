@@ -12,7 +12,7 @@ const PrintableContent = React.memo(
           <img src={membrete} alt="" className="logo " />
 
           <div className="text-center ">
-            <h1 className="report-title">Reporte de dervicio técnico</h1>
+            <h1 className="report-title">Reporte de servicio técnico</h1>
           </div>
         </header>
 
