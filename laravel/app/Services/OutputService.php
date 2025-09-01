@@ -258,11 +258,11 @@ class OutputService extends ApiService
 
         $destiny = Organization::where('id', $newOutputGeneral->organization_id)->first();
 
-        Log::info($destiny->code);
+        Log::info('Este es el codigo del destino: ', [$destiny->code]);
 
         if ($destiny->code != 'nocode' && $destiny->code != 'NOCODE' && $newOutputGeneral->status == 1) {
 
-            Log::info('si esta entrando en la salida');
+            Log::info('Entrando para crear salida');
             $entryToConfirmService = new EntryToConfirmService();
             $entryToConfirmService->createGeneralEntry($newOutputGeneral, $destiny);
         }

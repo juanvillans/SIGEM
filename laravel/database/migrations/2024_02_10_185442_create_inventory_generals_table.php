@@ -21,7 +21,7 @@ return new class extends Migration
                 ->onDelete("restrict")
                 ->onUpdate("cascade");
             $table->foreignId('product_id');
-            $table->string('serial_number', 30)->unique();
+            $table->string('serial_number', 100)->unique();
             $table->string('national_code', 30);
             $table->foreignId('machine_status_id');
             $table->foreignId('organization_id');

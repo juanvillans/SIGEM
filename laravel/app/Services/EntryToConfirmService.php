@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Entry;
 use App\Models\Output;
 use App\Models\Parish;
@@ -33,8 +34,10 @@ use App\Http\Resources\EntryCollection;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\OutputCollection;
 use App\Http\Resources\EntryDetailResource;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Resources\EntryDetailCollection;
 use App\Http\Resources\OutputDetailCollection;
+use App\Notifications\RespondToShipmentNotification;
 
 class EntryToConfirmService extends ApiService
 {
@@ -167,7 +170,7 @@ class EntryToConfirmService extends ApiService
     public function createGeneralEntry($outputGeneral, $destiny)
     {
 
-        Log::info('atras');
+
         $entryToConfirm = EntryToConfirmed::create(
             [
                 'entity_code' => $destiny->code,
@@ -187,7 +190,7 @@ class EntryToConfirmService extends ApiService
             ]
         );
 
-        Log::info('aqui');
+        Log::info('Status de la vaina esta: ', [$entryToConfirm]);
 
         NewEntryToConfirm::dispatch($entryToConfirm);
 
@@ -216,6 +219,10 @@ class EntryToConfirmService extends ApiService
 
             $entryToConfirm->save();
 
+            $this->sendNotificationToOrigin($entryToConfirm, true);
+
+
+
             return 0;
         } catch (Exception $e) {
 
@@ -236,9 +243,13 @@ class EntryToConfirmService extends ApiService
         return DB::transaction(function () use ($data, $user) {
             try {
 
-                EntryToConfirmed::where('id', $data['entryToConfirmID'])
-                    ->where('status', InventoryMoveStatus::SIN_CONFIRMAR->value)
-                    ->update(['status' => InventoryMoveStatus::ELIMINADO]);
+                $entryToConfirm = EntryToConfirmed::where('id', $data['entryToConfirmID'])
+                    ->where('status', InventoryMoveStatus::SIN_CONFIRMAR->value)->first();
+
+                $entryToConfirm->update(['status' => InventoryMoveStatus::ELIMINADO]);
+
+                $this->sendNotificationToOrigin($entryToConfirm, false);
+
 
                 return 0;
             } catch (Exception $e) {
@@ -250,5 +261,18 @@ class EntryToConfirmService extends ApiService
                 throw $e;
             }
         });
+    }
+
+    protected function sendNotificationToOrigin($entriesToConfirmed, $confirmOrNot)
+    {
+
+        $organization = Organization::where('id', $entriesToConfirmed->organization_id)->first();
+        $ability = '5';
+        $users = User::where('entity_code', $organization->code)
+            ->whereHas('tokens', function ($query) use ($ability) {
+                $query->whereJsonContains('abilities', $ability);
+            })->get();
+
+        Notification::send($users, new RespondToShipmentNotification($entriesToConfirmed, $confirmOrNot, $entriesToConfirmed->entity_code));
     }
 }

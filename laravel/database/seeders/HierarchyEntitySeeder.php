@@ -16,7 +16,7 @@ class HierarchyEntitySeeder extends Seeder
         $fields =
             [
                 ['name' => 'Electro Medicina', 'code' => '1'],
-                ['name' => 'Casa de lupita', 'code' => '1-1'],
+                ['name' => 'Segunda division', 'code' => '1-1'],
 
             ];
 

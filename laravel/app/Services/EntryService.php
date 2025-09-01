@@ -2,20 +2,21 @@
 
 namespace App\Services;
 
-use App\Enums\InventoryMoveStatus;
 use Exception;
 use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Entry;
 use App\Enums\TypeActivity;
 use App\Events\NewActivity;
 use App\Events\EntryCreated;
 use App\Models\EntryGeneral;
+use App\Models\EntryToConfirmed;
+use App\Models\InventoryGeneral;
+use App\Enums\InventoryMoveStatus;
 use App\Events\EntryDetailCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
-use App\Models\EntryToConfirmed;
-use App\Models\InventoryGeneral;
 
 class EntryService extends ApiService
 {
@@ -325,6 +326,10 @@ class EntryService extends ApiService
                     'arrival_time' => $entryToConfirm->arrival_time,
                     'status' => InventoryMoveStatus::DESPACHADO->value,
                 ];
+
+                InventoryGeneral::where('serial_number', $entryToConfirm->serial_number)->update([
+                    'serial_number' => $entryToConfirm->serial_number . '-' . $entryToConfirm->entity_code . '-' . now()
+                ]);
 
                 $newEntryGeneral = EntryGeneral::create($data);
 

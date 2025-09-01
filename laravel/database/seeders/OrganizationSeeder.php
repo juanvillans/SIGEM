@@ -17,13 +17,23 @@ class OrganizationSeeder extends Seeder
         DB::unprepared(file_get_contents(database_path('sql/organizations.sql')));
 
         Organization::create([
-            'name' => 'casa de lupita',
+            'name' => 'Segunda division',
             'code' => '1-1',
-            'authority_fullname' => 'casa de lupita',
-            'authority_ci' => 'casa de lupita',
+            'authority_fullname' => 'Segunda division',
+            'authority_ci' => 'Segunda division',
             'municipality_id' => 1,
             'parish_id' => 1,
-            'search' => 'casa de lupita',
+            'search' => 'Segunda division',
+        ]);
+
+        Organization::create([
+            'name' => 'Electro Medicina',
+            'code' => '1',
+            'authority_fullname' => 'Electro Medicina',
+            'authority_ci' => '0000000',
+            'municipality_id' => 1,
+            'parish_id' => 1,
+            'search' => 'Electro Medicina',
         ]);
     }
 }
