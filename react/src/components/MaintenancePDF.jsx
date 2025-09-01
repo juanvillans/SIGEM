@@ -5,7 +5,7 @@ import membrete from "../assets/img/membrete.png";
 import "../css/components/PrintableContent.css";
 const PrintableContent = React.memo(
   React.forwardRef((props, ref) => {
-    console.log({ props });
+    console.log({ props, ref });
     return (
       <div ref={ref} className="printable-container">
         <header className="report-header">

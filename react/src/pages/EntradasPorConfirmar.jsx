@@ -66,9 +66,9 @@ export default function Entradas(props) {
     conditions: [],
     entities: [],
     entriesRequestStatus: [
-      { name: "sin responder", id: "5" },
-      { name: "confirmadas", id: "6" },
-      { name: "rechazadas", id: "7" },
+      { name: "sin responder", id: "3" },
+      { name: "confirmadas", id: "4" },
+      { name: "rechazadas", id: "2" },
     ],
   });
 
@@ -94,7 +94,7 @@ export default function Entradas(props) {
     filter: "",
     total: 0,
     filterList: [],
-    filterObjectValues: { status: "5" },
+    filterObjectValues: { status: "3" },
   });
   let selectedRowRquest = false;
 
