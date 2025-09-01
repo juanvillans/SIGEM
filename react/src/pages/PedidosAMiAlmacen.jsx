@@ -9,7 +9,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import RunningWithErrorsIcon from "@mui/icons-material/RunningWithErrors";
 import Select from "@mui/material/Select";
 import InputAdornment from "@mui/material/InputAdornment";
-import ExpandRowProducts from "../components/ExpandRowProducts";
 
 import { useLocation } from "react-router-dom";
 
