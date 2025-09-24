@@ -22,8 +22,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1',
                 'authority_fullname' => 'Electro Medicina',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Electro Medicina',
             ],
             [
@@ -31,8 +31,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-2',
                 'authority_fullname' => 'Lcda. Maribel Medina',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo IV Dr Alfredo Van Grieken',
             ],
             [
@@ -40,8 +40,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-3',
                 'authority_fullname' => 'Ing. Dilennis',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Dr Jose M Espinoza',
             ],
             [
@@ -49,8 +49,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-4',
                 'authority_fullname' => 'Ing. Dignelia',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo II Dr Lino Arevalo',
             ],
             [
@@ -58,8 +58,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-5',
                 'authority_fullname' => 'Ing. Alberto Chirinos',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Dr Emigdio Rios',
             ],
             [
@@ -67,8 +67,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-6',
                 'authority_fullname' => 'Ing. Maria Aguilar',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Dr Romulo Farias',
             ],
             [
@@ -76,8 +76,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-7',
                 'authority_fullname' => 'Stefani Hernandez',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Dr Carlos Diez del Siervo',
             ],
             [
@@ -85,8 +85,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-8',
                 'authority_fullname' => 'Ing. Jose Aguilar',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Maria Auxiliadora Muyale',
             ],
             [
@@ -94,8 +94,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-9',
                 'authority_fullname' => 'Ing. Henmar Cordoba',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Susana Maduro',
             ],
             [
@@ -103,8 +103,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-10',
                 'authority_fullname' => 'TSU. Abdimar Revilla',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Simon Bolivar',
             ],
             [
@@ -112,8 +112,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-11',
                 'authority_fullname' => 'Ing. Roxymar Molina',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Hosp Tipo I Dr Francisco Bustamante',
             ],
             [
@@ -121,8 +121,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-12',
                 'authority_fullname' => 'TSU. Manuel Galicia',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CDI Pedro de Armas',
             ],
             [
@@ -130,8 +130,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-13',
                 'authority_fullname' => 'TSU. Carlos Riera',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'ASIC Pedro de Armas',
             ],
             [
@@ -139,8 +139,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-14',
                 'authority_fullname' => 'Ing. Maria Alastre',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'ASIC Secundino Urbina',
             ],
             [
@@ -148,8 +148,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-15',
                 'authority_fullname' => 'TSU. Yrialber Moreno',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'ASIC Che Guevara',
             ],
             [
@@ -157,8 +157,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-16',
                 'authority_fullname' => 'TSU. Faviola Salgueiro',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'ASIC Carlina Luchon',
             ],
             [
@@ -166,8 +166,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-17',
                 'authority_fullname' => 'Luis Peluskevitz',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'ASIC Jose Ramon Jatem',
             ],
             [
@@ -175,8 +175,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-18',
                 'authority_fullname' => 'Ing. Argelis Soto',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CPE Tipo II Jose Fay Rodriguez',
             ],
             [
@@ -184,8 +184,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-19',
                 'authority_fullname' => 'TSU. Rossbelys Vargas',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CPE Tipo II Dr Pedro Iturbe',
             ],
             [
@@ -193,8 +193,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-20',
                 'authority_fullname' => 'TSU. Jose Oberto',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CPE Tipo II Eliecer Canelon',
             ],
             [
@@ -202,8 +202,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-21',
                 'authority_fullname' => 'Ing. Valeria Barreno',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CPE Tipo II Simon Bolivar Pueblo',
             ],
             [
@@ -211,8 +211,8 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-22',
                 'authority_fullname' => 'Ing. Milagros Zavala',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'CPE Tipo II Dr Alexander Friedrich',
             ],
             [
@@ -220,12 +220,14 @@ class OrganizationSeeder extends Seeder
                 'code' => '1-23',
                 'authority_fullname' => 'TSU. Pedro Acosta',
                 'authority_ci' => '0000000',
-                'municipality_id' => 1,
-                'parish_id' => 1,
+                'municipality_id' => 14,
+                'parish_id' => 58,
                 'search' => 'Mision Sonrisa',
             ],
         ];
 
         Organization::insert($organizations);
+
+        Organization::where('id', 2228)->update(['code' => 'nocode']);
     }
 }
