@@ -100,7 +100,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'Hosp. Tipo I Simon Bolivar',
-                'code' => '11-0',
+                'code' => '1-10',
                 'authority_fullname' => 'TSU. Abdimar Revilla',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -109,7 +109,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'Hosp. Tipo I Dr. Francisco Bustamante',
-                'code' => '11-1',
+                'code' => '1-11',
                 'authority_fullname' => 'Ing. Roxymar Molina',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -118,7 +118,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CDI. Pedro de Armas',
-                'code' => '11-2',
+                'code' => '1-12',
                 'authority_fullname' => 'TSU. Manuel Galicia',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -127,7 +127,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'ASIC. Pedro de Armas',
-                'code' => '11-3',
+                'code' => '1-13',
                 'authority_fullname' => 'TSU. Carlos Riera',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -136,7 +136,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'ASIC. Secundino Urbina',
-                'code' => '11-4',
+                'code' => '1-14',
                 'authority_fullname' => 'Ing. Maria Alastre',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -145,7 +145,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'ASIC. Che Guevara',
-                'code' => '11-5',
+                'code' => '1-15',
                 'authority_fullname' => 'TSU. Yrialber Moreno',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -154,7 +154,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'ASIC. Carlina Luchon',
-                'code' => '11-6',
+                'code' => '1-16',
                 'authority_fullname' => 'TSU. Faviola Salgueiro',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -163,7 +163,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'ASIC. Jose Ramon Jatem',
-                'code' => '11-7',
+                'code' => '1-17',
                 'authority_fullname' => 'Luis Peluskevitz',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -172,7 +172,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CPE. Tipo II Jose Fay Rodriguez',
-                'code' => '11-8',
+                'code' => '1-18',
                 'authority_fullname' => 'Ing. Argelis Soto',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -181,7 +181,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CPE. Tipo II Dr. Pedro Iturbe',
-                'code' => '11-9',
+                'code' => '1-19',
                 'authority_fullname' => 'TSU. Rossbelys Vargas',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -190,7 +190,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CPE. Tipo II Eliecer Canelon',
-                'code' => '21-0',
+                'code' => '1-20',
                 'authority_fullname' => 'TSU. Jose Oberto',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -199,7 +199,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CPE. Tipo II Simon Bolivar (Pueblo)',
-                'code' => '21-1',
+                'code' => '1-21',
                 'authority_fullname' => 'Ing. Valeria Barreno',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -208,7 +208,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'CPE. Tipo II Dr. Alexander Friedrich',
-                'code' => '21-2',
+                'code' => '1-22',
                 'authority_fullname' => 'Ing. Milagros Zavala',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
@@ -217,7 +217,7 @@ class OrganizationSeeder extends Seeder
             ],
             [
                 'name' => 'Misión Sonrisa',
-                'code' => '21-3',
+                'code' => '1-23',
                 'authority_fullname' => 'TSU. Pedro Acosta',
                 'authority_ci' => '0000000',
                 'municipality_id' => 1,
