@@ -47,6 +47,10 @@ function limitObjectSize(obj, maxSize = 6) {
   return obj;
 }
 
+function shortTimestamp() {
+  return "N/A_"+Date.now().toString().slice(2); // Remove "17" from beginning
+}
+
 const filterConfiguration = {
   conditionName: "&condition[name]=",
   categoryName: "&category[name]=",
@@ -96,20 +100,7 @@ export default function Entradas(props) {
   }, 290);
 
   const handleOptionSelectOrganizations = (event, value) => {
-    if (value && value?.code && value.code.toLowerCase() !== "nocode") {
-      setAlert({
-        open: true,
-        status: "Error",
-        message: `${value.name} debe registrar la salida de su inventario para recibirlo como entrada`,
-      });
-      setNewRegister((prev) => ({
-        ...prev,
-        organization_id: null,
-        organizationName: "",
-        organizationObject: null,
-      }));
-      return;
-    }
+   
 
     if (value) {
       setNewRegister((prev) => ({
@@ -948,6 +939,8 @@ export default function Entradas(props) {
     );
   }, [dataTable, generalData]);
 
+
+  console.log({NewRegister})
   const [alert, setAlert] = useState({
     open: false,
     status: "",
@@ -1179,6 +1172,7 @@ export default function Entradas(props) {
                                 serial_number: "",
                                 national_code: "",
                                 product: product,
+                                national_code: shortTimestamp(),
                                 components: product.required_components.reduce(
                                   (acc, component) => ({
                                     ...acc,
@@ -1267,6 +1261,8 @@ export default function Entradas(props) {
                             name={`national_code`}
                             size="small"
                             onChange={handleChange}
+                            onFocus={(e)=> e.target.select()}
+
                           />
                         </td>
                         <td className="p-4 px-2 w-[200px]">

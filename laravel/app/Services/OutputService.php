@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\InventoryMoveStatus;
 use Exception;
 use Carbon\Carbon;
 use App\Enums\TypeActivity;
@@ -10,8 +9,10 @@ use App\Events\NewActivity;
 use App\Models\Organization;
 use App\Events\OutputCreated;
 use App\Models\OutputGeneral;
+use App\Enums\InventoryMoveStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class OutputService extends ApiService
 {
@@ -224,6 +225,8 @@ class OutputService extends ApiService
             try {
 
                 $newOutputCode = $this->generateNewOutputCode($user->entity_code);
+                $this->validateEntityFromOrganization($data);
+
 
                 $data['code'] = $newOutputCode;
                 $data['entity_code'] = $user->entity_code;
@@ -334,5 +337,15 @@ class OutputService extends ApiService
             $lastOutputCode = 0;
 
         return $lastOutputCode + 1;
+    }
+
+    protected function validateEntityFromOrganization($data)
+    {
+        $organization = Organization::where('id', $data['organization_id'])->first();
+
+        if ($organization->code != 'nocode' && $organization->code != 'NOCODE') {
+            if ($organization->code == Auth::user()->entity_code)
+                throw new Exception("No se puede realizar una salida como destino a si mismo", 400);
+        }
     }
 }

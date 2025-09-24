@@ -10,12 +10,14 @@ use App\Enums\TypeActivity;
 use App\Events\NewActivity;
 use App\Events\EntryCreated;
 use App\Models\EntryGeneral;
+use App\Models\Organization;
 use App\Models\EntryToConfirmed;
 use App\Models\InventoryGeneral;
 use App\Enums\InventoryMoveStatus;
 use App\Events\EntryDetailCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
 
 class EntryService extends ApiService
@@ -209,6 +211,8 @@ class EntryService extends ApiService
 
                 $this->validateSerialNumberAndNationalCode($data);
 
+                $this->validateEntityFromOrganization($data);
+
                 $newEntryCode = $this->generateNewEntryCode($user->entity_code);
 
                 $data['code'] = $newEntryCode;
@@ -378,5 +382,15 @@ class EntryService extends ApiService
 
         if (isset($register2->id))
             throw new Exception("El bien nacional: " . $register2->national_code . ' ya existe en el inventario ' . $register2->entity->name, 400);
+    }
+
+    protected function validateEntityFromOrganization($data)
+    {
+        $organization = Organization::where('id', $data['organization_id'])->first();
+
+        if ($organization->code != 'nocode' && $organization->code != 'NOCODE') {
+            if ($organization->code == Auth::user()->entity_code)
+                throw new Exception("No se puede realizar una entrada como origen de si mismo", 400);
+        }
     }
 }
