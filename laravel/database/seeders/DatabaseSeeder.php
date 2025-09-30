@@ -17,23 +17,21 @@ class DatabaseSeeder extends Seeder
         DB::transaction(function () {
             try {
 
-            $this->call([
+                $this->call([
 
-            HierarchyEntitySeeder::class,
-            ModuleSeeder::class,
-            UserSeeder::class,
-            UserModuleSeeder::class,
-            MachineStatusSeeder::class,
-            MunicipalitySeeder::class,
-            ParishSeeder::class,
-            OrganizationSeeder::class,
-            TypeActivitySeeder::class,
-            TypeMaintenanceSeeder::class,
+                    HierarchyEntitySeeder::class,
+                    ModuleSeeder::class,
+                    UserSeeder::class,
+                    UserModuleSeeder::class,
+                    MachineStatusSeeder::class,
+                    MunicipalitySeeder::class,
+                    ParishSeeder::class,
+                    OrganizationSeeder::class,
+                    TypeActivitySeeder::class,
+                    TypeMaintenanceSeeder::class,
+                    ProductSeeder::class,
 
-        ]);
-
-
-
+                ]);
             } catch (\Exception $e) {
 
                 Log::info('UN ERROR EN EL SEED');
@@ -41,12 +39,5 @@ class DatabaseSeeder extends Seeder
                 throw $e;
             }
         });
-
-
-
     }
-
-
-
-
-    }
+}

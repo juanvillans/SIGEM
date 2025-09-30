@@ -12,6 +12,8 @@ use App\Models\InventoryGeneral;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Exceptions\GeneralExceptions;
+use App\Models\EntryGeneral;
+use App\Models\OutputGeneral;
 
 class ProductService extends ApiService
 {
@@ -181,6 +183,10 @@ class ProductService extends ApiService
                 $productIDDeleted = $product->id;
 
                 $this->validateIfExistsInventory($product->id);
+
+                OutputGeneral::where('product_id', $product->id)->delete();
+                EntryGeneral::where('product_id', $product->id)->delete();
+
 
                 $product->delete();
                 NewActivity::dispatch($userId, TypeActivity::ELIMINAR_PRODUCTO->value, $productIDDeleted);
