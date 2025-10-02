@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -40,6 +41,9 @@ Route::group(['prefix' => 'dashboard', 'namespace' => 'App\Http\Controllers', 'm
     Route::get('notifications', [UserController::class, 'notifications']);
 
     // ------------------------------------------------- Notifications ----------------------------------------------
+
+    // Statistics
+    Route::get('/statistics', [AppController::class, 'index']);
 
 
     // ------------------------------------------------- Logout ----------------------------------------------
