@@ -21,7 +21,8 @@ class InventoryReportResource extends JsonResource
             'Componentes' => $this->components,
             'Serial' => $this->serial_number,
             'Bien_nacional' => $this->national_code,
-            'U.mantenimiento' => $this->lastMaintenanceType->name ?? null,
+            'U.mantenimiento' => $this->maintenance->typeMaintenance->name ?? null,
+            'Estado' => $this->machineStatus->name,
 
         ];
     }
