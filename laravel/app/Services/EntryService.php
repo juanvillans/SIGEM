@@ -284,8 +284,11 @@ class EntryService extends ApiService
                 if ($inventory->quantity == 0)
                     throw new Exception("No puede eliminarse esta entrada, ya que se le hizo una salida", 403);
 
-                $inventory->delete();
-                OutputGeneral::where('inventory_general_id', $inventory->id)->delete();
+                $inventory->update([
+                    'serial_number' => $inventory->serial_number . 'deleted-' . time(),
+                    'national_code' => $inventory->national_code . 'deleted-' . time(),
+                    'quantity' => 0,
+                ]);
 
 
                 $entryGeneral->update([

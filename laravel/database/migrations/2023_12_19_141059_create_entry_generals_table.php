@@ -16,17 +16,17 @@ return new class extends Migration
             $table->id();
             $table->string('entity_code');
             $table->foreign('entity_code')
-                  ->references('code')
-                  ->on('hierarchy_entities')
-                  ->onDelete("restrict")
-                  ->onUpdate("cascade");
+                ->references('code')
+                ->on('hierarchy_entities')
+                ->onDelete("restrict")
+                ->onUpdate("cascade");
 
             $table->integer('code');
             $table->string('area')->nullable();
             $table->foreignId('product_id');
             $table->integer('quantity')->default(1);
-            $table->string('serial_number', 30);
-            $table->string('national_code', 30);
+            $table->string('serial_number');
+            $table->string('national_code');
             $table->foreignId('organization_id');
             $table->foreignId('machine_status_id');
             $table->foreignId('user_id');
@@ -34,8 +34,6 @@ return new class extends Migration
             $table->timestamps();
             $table->string('arrival_time');
             $table->integer('status');
-
-
         });
     }
 

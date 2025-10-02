@@ -11,6 +11,7 @@ use App\Events\OutputCreated;
 use App\Models\OutputGeneral;
 use App\Models\InventoryGeneral;
 use App\Enums\InventoryMoveStatus;
+use App\Models\EntryToConfirmed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -306,13 +307,23 @@ class OutputService extends ApiService
 
             try {
 
+                $entryToConfirmed = EntryToConfirmed::where('output_general_id', $outputGeneral->id)->first();
+                if (isset($entryToConfirmed->id)) {
+                    if ($entryToConfirmed->status == InventoryMoveStatus::CONFIRMADO->value)
+                        throw new Exception('Esta salida ya ha sido aceptada en otro inventario');
+
+                    $entryToConfirmed->update(['status' => InventoryMoveStatus::ELIMINADO->value]);
+                }
+
                 $outputGeneral->update(
                     [
                         'status' => InventoryMoveStatus::ELIMINADO->value
                     ]
                 );
 
+
                 InventoryGeneral::where('id', $outputGeneral->inventory_general_id)->update(['quantity' => 1]);
+
 
 
                 NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_SALIDA->value, $outputGeneral->id);
@@ -324,6 +335,8 @@ class OutputService extends ApiService
                     'data' => [$outputGeneral],
                     'trace' => $e->getTraceAsString(),
                 ]);
+
+                throw $e;
             }
         });
     }
