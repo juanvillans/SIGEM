@@ -15,7 +15,7 @@ class HierarchyEntitySeeder extends Seeder
     {
         $fields =
             [
-                ['name' => 'Electro Medicina', 'code' => '1'],
+                ['name' => 'Div Regional de Electromedicina', 'code' => '1'],
                 ['name' => 'Hosp Tipo IV Dr Alfredo Van Grieken', 'code' => '1-1'],
                 ['name' => 'Hosp Tipo I Dr José M Espinoza', 'code' => '1-2'],
                 ['name' => 'Hosp Tipo II Dr Lino Arevalo', 'code' => '1-3'],

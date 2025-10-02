@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         DB::transaction(function () {
             try {
 
+                // if (file_exists(database_path('sql/sigem29sep2025.sql'))) {
+                //     DB::unprepared(file_get_contents(database_path('sql/sigem29sep2025.sql')));
+                // }
                 $this->call([
 
                     HierarchyEntitySeeder::class,

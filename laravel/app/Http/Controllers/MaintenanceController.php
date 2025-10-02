@@ -15,7 +15,8 @@ class MaintenanceController extends Controller
 
     private $maintenanceService;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->maintenanceService = new MaintenanceService;
     }
 
@@ -29,7 +30,7 @@ class MaintenanceController extends Controller
         Log::info($maintenances);
 
         $maintenanceCollection = new MaintenanceCollection($maintenances);
-        $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
+        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
 
         $total = $maintenances->total();
 
@@ -48,10 +49,11 @@ class MaintenanceController extends Controller
     {
         try {
 
+            Log::info('Mantenimiento:', $request->validated());
+
             $response = $this->maintenanceService->create($request->validated());
 
             return $response;
-
         } catch (Exception $e) {
 
             Log::error("Error al crear mantenimiento: " . $e->getMessage(), [
@@ -60,10 +62,9 @@ class MaintenanceController extends Controller
             ]);
 
             return response()->json([
-            'status' => false,
-            'message' => 'Error al crear mantenimiento: ' .$e->getMessage()
+                'status' => false,
+                'message' => 'Error al crear mantenimiento: ' . $e->getMessage()
             ], 500);
-
         }
     }
 
@@ -78,14 +79,12 @@ class MaintenanceController extends Controller
             $response = $this->maintenanceService->update($request->validated(), $maintenance);
 
             return $response;
-
-
         } catch (Exception $e) {
 
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-                ], 500);
+            ], 500);
         }
     }
 
@@ -94,14 +93,12 @@ class MaintenanceController extends Controller
      */
     public function destroy(Maintenance $maintenance)
     {
-        try{
+        try {
 
             $response = $this->maintenanceService->delete($maintenance);
 
             return $response;
-
-
-        }catch( Exception $e){
+        } catch (Exception $e) {
 
             return response()->json([
                 'status' => false,

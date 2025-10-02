@@ -15,93 +15,15 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // Si ya existe el archivo SQL, lo ejecutamos primero
-        if (file_exists(database_path('sql/productos2.sql'))) {
-            DB::unprepared(file_get_contents(database_path('sql/productos2.sql')));
+        if (file_exists(database_path('sql/productos.sql'))) {
+            DB::unprepared(file_get_contents(database_path('sql/productos.sql')));
         }
 
         // Productos adicionales
-        $additionalProducts = [
-            [
-                'machine' => 'NEBULIZADOR',
-                'brand' => 'TASOMED',
-                'model' => 'COOLMIST',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'PESO-TALLIMETRO',
-                'brand' => 'KEUS',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'ELECTROCARDIOGRAMA',
-                'brand' => 'CONTEC',
-                'model' => 'ECG90A',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'TENSIOMETRO PORTATIL DIGITAL',
-                'brand' => 'GENERICO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'REGULADOR DE OXIGENO',
-                'brand' => 'NEWTYPE M',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'MONITOR MULTIPARAMETRO',
-                'brand' => 'CONTEC',
-                'model' => 'CMS8000',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'SILLA DE RUEDAS',
-                'brand' => 'GENERICO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'NEGATOSCOPIO',
-                'brand' => 'GENERICO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'CAMILLA MECANICA',
-                'brand' => 'MEHECO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'DIVAN',
-                'brand' => 'GENERICO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ],
-            [
-                'machine' => 'TENSIOMETRO DE PEDESTAL',
-                'brand' => 'GENERICO',
-                'model' => 'GENERICO',
-                'required_components' => [],
-                'level' => 'BAJO',
-            ]
-        ];
+
 
         // Generar códigos automáticamente
-        $this->createProductsWithAutoCode($additionalProducts);
+        // $this->createProductsWithAutoCode($additionalProducts);
     }
 
     /**

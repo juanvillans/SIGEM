@@ -9,6 +9,7 @@ use App\Events\NewActivity;
 use App\Models\Organization;
 use App\Events\OutputCreated;
 use App\Models\OutputGeneral;
+use App\Models\InventoryGeneral;
 use App\Enums\InventoryMoveStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -310,6 +311,9 @@ class OutputService extends ApiService
                         'status' => InventoryMoveStatus::ELIMINADO->value
                     ]
                 );
+
+                InventoryGeneral::where('id', $outputGeneral->inventory_general_id)->update(['quantity' => 1]);
+
 
                 NewActivity::dispatch($user->id, TypeActivity::ELIMINAR_SALIDA->value, $outputGeneral->id);
 

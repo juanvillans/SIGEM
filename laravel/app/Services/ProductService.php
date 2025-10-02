@@ -184,8 +184,10 @@ class ProductService extends ApiService
 
                 $this->validateIfExistsInventory($product->id);
 
-                OutputGeneral::where('product_id', $product->id)->delete();
+
                 EntryGeneral::where('product_id', $product->id)->delete();
+
+
 
 
                 $product->delete();

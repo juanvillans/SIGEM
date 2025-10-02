@@ -11,6 +11,7 @@ use App\Events\NewActivity;
 use App\Events\EntryCreated;
 use App\Models\EntryGeneral;
 use App\Models\Organization;
+use App\Models\OutputGeneral;
 use App\Models\EntryToConfirmed;
 use App\Models\InventoryGeneral;
 use App\Enums\InventoryMoveStatus;
@@ -284,6 +285,8 @@ class EntryService extends ApiService
                     throw new Exception("No puede eliminarse esta entrada, ya que se le hizo una salida", 403);
 
                 $inventory->delete();
+                OutputGeneral::where('inventory_general_id', $inventory->id)->delete();
+
 
                 $entryGeneral->update([
                     'status' => InventoryMoveStatus::ELIMINADO->value,

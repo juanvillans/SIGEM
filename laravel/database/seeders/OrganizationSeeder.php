@@ -18,13 +18,13 @@ class OrganizationSeeder extends Seeder
 
         $organizations = [
             [
-                'name' => 'Electro Medicina',
+                'name' => 'Div Regional de Electromedicina',
                 'code' => '1',
-                'authority_fullname' => 'Electro Medicina',
+                'authority_fullname' => 'Div Regional de Electromedicina',
                 'authority_ci' => '0000000',
                 'municipality_id' => 14,
                 'parish_id' => 58,
-                'search' => 'Electro Medicina',
+                'search' => 'Div Regional de Electromedicina',
             ],
             [
                 'name' => 'Hosp. Tipo IV Dr. Alfredo Van Grieken',
