@@ -41,14 +41,59 @@ class AppController extends Controller
         $highLevelCount = $maintenancesByProductLevel->get('ALTO', 0);
         $noLevelCount = $maintenancesByProductLevel->get('SIN_NIVEL', 0);
 
-        return  response()->json(compact(
-            'maintenanceInstallationsCount',
-            'maintenancePreventiveCount',
-            'maintenanceCorrectiveCount',
-            'maintenanceReviewCount',
-            'lowLevelCount',
-            'mediumLevelCount',
-            'highLevelCount',
-        ));
+        return  response()->json(
+            [
+                'maintenances_per_type' => [
+                    [
+                        'id' => 'Instalaciones',
+                        'label' => 'Instalaciones',
+                        'value' => $maintenanceInstallationsCount,
+
+                    ],
+
+                    [
+                        'id' => 'Preventivo',
+                        'label' => 'Preventivo',
+                        'value' => $maintenancePreventiveCount,
+
+                    ],
+
+                    [
+                        'id' => 'Correctivo',
+                        'label' => 'Correctivo',
+                        'value' => $maintenanceCorrectiveCount,
+
+                    ],
+
+                    [
+                        'id' => 'Revision',
+                        'label' => 'Revision',
+                        'value' => $maintenanceReviewCount,
+
+                    ],
+                ],
+
+                'maintenances_per_level' => [
+                    [
+                        'id' => 'Bajo',
+                        'label' => 'Bajo',
+                        'value' => $lowLevelCount,
+
+                    ],
+                    [
+                        'id' => 'Medio',
+                        'label' => 'Medio',
+                        'value' => $mediumLevelCount,
+
+                    ],
+                    [
+                        'id' => 'Alto',
+                        'label' => 'Alto',
+                        'value' => $highLevelCount,
+
+                    ],
+                ]
+            ]
+        );
     }
 }
