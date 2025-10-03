@@ -17,12 +17,17 @@ class InventoryReportResource extends JsonResource
         return [
             'Codigo' => $this->product->code,
             'Maquina' => $this->getMachineName(),
+            'Equipo' => $this->product->machine,
+            'Marca' => $this->product->brand,
+            'Modelo' => $this->product->model,
             'Nivel' => $this->product->level,
             'Componentes' => $this->components,
             'Serial' => $this->serial_number,
             'Bien_nacional' => $this->national_code,
             'U.mantenimiento' => $this->maintenance->typeMaintenance->name ?? null,
             'Estado' => $this->machineStatus->name,
+            "Area" => $this->area,
+
 
         ];
     }
