@@ -1,329 +1,106 @@
-import {
-    Page,
-    Text,
-    View,
-    Document,
-    StyleSheet,
-    Image,
-    Font,
-  } from "@react-pdf/renderer";
-  import secretariaLogo from "../assets/img/logo_secretaria-circle-main.png";
-  import goberncionLogo from "../assets/img/gobernacion.png";
-  import myBoldFont from "../assets/fonts/Montserrat-Bold.ttf";
-  import normalFont from "../assets/fonts/Montserrat-Regular.ttf";
-  
-  Font.register({ family: "fontBold", src: myBoldFont });
-  Font.register({ family: "normalFont", src: normalFont });
-  
-  // Create styles
-  const styles = StyleSheet.create({
-    page: {
-      backgroundColor: "#ffffff",
-      padding: 30,
-      fontFamily: "normalFont",
-    },
-    pageContainer: {
-      position: "relative",
-      height: "100%",
-    },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    section: {
-      marginBottom: 2,
-      padding: 20,
-      border: "1px solid #e9e9e9",
-      flexGrow: 1,
-      //   height: "160px",
-      minWidth: "260.25984252 !important",
-      maxWidth: "260.25984252 !important",
-      position: "relative",
-      overflow: "hidden !important",
-    },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      textAlign: "center",
-  
-      width: "100%",
-      //   overflow: "hidden !important",
-    },
-    textHeader: {
-      position: "absolute",
-      textAlign: "center",
-      fontSize: 10,
-      // fontSize: 16,
-      position: "absolute",
-      top: -12,
-      width: "100%",
-      left: 10,
-      backgroundColor: "transparent",
-    },
-    img: {
-      width: 40,
-      // height: 57,
-      objectFit: "cover",
-      position: "relative",
-      top: "-7px",
-    },
-    goberncion: {
-        width: 57,
-        height: 40,
-        objectFit: "cover",
-        position: "relative",
-        top: "-7px",
-      },
-    membrete: {
-      fontSize: 10,
-      textAlign: "center",
-      width: "100%",
-      fontWeight: "800",
-      marginTop: 20,
-      // marginLeft: 20,
-      // color: "#555555",
-    },
-    guideTitle: {
-      fontSize: 12,
-      fontWeight: "bold",
-      fontFamily: "fontBold",
-      marginTop: 15,
-    },
-    infoGuide: {
-      flexDirection: "row",
-      justifyContent: "left",
-      width: "100%",
-      fontSize: 10,
-      marginTop: 3,
-      // paddingHorizontal: 10,
-    },
-    leftInfo: {
-      flexDirection: "row",
-      gap: 10,
-    },
-    rigthInfo: {
-      flexDirection: "row",
-      gap: 10,
-    },
-    textRigth: {
-      textAlign: "right",
-      width: 100,
-      color: "#555555",
-    },
-    parentTable: {
-      border: 1,
-      borderRadius: 6,
-      marginTop: 50,
-      borderColor: "#696969",
-      overflow: "hidden",
-    },
-    table: {
-      display: "flex",
-      flexDirection: "row",
-      width: "100%",
-      borderStyle: "solid",
-      // borderBottom: 1,
-      // borderColor: "#000",
-      // marginBottom: 10,
-      borderColor: "#696969",
-      overflow: "hidden",
-    },
-    tableHeader: {
-      display: "flex",
-      flexDirection: "row",
-      width: "100%",
-      borderStyle: "solid",
-      borderBottom: 1,
-      borderColor: "#696969",
-      fontWeight: "bold",
-      fontFamily: "fontBold",
-      fontSize: 9,
-      // marginBottom: 10,
-    },
-    tableCell: {
-      borderStyle: "solid",
-        width: 50,
-      color: 'black',
-      flexDirection: 'row',
-      alignItems: "center",
-      paddingHorizontal: 3,
-      paddingVertical: 3,
-      fontSize: 9,
-    },
-    nroCell: {
-      borderRight: 1,
-      borderColor: "#c4c4c4",
-      width: 22,
-      fontSize: 7,
-    },
-    productCell: { 
-      borderStyle: "solid",
-      borderRight: 1,
-      borderColor: "#c4c4c4",
-      fontSize: 9,
-      width: 260,
-    },
-    totalCell: {
-        fontWeight: "bold",
-        fontFamily: "fontBold",
-        paddingHorizontal: 4
-    },
-    perExpireCell: {
-        fontWeight: "bold",
-        fontFamily: "fontBold",
-        backgroundColor: "#A7D5F2",
-        color: "#BF0404",
-        padding: 2,
-        borderRadius: 2,
-    },
-    goodCell: {
-        fontWeight: "bold",
-        fontFamily: "fontBold",
-        backgroundColor: "#A7D5F2",
-        color: "#011140",
-        padding: 2,
-        borderRadius: 2,
-    },
-    expiredCell: {
-        fontWeight: "bold",
-        fontFamily: "fontBold",
-        backgroundColor: "#BF0404",
-        color: "white",
-        padding: 2,
-        borderRadius: 2,
-    },
-    badCell: {
-        fontWeight: "bold",
-        fontFamily: "fontBold",
-        backgroundColor: "#b65200",
-        color: "white",
-        padding: 2,
-        borderRadius: 2,
-    },
-    fontSize6: {
-        fontSize: 6
-    },
-    
-   
-  });
-  
-  // Create Document Component
-  export default function OuputGuide(props) {
-    let nroColProduct = 0;
-    const nroProducts = props.products?.length;
-  
-    return (
-      <Document
-      // fileName={`${props.output.code}`}
+import React, { forwardRef, useRef } from "react";
+import cintillo from "../assets/img/cintillo.jpeg";
+import logo from "../assets/img/logo.webp";
+import { useReactToPrint } from "react-to-print";
+import "../css/components/PrintableContent.css";
+
+const PrintContent = forwardRef((props, ref) => {
+  // eslint-disable-line react/prop-types
+  return (
+    <div ref={ref} className="printable-container">
+      <div className="report-header flex justify-between items-center print-flex mb-1">
+        <img
+          src={cintillo}
+          alt="cintillo"
+          className="w-72 mt-2 h-max print-img-large"
+        />
+        <img src={logo} alt="logo" className="w-9 h-auto print-img-small" />
+      </div>
+      <p className="">
+        Fecha de emisión: <b> {new Date().toLocaleDateString()}</b>
+      </p>
+      <p className="">
+        Centro de salud: <b>{props?.entityName}</b>{" "}
+      </p>
+
+      <h1 className="report-title">INVENTARIO DE EQUIPOS MÉDICOS</h1>
+      <table
+        className="print-table border  border-grey w-full"
+        aria-label="simple table"
+        style={{ colorAdjust: "exact", printColorAdjust: "exact" }}
       >
-            <Page
-              size="A4"
-              style={{
-                  backgroundColor: "#ffffff",
-                  padding: 30,
-                  fontFamily: "normalFont",
-                  paddingTop: 30
-              }}
-              // wrap={false}
-            >
-                <View style={styles.header}>
-                <Image src={goberncionLogo} style={styles.goberncion} />
+        <thead className=" border-b bg-blue1 text-white border-dark text-xs">
+          <tr className="">
+            <th className="print-header ">Nº</th>
+            <th className="print-header">Area</th>
+            <th className="print-header">Equipo Médico</th>
+            <th className="print-header">Marca</th>
+            <th className="print-header">Modelo</th>
+            <th className="print-header">Serial</th>
+            <th className="print-header">Bien Nacional</th>
+            <th className="print-header">Estado</th>
+          </tr>
+        </thead>
+        <tbody className="inventoryTbody" >
+          {props?.products.map((product, rowIndex) => {
+            return (
+              <tr key={rowIndex} >
+                <td className="px-2 ">{rowIndex + 1}</td>
+                <td className="px-2 ">{product.Area}</td>
+                <td className="px-2 ">{product.Equipo}</td>
+                <td className="px-2 ">{product.Marca}</td>
+                <td className="px-2 ">{product.Modelo}</td>
+                <td className="px-2 ">{product.Serial}</td>
+                <td className="px-2 ">{product.Bien_nacional}</td>
+                <td className="px-2 ">{product.Estado}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      <p className="mt-4">Personal electromédico a cargo: ___________________________ </p>
+      <p>Cordinador del centro: __________________________</p>
+    </div>
+  );
+});
 
-                      <View style={styles.textHeader}>
-                        <Text>
-                          GOBERNACIÓN BOLIVARIANA DEL ESTADO FALCÓN
-                        </Text>
-                        <Text>
-                          SECRETARIA REGIONAL DE SALUD
-                        </Text>
-                        <Text>
-                          DIVISIÓN DE SUMINISTROS E INSUMOS
-                          </Text>
-                        <Text>
-                          DEPARTAMENTO DE ALMACÉN
-                          </Text>
-                        <Text style={styles.guideTitle}>REPORTE DE INVENTARIO </Text>
-                        <Text style={{color:"#313131"}}>{new Date().toISOString().split("T")[0]}
-                        </Text>
-                        
-                      </View>
-                      <Image src={secretariaLogo} style={styles.img} />
+const InventoryReport = ({ products, entityName }) => {
+  const componentRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: "Inventario Report",
+    pageStyle: `
+    @page {
+      size: A3 landscape; /* o 'landscape' para horizontal */
+      margin: 10mm 30mm; /* Ajusta los márgenes si es necesario */
+      
+    }
+    
+    /* Opcional: Estilos adicionales para el contenido */
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  `,
+  });
 
-                    </View>
-             
-  
-                <View style={styles.parentTable}>
-                  <View style={styles.tableHeader}>
-                    <View style={[styles.tableCell, styles.nroCell]}>
-                      <Text>N°</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.productCell]}>
-                      <Text>Producto</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.fontSize6]}>
-                      <Text>Total</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.fontSize6 ]}>
-                      <Text>Por vencer</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.fontSize6]}>
-                      <Text>Buen estado</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.fontSize6]}>
-                      <Text>Vencidos</Text>
-                    </View>
-                    <View style={[styles.tableCell, styles.fontSize6]}>
-                      <Text>Defectuosos</Text>
-                    </View>
-                   
-                  </View>
-  
-                  {props?.products.map((product, rowIndex) => {
+  return (
+    <div>
+      <button
+        onClick={handlePrint}
+        className="bg-blue2 hover:bg-blue1 mx-auto block mb-4 text-white font-bold py-2 px-4 rounded-full"
+      >
+        Imprimir / Guardar PDF
+      </button>
+      <PrintContent
+        ref={componentRef}
+        products={products}
+        entityName={entityName}
+      />
+    </div>
+  );
+};
 
-                    nroColProduct++;
-                    return (
-                      <View
-                        style={{
-                          display: "flex",
-                          flexDirection: "row",
-                          width: "100%",
-                          borderStyle: "solid",
-                          borderColor: "#e9e9e9",
-                          overflow: "hidden",
-                          backgroundColor: rowIndex % 2 === 0 ? "#e9e9e9" : "white",
-                        }}
-                        key={rowIndex}
-                      >
-                        <View style={[styles.tableCell, styles.nroCell]}>
-                          <Text>{nroColProduct}</Text>
-                        </View>
-                        <View style={[styles.tableCell, styles.productCell]}>
-                          <Text>
-                            {product.Nombre}
-                            </Text>
-                        </View>
-                        <View style={[styles.tableCell, styles.totalCell]}>
-                          <Text>{product.Total}</Text>
-                        </View>
-                        <View style={[styles.tableCell]}>
-                          <Text style={styles["perExpireCell"]}>{product["Por vencer"]}</Text>
-                        </View>
-                        <View style={[styles.tableCell, styles.firstCell]}>
-                          <Text style={styles["goodCell"]}>{product["Buen estado"]}</Text>
-                        </View>
-                        <View style={[styles.tableCell, styles.firstCell]}>
-                          <Text style={styles["expiredCell"]}>{product["Vencidos"]}</Text>
-                        </View>
-                       
-                        <View style={[styles.tableCell, styles.lastCell]}>
-                          <Text style={styles["badCell"]}>{product["Defectuosos"]}</Text>
-                        </View>
-                      </View>
-                    );
-                  })}
-                </View>
-            </Page>
-      </Document>
-    );
-  }
-  
+export default InventoryReport;

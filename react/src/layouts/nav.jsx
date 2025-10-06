@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import "../css/layouts/nav.css";
 import logoCircle_blue from "../assets/img/logo_secretaria.webp";
 import sismed_logo from "../assets/img/sismed_logo.svg";
-import logo_secretaria from "../assets/img/logo_secretaria-circle.webp";
+import logo_secretaria from "../assets/img/logo.webp";
+import logo from "../assets/img/logo.webp";
+
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import PeopleIcon from "@mui/icons-material/People";
 import WavingHandIcon from "@mui/icons-material/WavingHand";
@@ -46,7 +48,7 @@ export default function nav(props) {
         >
           <div className="logo_nav_container">
             <img
-              src={logo_secretaria}
+              src={logo}
               className="logo w-full"
               alt="logo del sistema"
             />

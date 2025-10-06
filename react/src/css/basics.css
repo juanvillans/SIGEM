@@ -618,4 +618,8 @@ td.MuiTableCell-root.MuiTableCell-body.MuiTableCell-sizeMedium.tss-1qtl85h-MUIDa
     text-decoration: line-through !important;
     color: rgb(255, 0, 0) !important;
   }
+}
+.neuphormism {
+  box-shadow: -3px -3px 10px #ffffff, 3px 3px 10px rgba(212, 212, 212, 0.8);
+  border-radius: 30px;
 }/*# sourceMappingURL=basics.css.map */

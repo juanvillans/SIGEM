@@ -48,7 +48,7 @@ function limitObjectSize(obj, maxSize = 6) {
 }
 
 function shortTimestamp() {
-  return "N/A_"+Date.now().toString().slice(2); // Remove "17" from beginning
+  return "N/P_"+Date.now().toString().slice(2); // Remove "17" from beginning
 }
 
 const filterConfiguration = {
@@ -1169,8 +1169,7 @@ export default function Entradas(props) {
                               setNewRegister((prev) => ({
                                 ...prev,
                                 product_id: product.id,
-                                serial_number: "",
-                                national_code: "",
+                                serial_number: shortTimestamp(),
                                 product: product,
                                 national_code: shortTimestamp(),
                                 components: product.required_components.reduce(
@@ -1252,6 +1251,8 @@ export default function Entradas(props) {
                             name={`serial_number`}
                             size="small"
                             onChange={handleChange}
+                            onFocus={(e)=> e.target.select()}
+
                           />
                         </td>
                         <td className="p-4 px-2 w-[200px]">

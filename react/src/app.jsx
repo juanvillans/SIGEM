@@ -23,20 +23,9 @@ const Cambiar_contraseña = lazy(() => import("./pages/Cambiar_contraseña"));
 const SolicitarProductos = lazy(() => import("./pages/SolicitarProductos"));
 const PedidosAMiAlmacen = lazy(() => import("./pages/PedidosAMiAlmacen"));
 const Mantenimiento = lazy(() => import("./pages/Mantenimiento"));
-// const Pagos = lazy(() => import("./pages/Pagos"))
-// function showBrowserNotification(title, options) {
-//   if (Notification.permission === "granted") {
-//     new Notification(title, options);
-//   } else {
-//     console.log("Notification permission not granted.");
-//   }
-// }
 
-// // Example usage
-// showBrowserNotification("New Notification", {
-//   body: "You have a new notification!",
-//   icon: "/path/to/icon.png",
-// });
+//indexdasgboard without lazy
+import IndexDashboard from "./pages/IndexDashboard"; // 
 
 export default function app() {
   const navigate = useNavigate();
@@ -88,6 +77,11 @@ export default function app() {
           <main>
             <Suspense>
               <Routes forceRefresh={true}>
+                <Route
+                  key={"dashboard"}
+                  path="/"
+                  element={<IndexDashboard userData={userData} />}
+                ></Route>
                 <Route
                   key={"Cambiar_contraseña"}
                   path="/Cambiar_contraseña"

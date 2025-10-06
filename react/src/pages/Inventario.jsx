@@ -20,6 +20,8 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import InventoryReport from "../components/InventoryReport";
 import CheckIcon from "@mui/icons-material/Check";
 import ProductSummary from "../components/ProductSummary";
+import { useReactToPrint } from 'react-to-print';
+
 // import { NavLink } from "react-router-dom";
 import * as XLSX from "xlsx";
 // import { NavLink } from "react-router-dom";
@@ -45,6 +47,8 @@ function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein };
 }
 
+
+
 export default function Inventario(props) {
   let arrStatusProducts = [
     { id: 1, name: "Buen estado" },
@@ -64,7 +68,6 @@ export default function Inventario(props) {
     organizations: [],
   });
 
-  console.log(generalData);
   const [open, setOpen] = useState(false);
   const [modalConfirm, setModalConfirm] = useState({
     isOpen: false,
@@ -276,27 +279,7 @@ export default function Inventario(props) {
           >
             <PictureAsPdfIcon className="deleteIcon" />
           </IconButton>
-          <IconButton
-            onClick={() => {
-              setTypeOfReport("EXCEL");
-              setReportData([]);
-              setOpen(true);
-              getData(true);
-            }}
-            title="Generar reporte Excel"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="1em"
-              height="1em"
-              viewBox="0 0 512 512"
-            >
-              <path
-                fill="currentColor"
-                d="M453.547 273.449H372.12v-40.714h81.427zm0 23.264H372.12v40.714h81.427zm0-191.934H372.12v40.713h81.427zm0 63.978H372.12v40.713h81.427zm0 191.934H372.12v40.714h81.427zm56.242 80.264c-2.326 12.098-16.867 12.388-26.58 12.796H302.326v52.345h-36.119L0 459.566V52.492L267.778 5.904h34.548v46.355h174.66c9.83.407 20.648-.291 29.197 5.583c5.991 8.608 5.41 19.543 5.817 29.43l-.233 302.791c-.29 16.925 1.57 34.2-1.978 50.892m-296.51-91.256c-16.052-32.57-32.395-64.909-48.39-97.48c15.82-31.698 31.408-63.512 46.937-95.327c-13.203.64-26.406 1.454-39.55 2.385c-9.83 23.904-21.288 47.169-28.965 71.888c-7.154-23.323-16.634-45.774-25.3-68.515c-12.796.698-25.592 1.454-38.387 2.21c13.493 29.78 27.86 59.15 40.946 89.104c-15.413 29.081-29.837 58.57-44.785 87.825c12.737.523 25.475 1.047 38.212 1.221c9.074-23.148 20.357-45.424 28.267-69.038c7.096 25.359 19.135 48.798 29.023 73.051c14.017.99 27.976 1.862 41.993 2.676M484.26 79.882H302.326v24.897h46.53v40.713h-46.53v23.265h46.53v40.713h-46.53v23.265h46.53v40.714h-46.53v23.264h46.53v40.714h-46.53v23.264h46.53v40.714h-46.53v26.897H484.26z"
-              />
-            </svg>
-          </IconButton>
+    
         </>
       );
     },
@@ -448,11 +431,12 @@ export default function Inventario(props) {
       // console.log(response.data.typePresentation)
       if (relation == true) {
         setGeneralData({ ...res, inventories: "" });
+      } else if (isJustForReport == true) {
+        console.log({res});
+        setReportData(res.inventories);
       }
       if (isJustForReport == false) {
         setDataTable(res.inventories);
-      } else {
-        setReportData(res.inventories);
       }
       setIsLoading(false);
       setRelation(false);
@@ -468,7 +452,7 @@ export default function Inventario(props) {
           if (res.data.entities) {
             const entitiesObject = {};
             res.data.entities.forEach((obj) => {
-              entitiesObject[obj.name] = obj.name;
+              entitiesObject[obj.code] = obj.name;
             });
             setGeneralData((prev) => ({
               ...prev,
@@ -486,6 +470,8 @@ export default function Inventario(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
+
+
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -546,6 +532,7 @@ export default function Inventario(props) {
     );
   }, [dataTable, generalData]);
 
+
   const [modalReport, setModalReport] = useState();
   useEffect(() => {
     setModalReport(
@@ -554,51 +541,19 @@ export default function Inventario(props) {
         onClose={() => setOpen(false)}
         content={
           <>
+
             {reportData.length < 1 && (
               <div className="text-center">
                 <CircularProgress color="inherit" size={33} />
-                <p>Generando reporte de {totalData} registros</p>
+                <p>Generando reporte...</p>
               </div>
             )}
-
+            
             {reportData.length > 1 && typeOfReport === "PDF" && (
-              <PDFDownloadLink
-                fileName={`Reporte_inventario_${
-                  new Date().toISOString().split("T")[0]
-                }`}
-                document={<InventoryReport products={reportData} />}
-              >
-                {({ blob, url, loading, error }) =>
-                  loading ? (
-                    "Casi listo..."
-                  ) : (
-                    <button className="border border-green text-green py-2 px-3 hover:bg-green hover:text-white text-center rounded w-full">
-                      <span className="font-bold ml-3">
-                        Descargar PDF de {totalData} registros
-                      </span>
-                    </button>
-                  )
-                }
-              </PDFDownloadLink>
+              <InventoryReport products={reportData} entityName={generalData.entitiesObject[parametersURL.filterObjectValues.entityCode]} />
             )}
 
-            {reportData.length > 1 && typeOfReport === "EXCEL" && (
-              <button
-                onClick={() => {
-                  exportToExcel(
-                    reportData,
-                    `Reporte_inventario_${
-                      new Date().toISOString().split("T")[0]
-                    }`
-                  );
-                }}
-                className="border border-green text-green py-2 px-3 hover:bg-green hover:text-white text-center rounded w-full"
-              >
-                <span className="font-bold ml-3">
-                  Descargar Excel de {totalData} registros
-                </span>
-              </button>
-            )}
+        
           </>
         }
       ></Modal>

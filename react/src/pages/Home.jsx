@@ -6,10 +6,14 @@ import Modal from "../components/Modal";
 import Alert from "../components/Alert";
 import api from "../api/axios";
 import vector_blue from "../assets/img/vector_blue.svg";
-import logo_secretaria from "../assets/img/logo_secretaria.webp";
+import logo from "../assets/img/logo.webp";
 
 import Input from "../components/Input";
 import Button3D from "../components/Button3D";
+
+import collage1 from "../assets/img/collage1.webp";
+import collage2 from "../assets/img/collage2.webp";
+import collage3 from "../assets/img/collage3.webp";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -29,7 +33,7 @@ export default function Home() {
 
     const userData = JSON.parse(localStorage.getItem("userData"));
     if (userData) {
-      navigate("/dashboard/usuarios");
+      navigate("/dashboard");
     }
     const startAnimation = () => {
       const textosSVG = document.querySelectorAll(".textoSVG");
@@ -72,7 +76,7 @@ export default function Home() {
   const checkSession = async () => {
     const response = await api.get("/auth");
     if (response.data.status === "success") {
-      navigate("/dashboard/usuarios");
+      navigate("/dashboard/");
     }
   };
   // history.replaceState(null, null, location.href);
@@ -90,11 +94,19 @@ export default function Home() {
 
   useEffect(() => {
     if (alert.open === true) {
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setAlert({ open: false, message: "", status: "" });
       }, 5000);
     }
+    return () => {
+      clearTimeout(timeoutRef.current);
+      clearInterval(intervalRef.current);
+    };
   }, [alert.open === true]);
+
+  useEffect(() => {
+    document.querySelector("#ci").focus();
+  }, [open]);
 
   const handleSubmitLogin = async (e) => {
     setStatusLoginRequest(1);
@@ -121,7 +133,7 @@ export default function Home() {
         }
         clearTimeout(timeoutRef.current);
         clearInterval(intervalRef.current);
-        navigate("/dashboard/usuarios");
+        navigate("/dashboard/");
       });
     } catch (error) {
       setAlert({
@@ -216,6 +228,7 @@ export default function Home() {
               key={0}
               onChange={handleChange}
               value={user.username}
+              id={"ci"}
               width={"100%"}
               name={"username"}
             />
@@ -250,7 +263,7 @@ export default function Home() {
       <div className="container_home bg-blue block md:grid">
         <nav className="flex  md:flex-row gap-6 justify-between pt-4 md:items-center">
           <div className="flex flex-col md:flex-row gap-3 items-center logoAndText">
-            <img src={logo_secretaria} className="w-10 md:w-24" alt="" />
+            <img src={logo} className="w-10 md:w-24" alt="" />
             <p className="font-yesevaOne font-bold">SIGEM</p>
           </div>
 
@@ -261,6 +274,7 @@ export default function Home() {
               onClick={(e) => {
                 setOpen(true);
                 setloginTypeUser("Secretaria");
+                
               }}
             />
           </div>
@@ -270,7 +284,6 @@ export default function Home() {
             
             {divStyle == "test" ? ("TEST") : "SISTEMA DE GESTIÓN DE EQUIPOS MÉDICOS" }
           </h1>
-          <h1>{import.meta.env.REACT_APP_API_URL} </h1>
           <p className="max-w-[360px] my-2 md:text-xl ">
             Plataforma tecnológica avanzada para el control, mantenimiento y 
             trazabilidad de equipos médicos en las instituciones de salud del 
@@ -280,8 +293,16 @@ export default function Home() {
           <div></div>
         </main>
       </div>
-      <div className="absolute right-3 sm:right-5 md:right-11 lg:right-16 bottom-4 w-1/2 mx-auto  max-w-[750px] min-w-[300px] ">
-        <MainSVG className="relative"></MainSVG>
+      <div className="absolute right-3 sm:right-5 md:right-11  bottom-8 w-1/2 mx-auto  max-w-[750px] min-w-[300px] ">
+              <div className="relative flex w-full h-full gap-4">
+                <img src={collage1}  className="w-72 h-full rounded-3xl " alt="" />
+                <div className="flex flex-col gap-4">
+                  <img src={collage2} className="w-72 h-full rounded-3xl object-cover" alt="" />
+                  <img src={collage3} className="w-72 h-full rounded-3xl object-cover " alt="" />
+
+                </div>
+
+              </div>
       </div>
 
       <img

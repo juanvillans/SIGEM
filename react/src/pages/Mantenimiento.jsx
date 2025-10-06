@@ -571,7 +571,7 @@ export default function Mantenimiento(props) {
       selectedRowRquest = false;
     },
     selectableRowsHideCheckboxes: true,
-    selectableRows: "single",
+    selectableRows: "multiple",
     fixedHeader: true,
     textLabels: {
       body: {
@@ -610,8 +610,16 @@ export default function Mantenimiento(props) {
     tableBodyMaxHeight: "68vh",
     rowsPerPageOptions: [10, 25, 50, 100],
     customToolbarSelect: (selectedRows) => {
-      const dataIndex = selectedRows.data[0].dataIndex;
-      const rowData = dataTable[dataIndex];
+      let isMultiple = false;
+      let rowData = [];
+      selectedRows.data.forEach(element => {
+        rowData.push(dataTable[element.dataIndex]);
+      });
+      if (selectedRows.data.length > 1) {
+        isMultiple = true;
+      } else {
+        isMultiple = false;
+      }
       return (
         <div>
             <>
@@ -621,8 +629,12 @@ export default function Mantenimiento(props) {
               <IconButton
                 title="Editar"
                 onClick={() => {
+                  if (isMultiple) {
+                    window.alert("No se puede editar más de un registro");
+                    return;
+                  }
                   editIconClick(
-                    rowData,
+                    rowData[0],
                     "Editar mantenimiento",
                     false
                   );
@@ -633,6 +645,10 @@ export default function Mantenimiento(props) {
               <IconButton
                 title="Eliminar"
                 onClick={() => {
+                  if (isMultiple) {
+                    window.alert("No se puede eliminar más de un registro");
+                    return;
+                  }
                   setModalConfirm({
                     isOpen: true,
                     modalInfo: (
@@ -644,7 +660,7 @@ export default function Mantenimiento(props) {
                     ),
                     aceptFunction: () => {
                       deleteRegister({
-                        ID: rowData.id,
+                        ID: rowData[0].id,
                       });
                     },
                   });

@@ -312,12 +312,19 @@ export default function Usuarios(props) {
 
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
-    customToolbarSelect: (selectedRows, displayData, setSelectedRows) => (
+        customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+          const dataIndex = selectedRows.data[0].dataIndex;
+          
+          const rowData = usuarios[dataIndex];
+          console.log({ dataIndex }, {usuarios});
+      return (
       <div>
         <IconButton
           title="Editar"
           onClick={() =>
-            editIconClick(selectedRows, displayData, setSelectedRows)
+                    editIconClick(rowData, "Editar", true)
+
+            // editIconClick(selectedRows, displayData, setSelectedRows)
           }
         >
           <EditIcon />
@@ -340,11 +347,12 @@ export default function Usuarios(props) {
           <DeleteIcon />
         </IconButton>
       </div>
-    ),
+    );},
   };
 
-  function editIconClick(selectedRows, displayData, setSelectedRows) {
-    const indx = selectedRows.data[0].dataIndex;
+  function editIconClick(rowData, displayData, setSelectedRows) {
+
+    console.log({ rowData });
     setNewUserData({
       ...usuarios[indx],
       permissions: Object.keys(usuarios[indx].permissions),

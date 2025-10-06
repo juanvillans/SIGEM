@@ -1,25 +1,33 @@
 /* PrintableContent.css */
 
-.printable-container {
-}
 
+.print-img-small {
+  width: 90px !important;
+}
+.print-img-large {
+  width: 400px !important;
+}
 .report-header {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-align: center;
   padding-top: 1rem;
   padding-bottom: 1rem;
   position: relative;
 }
-
+.printable-container table {
+  font-size: 12px !important;
+}
 .report-header .logo {
   left: 1rem;
   width: 100%; /* w-16 equivalent */
 }
 
 .report-title {
-  font-size: 1.25rem; /* text-xl equivalent */
+  font-size: 1.1rem; /* text-xl equivalent */
   font-weight: 700; /* font-bold equivalent */
-  margin-top: 10px;
+  text-align: center;
+  margin-bottom: 10px;
+  margin-top: 14px;
 }
 
 .info-grid {
@@ -109,4 +117,35 @@
 }
 .pb-7 {
   padding-bottom: 1.6rem;
+}
+.px-2 {
+  padding-left: 20px !important;
+  padding-right: 20px;
+}
+.print-header {
+  text-align: left !important;
+  background-color: #A7D5F2 !important;
+  color: black !important;
+  font-weight: bold !important;
+  padding-block: 4px !important;
+}
+.border-grey {
+  border: 1px solid #969595 !important;
+}
+
+@media print {
+  .page-break {
+    page-break-before: always; /* legacy */
+    break-before: page; /* modern */
+  }
+
+  .print-page {
+    page-break-inside: avoid; /* don’t cut inside */
+  }
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.inventoryTbody tr:nth-child(even) {
+  background-color: #f2f2f2;
 }

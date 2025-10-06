@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 // import circleLogo from "../assets/img/circleLogo.png";
-import secretariaLogo from "../assets/img/logo_secretaria-circle-main.png";
+import logo from "../assets/img/logo.webp";
 
 import { useParams } from "react-router-dom";
 import Alert from "../components/Alert";
@@ -109,7 +109,7 @@ export default function Olvide_contraseña(props) {
                 <span className="title_and_icon mt-10">
                   <div className="background_icon">
                     <img
-                      src={secretariaLogo}
+                      src={logo}
                       alt=""
                       className="icon w-12 mx-auto mt-12"
                     />
