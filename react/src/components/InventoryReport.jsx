@@ -65,6 +65,7 @@ const PrintContent = forwardRef((props, ref) => {
 });
 
 const InventoryReport = ({ products, entityName }) => {
+  console.log({products})
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,

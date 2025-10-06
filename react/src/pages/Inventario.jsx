@@ -549,7 +549,7 @@ export default function Inventario(props) {
               </div>
             )}
             
-            {reportData.length > 1 && typeOfReport === "PDF" && (
+            {reportData.length > 0 && typeOfReport === "PDF" && (
               <InventoryReport products={reportData} entityName={generalData.entitiesObject[parametersURL.filterObjectValues.entityCode]} />
             )}
 
