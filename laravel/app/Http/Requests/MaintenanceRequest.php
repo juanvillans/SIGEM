@@ -45,7 +45,7 @@ class MaintenanceRequest extends FormRequest
             'description' => [
                 'required',
                 'string',
-                'max:1000'
+                'max:3000'
             ],
             'entity_code' => [
                 'nullable'
