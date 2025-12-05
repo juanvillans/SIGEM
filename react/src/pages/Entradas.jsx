@@ -78,6 +78,8 @@ export default function Entradas(props) {
   const [localStorageForm, setLocalStorageForm] = useState(false);
   const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
   useEffect(() => {
+
+      document.title = "SIGEM | Entradas";
     if (localStorage.getItem("entryForm")) {
       setLocalStorageForm(JSON.parse(localStorage.getItem("entryForm")));
     }

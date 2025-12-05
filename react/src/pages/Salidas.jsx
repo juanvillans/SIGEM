@@ -526,9 +526,8 @@ export default function Salidas(props) {
     getData(url);
     // url += `search?${parametersURL.search}`
   }, [parametersURL]);
-  console.log({})
+
   const deleteRegister = async (obj, fnEmptyRows) => {
-    console.log({ obj });
     try {
       await axios.delete(`/dashboard/outputs/${obj.ID}`).then((response) => {
         // setDataTable((prev) => prev.filter((eachU) => eachU.id != id_user));
@@ -569,7 +568,6 @@ export default function Salidas(props) {
     }
   };
 
-  console.log({ NewRegister });
   const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
     console.log({ rowData });
     setOrganizations([
@@ -1313,6 +1311,7 @@ export default function Salidas(props) {
                 onChange={(e, newValue) => {
                   handleOptionSelectOrganizations(e, newValue);
                 }}
+                filterOptions={(options) => options}
                 renderOption={(propsAutocomplete, option) => {
                   const { key, ...optionProps } = propsAutocomplete;
                   return (
