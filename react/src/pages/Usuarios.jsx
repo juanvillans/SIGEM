@@ -351,12 +351,11 @@ export default function Usuarios(props) {
   };
 
   function editIconClick(rowData, displayData, setSelectedRows) {
-
-    console.log({ rowData });
     setNewUserData({
-      ...usuarios[indx],
-      permissions: Object.keys(usuarios[indx].permissions),
+      ...rowData,
+      permissions: Object.keys(rowData.permissions),
     });
+    
     setOpen(true);
     setSubmitStatus("Editar");
   }
