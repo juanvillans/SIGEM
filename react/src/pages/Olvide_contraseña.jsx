@@ -167,7 +167,7 @@ export default function Olvide_contraseña(props) {
           ) : (
             <div className="flex items-center justify-center h-screen ">
               <div>
-                <p className="text-white font-bold text-xl">
+                <p className="text-dark font-bold text-xl">
                   ¡Su contraseña ha sido cambiada exitosamente!
                 </p>
                 <a
