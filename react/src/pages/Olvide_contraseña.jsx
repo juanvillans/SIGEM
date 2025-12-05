@@ -171,7 +171,7 @@ export default function Olvide_contraseña(props) {
                   ¡Su contraseña ha sido cambiada exitosamente!
                 </p>
                 <a
-                  href="/login"
+                  href="/"
                   className="text-3xl p-4 mt-4 block text-center w-100 m-auto bg-blue1 text-white rounded-xl pt-5"
                 >
                   Ir al logín
