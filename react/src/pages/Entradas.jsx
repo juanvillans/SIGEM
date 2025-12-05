@@ -386,6 +386,14 @@ export default function Entradas(props) {
       },
     },
     {
+      name: "area",
+      label: "Área",
+      options: {
+        filter: false,
+        sort: false,
+      },
+    },
+    {
       name: "user_name",
       label: "Registrado por",
       options: {
