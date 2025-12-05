@@ -1308,10 +1308,10 @@ export default function Salidas(props) {
                 options={organizations}
                 getOptionLabel={(option) => option.name}
                 value={NewRegister?.organizationObject}
+                filterOptions={(options) => options}
                 onChange={(e, newValue) => {
                   handleOptionSelectOrganizations(e, newValue);
                 }}
-                filterOptions={(options) => options}
                 renderOption={(propsAutocomplete, option) => {
                   const { key, ...optionProps } = propsAutocomplete;
                   return (

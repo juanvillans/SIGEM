@@ -1012,6 +1012,7 @@ export default function Entradas(props) {
           options={organizations}
           getOptionLabel={(option) => option?.name || ""} // Ensure a string is always returned
           value={parametersURL?.filterObjectValues?.organizationObj || null} // Use null for empty value
+          filterOptions={(options) => options}
           onChange={(e, newValue) => {
             // console.log(newValue);
 
@@ -1339,6 +1340,8 @@ export default function Entradas(props) {
                     option?.id === value?.id
                   );
                 }}
+                filterOptions={(options) => options}
+
                 onChange={(e, newValue) => {
                   handleOptionSelectOrganizations(e, newValue);
                 }}
