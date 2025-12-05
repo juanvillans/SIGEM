@@ -505,7 +505,6 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  console.log({ NewRegister });
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -608,7 +607,6 @@ export default function Entradas(props) {
         return;
       }
       if (arrValues.length > 0) {
-        console.log({ changedColumn, columnIndex });
         filterObject[changedColumn] = `${
           filterConfiguration[changedColumn]
         }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
@@ -748,7 +746,6 @@ export default function Entradas(props) {
     },
   };
 
-  console.log({ NewRegister });
 
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
@@ -886,7 +883,6 @@ export default function Entradas(props) {
   };
 
   const [tabla, setTabla] = useState();
-  console.log({ NewRegister, organizations });
   useEffect(() => {
     setTabla(
       <MUIDataTable
@@ -942,7 +938,6 @@ export default function Entradas(props) {
   }, [dataTable, generalData]);
 
 
-  console.log({NewRegister})
   const [alert, setAlert] = useState({
     open: false,
     status: "",

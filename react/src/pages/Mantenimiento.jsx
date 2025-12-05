@@ -541,7 +541,6 @@ export default function Mantenimiento(props) {
         return;
       }
       if (arrValues.length > 0) {
-        console.log({ changedColumn, columnIndex });
         filterObject[changedColumn] = `${filterConfiguration[changedColumn]
           }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
@@ -786,7 +785,6 @@ export default function Mantenimiento(props) {
   };
 
   const [tabla, setTabla] = useState();
-  console.log({ NewRegister, organizations });
   useEffect(() => {
     setTabla(
       <MUIDataTable

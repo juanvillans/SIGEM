@@ -569,7 +569,6 @@ export default function Salidas(props) {
   };
 
   const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
-    console.log({ rowData });
     setOrganizations([
       {
         id: rowData.organization_id || null,
@@ -706,7 +705,6 @@ export default function Salidas(props) {
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
     customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
-      console.log({ displayData, selectedRows });
       const dataIndex = selectedRows.data[0].dataIndex;
       const rowData = dataTable[dataIndex];
       return (
@@ -747,7 +745,6 @@ export default function Salidas(props) {
                         </>
                       ),
                       aceptFunction: () => {
-                        console.log({ rowData });
                         deleteRegister({
                           ID: rowData.id,
                         });
@@ -881,12 +878,10 @@ export default function Salidas(props) {
           setHasLoadedRelations(true);
         })
         .catch((err) => {
-          console.error("Error al cargar datos relacionados:", err);
-        });
+        }); 
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
 
-  console.log(generalData.entities);
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -971,7 +966,6 @@ export default function Salidas(props) {
             text="Nueva Salida"
             icon={"add"}
             onClick={(e) => {
-              console.log("abriendo");
               setNewRegister((prev) => ({
                 ...prev,
                 departure_time: getCurrentTime(),

@@ -32,7 +32,6 @@ export default function nav(props) {
       }
     }, []);
   
-    console.log(divStyle);
     
   return (
     <nav className={`left_nav ${props.status ? "open" : "closed"} ${divStyle == "test" ? "bg-dark" : ""}`}>
