@@ -66,6 +66,9 @@ export default function Inventario(props) {
   const [generalData, setGeneralData] = useState({
     types_maintenance: [],
     organizations: [],
+    entitiesObject: {},
+    machine_status: [],
+    entities: [],
   });
 
   const [open, setOpen] = useState(false);
@@ -530,7 +533,7 @@ export default function Inventario(props) {
         options={options}
       />
     );
-  }, [dataTable, generalData]);
+  }, [dataTable, generalData, hasLoadedRelations]);
 
 
   const [modalReport, setModalReport] = useState();
