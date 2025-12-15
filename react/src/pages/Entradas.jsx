@@ -513,6 +513,7 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
+  
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);

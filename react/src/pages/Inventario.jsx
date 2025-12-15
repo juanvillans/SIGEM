@@ -433,7 +433,7 @@ export default function Inventario(props) {
       // console.log(response.data.products)
       // console.log(response.data.typePresentation)
       if (relation == true) {
-        setGeneralData({ ...res, inventories: "" });
+        // setGeneralData({ ...res, inventories: "" });
       } else if (isJustForReport == true) {
         console.log({res});
         setReportData(res.inventories);
@@ -533,7 +533,7 @@ export default function Inventario(props) {
         options={options}
       />
     );
-  }, [dataTable, generalData, hasLoadedRelations]);
+  }, [dataTable, generalData]);
 
 
   const [modalReport, setModalReport] = useState();
