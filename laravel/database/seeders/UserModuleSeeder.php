@@ -14,22 +14,24 @@ class UserModuleSeeder extends Seeder
     public function run(): void
     {
 
-        if (file_exists(database_path('sql/permissions.sql'))) {
-            DB::unprepared(file_get_contents(database_path('sql/permissions.sql')));
-        }
+        // if (file_exists(database_path('sql/permissions.sql'))) {
+        //     DB::unprepared(file_get_contents(database_path('sql/permissions.sql')));
+        // }
 
-        // $user_modules = [
-        //     ['module_id' => 1, 'user_id' => 1],
-        //     ['module_id' => 2, 'user_id' => 1],
-        //     ['module_id' => 3, 'user_id' => 1],
-        //     ['module_id' => 4, 'user_id' => 1],
-        //     ['module_id' => 5, 'user_id' => 1],
-        //     ['module_id' => 6, 'user_id' => 1],
-        //     ['module_id' => 7, 'user_id' => 1],
-        //     ['module_id' => 8, 'user_id' => 1],
+        $user_modules = [
+            ['module_id' => 1, 'user_id' => 1],
+            ['module_id' => 2, 'user_id' => 1],
+            ['module_id' => 3, 'user_id' => 1],
+            ['module_id' => 4, 'user_id' => 1],
+            ['module_id' => 5, 'user_id' => 1],
+            ['module_id' => 6, 'user_id' => 1],
+            ['module_id' => 7, 'user_id' => 1],
+            ['module_id' => 8, 'user_id' => 1],
+            ['module_id' => 9, 'user_id' => 1],
 
-        // ];
 
-        // DB::table('user_modules')->insert($user_modules);
+        ];
+
+        DB::table('user_modules')->insert($user_modules);
     }
 }

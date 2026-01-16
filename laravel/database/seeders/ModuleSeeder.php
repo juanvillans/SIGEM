@@ -21,7 +21,9 @@ class ModuleSeeder extends Seeder
             ['name' => 'Modulo de Salidas'],
             ['name' => 'Modulo de Inventario'],
             ['name' => 'Modulo de Entradas por confirmar'],
-            ['name' => 'Modulo de Mantenimiento  '],
+            ['name' => 'Modulo de Mantenimiento'],
+            ['name' => 'Modulo de solicitudes'],
+
         ];
 
         DB::table('modules')->insert($modules);

@@ -1,16 +1,11 @@
 <?php
 
 use App\Http\Controllers\AppController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OutputController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RelationController;
-use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\RequestProductController;
 use App\Http\Controllers\EntryToConfirmedController;
-use App\Http\Controllers\MaintenanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,4 +86,7 @@ Route::group(['prefix' => 'dashboard', 'namespace' => 'App\Http\Controllers', 'm
 
     // ------------------------------------------------- Maintenances ----------------------------------------------
     Route::middleware('ability:8')->apiResource('maintenances', 'MaintenanceController');
+
+    // ------------------------------------------------- Service Request ----------------------------------------------
+    Route::middleware('ability:9')->apiResource('service_requests', 'ServiceRequestController')->except(['create', 'edit', 'show']);
 });
