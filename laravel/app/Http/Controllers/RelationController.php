@@ -78,7 +78,7 @@ class RelationController extends Controller
             $response['types_maintenance'] = $types_maintenance;
         }
 
-        if ($request->input('serviceRequests')) {
+        if ($request->input('serviceRequestYears')) {
 
             $years = ServiceRequest::selectRaw('EXTRACT(YEAR FROM created_at) as year')
                 ->distinct()
