@@ -46,7 +46,6 @@ class ServiceRequestController extends Controller
 
             $validated = $request->validate([
                 'entity_code' => ['required', 'string', 'max:255', 'exists:hierarchy_entities,code'],
-                'title' => ['required', 'string', 'max:255'],
                 'body' => ['required', 'string'],
             ]);
 
@@ -79,7 +78,6 @@ class ServiceRequestController extends Controller
 
             $validated = $request->validate([
                 'entity_code' => ['required', 'string', 'max:255', 'exists:hierarchy_entities,code'],
-                'title' => ['required', 'string', 'max:255'],
                 'body' => ['required', 'string'],
                 'status' => ['required', 'string', 'in:unchecked,checked']
             ]);

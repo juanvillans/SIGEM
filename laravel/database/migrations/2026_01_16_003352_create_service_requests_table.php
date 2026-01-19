@@ -21,7 +21,6 @@ return new class extends Migration
                 ->onDelete("restrict")
                 ->onUpdate("cascade");
 
-            $table->string('title');
             $table->text('body');
             $table->enum('status', ['unchecked', 'checked'])->default('unchecked');
             $table->timestamps();

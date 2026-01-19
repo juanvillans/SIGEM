@@ -37,6 +37,7 @@ class ServiceRequestService extends ApiService
                 if (isset($param['day'])) {
                     $days = $this->parseQuery($param['day']);
 
+
                     $query->where(function ($query) use ($days) {
                         $query->whereDay('created_at', $days[0]);
 
@@ -94,8 +95,7 @@ class ServiceRequestService extends ApiService
                     $string = $this->generateString($search);
 
 
-                    $query->where('title', 'ILIKE', $string)
-                        ->orWhere('body', 'ILIKE', $string);
+                    $query->where('body', 'ILIKE', $string);
 
                     $query->orWhereHas('entity', function ($query) use ($string) {
                         $query->where('name', 'ILIKE', $string);
