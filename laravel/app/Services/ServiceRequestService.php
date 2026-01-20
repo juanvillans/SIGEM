@@ -122,9 +122,6 @@ class ServiceRequestService extends ApiService
             ->unless(request()->input('entity'), function ($query) use ($userEntityCode) {
                 $query->where('entity_code', $userEntityCode);
             })
-            ->unless(request()->input('serviceRequest'), function ($query) {
-                $query->where('status', ServiceRequestEnum::UNCHECKED);
-            })
             ->unless(request()->input('orderBy'), function ($query) {
                 $query->orderBy('id', 'desc');
             })
