@@ -20,8 +20,7 @@ const EntradasPorConfirmar = lazy(() => import("./pages/EntradasPorConfirmar"));
 const Salidas = lazy(() => import("./pages/Salidas"));
 const Organizaciones = lazy(() => import("./pages/Organizaciones"));
 const Cambiar_contraseña = lazy(() => import("./pages/Cambiar_contraseña"));
-const SolicitarProductos = lazy(() => import("./pages/SolicitarProductos"));
-const PedidosAMiAlmacen = lazy(() => import("./pages/PedidosAMiAlmacen"));
+const Solicitudes = lazy(() => import("./pages/Solicitudes"));
 const Mantenimiento = lazy(() => import("./pages/Mantenimiento"));
 
 //indexdasgboard without lazy
@@ -154,6 +153,13 @@ export default function app() {
                     key={"Mantenimiento"}
                     path="/Mantenimiento/"
                     element={<Mantenimiento userData={userData} />}
+                  ></Route>
+                )}
+                {userData?.permissions[9] && (
+                  <Route
+                    key={"Solicitudes"}
+                    path="/Solicitudes/"
+                    element={<Solicitudes userData={userData} />}
                   ></Route>
                 )}
               </Routes>
