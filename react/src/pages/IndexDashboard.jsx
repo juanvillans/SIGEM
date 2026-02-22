@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "../api/axios";
 import { ResponsivePie } from "@nivo/pie";
+import Input from "../components/Input";
+
+import MenuItem from "@mui/material/MenuItem";
 
 const PieChart = React.memo(({ data, inPorcentage }) => (
   <ResponsivePie
@@ -23,15 +26,28 @@ const PieChart = React.memo(({ data, inPorcentage }) => (
   />
 ));
 
-export default function IndexDashboard() {
+export default function IndexDashboard(props) {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [entityCode, setEntityCode] = useState(props.userData.entityCode);
 
-  async function fetchChartData() {
+  const [entities, setEntities] = useState([]);
+  
+  async function fetchEntities() {
+    try {
+      const res = await axios.get("/dashboard/relation?entities=true");
+      setEntities(res.data.entities);
+    } catch (e) {
+      console.error("Failed to fetch entities", e);
+    }
+  }
+
+  async function fetchChartData(entityCode = props.userData.entityCode) {
     setLoading(true);
     try {
-      const res = await axios.get("/dashboard/statistics");
-      console.log(res.data);
+      const res = await axios.get(
+        `/dashboard/statistics?entity_code=${entityCode}`,
+      );
       setChartData(res.data);
     } catch (e) {
       console.error("Failed to fetch chart data", e);
@@ -39,11 +55,47 @@ export default function IndexDashboard() {
     setLoading(false);
   }
   useEffect(() => {
+    fetchEntities();
+  }, []);
+  
+  useEffect(() => {
     fetchChartData();
   }, []);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-10 lg:px-10 pt-10 lg:pt-16">
+      <div className="col-span-2 flex gap-3">
+        <h1 className="text-xl font-bold mb-4 opacity-65">Estadísticas de</h1>
+        {props.userData.entityCode == 1 && (
+          <span className="relative col-span-2 -top-2 ">
+            <Input
+              name="user_type"
+              id=""
+              select
+              value={entityCode}
+              // value={props.userData.entityCode}
+              size="small"
+              className=" bg-blue/0 py-1 font-bold w-max"
+              onChange={(e) => {
+                setEntityCode(e.target.value);
+                fetchChartData(e.target.value);
+
+              }}
+              // value={user_type_selected}
+            >
+              {entities?.map((option) => (
+                <MenuItem key={option.code} value={option.code}>
+                  {option.name}
+                </MenuItem>
+              ))}
+
+              <MenuItem key={"todos"} value={"*"}>
+                Todos
+              </MenuItem>
+            </Input>
+          </span>
+        )}
+      </div>
       {chartData &&
       Array.isArray(chartData.maintenances_per_type) &&
       chartData.maintenances_per_type.length > 0 ? (
