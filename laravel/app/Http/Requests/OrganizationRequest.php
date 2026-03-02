@@ -32,6 +32,7 @@ class OrganizationRequest extends FormRequest
             'parish_id' => ['nullable','sometimes'],
             'authority_ci'=> ['sometimes'],
             'authority_fullname'=> ['sometimes'],
+            'is_entity' => ['boolean']
         ];
     }
 

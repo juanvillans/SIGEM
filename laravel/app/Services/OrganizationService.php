@@ -97,6 +97,34 @@ class OrganizationService extends ApiService
                 $dataToCreateOrganization['search'] = $this->generateSearch($dataToCreateOrganization,$municipalityName,$parishName);
                 $dataToCreateOrganization['code'] = 'nocode';
 
+                if(isset($dataToCreateOrganization['is_entity'])){
+
+                    $existingCodes = HierarchyEntity::where('code', 'like', '1-%')
+                    ->pluck('code')
+                    ->toArray();
+
+                    // Extraer los números después del guión y encontrar el máximo
+                    $maxNumber = 0;
+                    foreach ($existingCodes as $code) {
+                        $number = (int) substr($code, strpos($code, '-') + 1);
+                        if ($number > $maxNumber) {
+                            $maxNumber = $number;
+                        }
+                    }
+
+                    // El siguiente código será el máximo + 1
+                    $nextCode = '1-' . ($maxNumber + 1);
+
+                    // Crear el nuevo registro
+                    HierarchyEntity::create([
+                        'name' => $dataToCreateOrganization['name'],
+                        'code' => $nextCode
+                    ]);
+
+                $dataToCreateOrganization['code'] = $nextCode;
+
+                }
+
                 $newOrganization = Organization::create($dataToCreateOrganization);
 
                 $userID = auth()->user()->id;
@@ -140,6 +168,36 @@ class OrganizationService extends ApiService
                 $dataToUpdateOrganization['search'] = $this->generateSearch($dataToUpdateOrganization,$municipalityName,$parishName);
                 $dataToUpdateOrganization['code'] = 'nocode';
 
+                if(isset($dataToCreateOrganization['is_entity']) && $organization->code != 'nocode'){
+
+
+
+                    $existingCodes = HierarchyEntity::where('code', 'like', '1-%')
+                    ->pluck('code')
+                    ->toArray();
+
+                    // Extraer los números después del guión y encontrar el máximo
+                    $maxNumber = 0;
+                    foreach ($existingCodes as $code) {
+                        $number = (int) substr($code, strpos($code, '-') + 1);
+                        if ($number > $maxNumber) {
+                            $maxNumber = $number;
+                        }
+                    }
+
+                    // El siguiente código será el máximo + 1
+                    $nextCode = '1-' . ($maxNumber + 1);
+
+                    // Crear el nuevo registro
+                    HierarchyEntity::create([
+                        'name' => $dataToCreateOrganization['name'],
+                        'code' => $nextCode
+                    ]);
+
+                $dataToCreateOrganization['code'] = $nextCode;
+
+                }
+
                 $organization->fill($dataToUpdateOrganization);
                 $organization->save();
 
@@ -182,6 +240,10 @@ class OrganizationService extends ApiService
 
                 $userID = auth()->user()->id;
                 NewActivity::dispatch($userID, 6, $organization->id);
+
+                if($organization->code != 'nocode')
+                    HierarchyEntity::where('code', $organization->code)->delete();
+
                 $organization->delete();
 
                 return ['message' => 'Eliminado con exito'];
