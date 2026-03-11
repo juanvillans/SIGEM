@@ -51,6 +51,7 @@ export default function Organizaciones(props) {
     authorityCi: "",
     municipalityId: "",
     parishId: "",
+    is_entity: false,
   });
 
   const [relation, setRelation] = useState(true);
@@ -353,8 +354,10 @@ export default function Organizaciones(props) {
   function editIconClick(selectedRows, displayData, setSelectedRows) {
     const indx = selectedRows.data[0].dataIndex;
     const dataOfIndx = dataTable[indx];
+    console.log(dataOfIndx)
     setNewRegister({
       ...dataOfIndx,
+      is_entity: dataOfIndx.code !== "nocode" ? true : false,
     });
     setOpen(true);
     setSubmitStatus("Editar");
@@ -496,6 +499,7 @@ export default function Organizaciones(props) {
                 authorityCi: "",
                 municipalityId: null,
                 parishId: null,
+                is_entity: false,
               });
             }
             setOpen(true);
@@ -569,6 +573,17 @@ export default function Organizaciones(props) {
                 ))}
               </Select>
             </FormControl>
+
+               <label  key={"kfkfkfc"} className="block py-1 cursor-pointer hover:text-blue1 hover:font-bold">
+                    <input
+                      type="checkbox"
+                      value={"is_entity"}
+                      checked={NewRegister.is_entity}
+                      onChange={(e) => setNewRegister((prev) => ({...prev, is_entity: e.target.checked}))}
+                      className="mr-2"
+                    />
+                    Convertir a entidad y generar su inventario
+                  </label>
            
             <Button3D
               className="mt-2 col-span-2"
