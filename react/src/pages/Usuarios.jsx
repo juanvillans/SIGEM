@@ -488,7 +488,7 @@ export default function Usuarios(props) {
           <div>
             <div className="flex flex-col md:flex-row gap-3 min-h-[55px]  pt-3">
               <h1 className="text-grey md:text-xl relative top-1 ">
-                Usuarios {props.userData.entityCode == 1 && "de"}
+                Usuarios de
               </h1>
                 <span className="relative -top-2">
                   <Input

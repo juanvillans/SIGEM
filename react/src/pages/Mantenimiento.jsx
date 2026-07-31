@@ -9,11 +9,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import HistoryIcon from "@mui/icons-material/History";
 import MicIcon from "@mui/icons-material/Mic";
-import {
-  IconButton,
-  TextField,
-  MenuItem,
-} from "@mui/material";
+import { IconButton, TextField, MenuItem } from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
 import Alert from "../components/Alert";
@@ -40,7 +36,7 @@ function limitObjectSize(obj, maxSize = 6) {
   const maintenances = Object.maintenances(obj);
   if (maintenances.length > maxSize) {
     const sortedmaintenances = maintenances.sort(
-      (a, b) => b[1]._timestamp - a[1]._timestamp
+      (a, b) => b[1]._timestamp - a[1]._timestamp,
     );
     return sortedmaintenances.slice(0, maxSize);
   }
@@ -88,7 +84,6 @@ export default function Mantenimiento(props) {
 
   const [organizations, setOrganizations] = useState([]);
 
-
   const [dataTable, setDataTable] = useState([]);
   const [generalData, setGeneralData] = useState({
     machine_status: [
@@ -109,10 +104,13 @@ export default function Mantenimiento(props) {
     content: <></>,
   });
 
+  const existingEntityCode = localStorage.getItem("entityCode");
+
   const [NewRegister, setNewRegister] = useState({
     code: "",
     id: null,
-    entity_code: props.userData.entityCode,
+    entity_code: existingEntityCode || props.userData.entityCode,
+    entity_name: "",
     area: "",
     product_id: null,
     organization_id: null,
@@ -127,9 +125,6 @@ export default function Mantenimiento(props) {
     }
   }, [NewRegister]);
 
-  const existingEntityCode = localStorage.getItem("entityCode");
-
-
   const [parametersURL, setParametersURL] = useState({
     page: 1,
     rowsPerPage: 25,
@@ -143,7 +138,19 @@ export default function Mantenimiento(props) {
       entityCode: existingEntityCode || props.userData.entityCode,
     },
   });
-
+  useEffect(() => {
+    const code = parametersURL.filterObjectValues.entityCode;
+    if (!code) return;
+    const entityObj =
+      generalData.entities?.find((opt) => String(opt.code) === String(code)) ||
+      props.userData.entities?.find((opt) => String(opt.code) === String(code));
+    const name = entityObj?.name || "";
+    setNewRegister((prev) => ({
+      ...prev,
+      entity_code: code,
+      entity_name: name,
+    }));
+  }, [parametersURL.filterObjectValues.entityCode, generalData.entities]);
   const columns = [
     {
       name: "day",
@@ -186,7 +193,8 @@ export default function Mantenimiento(props) {
       label: "Entidad",
       options: {
         display:
-          parametersURL?.filterObject?.entity_code == "&maintenances[entity_code]=*"
+          parametersURL?.filterObject?.entity_code ==
+          "&maintenances[entity_code]=*"
             ? "true"
             : "excluded",
         filter: false,
@@ -201,7 +209,7 @@ export default function Mantenimiento(props) {
         filter: false,
       },
     },
-    
+
     {
       name: "time",
       label: "Hora",
@@ -227,7 +235,7 @@ export default function Mantenimiento(props) {
         },
       },
     },
-    
+
     {
       name: "serial_number",
       label: "Serial",
@@ -299,7 +307,7 @@ export default function Mantenimiento(props) {
                       e.stopPropagation();
                       document
                         .getElementById(
-                          `missing-components-${tableMeta.rowIndex}`
+                          `missing-components-${tableMeta.rowIndex}`,
                         )
                         .classList.toggle("hidden");
                     }}
@@ -334,8 +342,7 @@ export default function Mantenimiento(props) {
     {
       name: "description",
       label: "Descripción",
-    }
-
+    },
   ];
 
   const searchRef = useRef(null);
@@ -357,8 +364,9 @@ export default function Mantenimiento(props) {
     document.querySelector("#searchInput").focus();
     setProductsSearched("Buscando...");
 
-    const recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
+    const recognition = new (
+      window.SpeechRecognition || window.webkitSpeechRecognition
+    )();
     recognition.lang = "es-ES";
     recognition.start();
 
@@ -367,11 +375,11 @@ export default function Mantenimiento(props) {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setSearchProductText(
-        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
       );
       setIsListening(false);
       handleSearchForSelect(
-        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
       );
       if (isSearchHidden == "hidden") {
         setIsSearchHidden("absolute");
@@ -396,7 +404,7 @@ export default function Mantenimiento(props) {
   const handleSearchForSelect = useDebounce(async (searchText) => {
     try {
       const response = await axios.get(
-        `dashboard/inventories?search[all]=${searchText}&rowsPerPage=15&entity=${props.userData.entityCode}`
+        `dashboard/inventories?search[all]=${searchText}&rowsPerPage=15&entity=${parametersURL.filterObjectValues.entityCode}`,
       );
       const responseSearch = response.data.inventories;
       if (responseSearch.length > 0) {
@@ -421,7 +429,7 @@ export default function Mantenimiento(props) {
     if (!hasLoadedRelations) {
       axios
         .get(
-          `/dashboard/relation?entities=true&machine_status=true&maintenanceYears=true&types_maintenance=true`
+          `/dashboard/relation?entities=true&machine_status=true&maintenanceYears=true&types_maintenance=true`,
         )
         .then((res) => {
           setGeneralData((prev) => ({
@@ -439,7 +447,7 @@ export default function Mantenimiento(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  
+
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -534,7 +542,7 @@ export default function Mantenimiento(props) {
       filterList,
       typeFilter,
       columnIndex,
-      displayData
+      displayData,
     ) => {
       let arrValues = filterList[columnIndex];
       // let newFilterObject = { ...filterObject }; // Copia el objeto de filtro actual
@@ -544,8 +552,9 @@ export default function Mantenimiento(props) {
         return;
       }
       if (arrValues.length > 0) {
-        filterObject[changedColumn] = `${filterConfiguration[changedColumn]
-          }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
+        filterObject[changedColumn] = `${
+          filterConfiguration[changedColumn]
+        }${encodeURIComponent(arrValues.join().replaceAll(",", "[OR]"))}`;
       } else {
         delete filterObject[changedColumn]; // Elimina la propiedad del objeto si no hay valores seleccionados
       }
@@ -614,7 +623,7 @@ export default function Mantenimiento(props) {
     customToolbarSelect: (selectedRows) => {
       let isMultiple = false;
       let rowData = [];
-      selectedRows.data.forEach(element => {
+      selectedRows.data.forEach((element) => {
         rowData.push(dataTable[element.dataIndex]);
       });
       if (selectedRows.data.length > 1) {
@@ -624,53 +633,49 @@ export default function Mantenimiento(props) {
       }
       return (
         <div>
-            <>
-             <IconButton>
+          <>
+            <IconButton>
               <PrintPage data={rowData} isHidden={true} />
-             </IconButton>
-              <IconButton
-                title="Editar"
-                onClick={() => {
-                  if (isMultiple) {
-                    window.alert("No se puede editar más de un registro");
-                    return;
-                  }
-                  editIconClick(
-                    rowData[0],
-                    "Editar mantenimiento",
-                    false
-                  );
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-              <IconButton
-                title="Eliminar"
-                onClick={() => {
-                  if (isMultiple) {
-                    window.alert("No se puede eliminar más de un registro");
-                    return;
-                  }
-                  setModalConfirm({
-                    isOpen: true,
-                    modalInfo: (
-                      <>
-                        <p className="mb-2">
-                          Está seguro que cancelará este mantenimiento?
-                        </p>
-                      </>
-                    ),
-                    aceptFunction: () => {
-                      deleteRegister({
-                        ID: rowData[0].id,
-                      });
-                    },
-                  });
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </>
+            </IconButton>
+            <IconButton
+              title="Editar"
+              onClick={() => {
+                if (isMultiple) {
+                  window.alert("No se puede editar más de un registro");
+                  return;
+                }
+                editIconClick(rowData[0], "Editar mantenimiento", false);
+              }}
+            >
+              <EditIcon />
+            </IconButton>
+            <IconButton
+              title="Eliminar"
+              onClick={() => {
+                if (isMultiple) {
+                  window.alert("No se puede eliminar más de un registro");
+                  return;
+                }
+                setModalConfirm({
+                  isOpen: true,
+                  modalInfo: (
+                    <>
+                      <p className="mb-2">
+                        Está seguro que cancelará este mantenimiento?
+                      </p>
+                    </>
+                  ),
+                  aceptFunction: () => {
+                    deleteRegister({
+                      ID: rowData[0].id,
+                    });
+                  },
+                });
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </>
         </div>
       );
     },
@@ -689,7 +694,7 @@ export default function Mantenimiento(props) {
     },
   };
 
-   const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
+  const editIconClick = async (rowData, submitText, isJustForCopy = false) => {
     setOrganizations([
       {
         id: rowData.organization_id || null,
@@ -731,7 +736,7 @@ export default function Mantenimiento(props) {
         setSubmitStatus("Cargando...");
         await axios.put(
           `/dashboard/maintenances/${NewRegister.id}`,
-          NewRegister
+          NewRegister,
         );
       }
 
@@ -754,17 +759,28 @@ export default function Mantenimiento(props) {
       }));
       setOpen(false);
 
+      const currentEntityCode =
+        parametersURL.filterObjectValues.entityCode ||
+        props.userData.entityCode;
+      const currentEntityObj =
+        props.userData.entities?.find(
+          (opt) => String(opt.code) === String(currentEntityCode),
+        ) ||
+        generalData.entities?.find(
+          (opt) => String(opt.code) === String(currentEntityCode),
+        );
       setNewRegister({
         code: "",
-    id: null,
-    entity_code: props.userData.entityCode,
-    area: "",
-    product_id: null,
-    organization_id: null,
-    machine_status_id: 1,
-    components: {},
-    description: "",
-    type_maintenance_id: {},
+        id: null,
+        entity_code: currentEntityCode,
+        entity_name: currentEntityObj?.name || "",
+        area: "",
+        product_id: null,
+        organization_id: null,
+        machine_status_id: 1,
+        components: {},
+        description: "",
+        type_maintenance_id: {},
       });
       setOrganizations([]);
     } catch (error) {
@@ -782,7 +798,7 @@ export default function Mantenimiento(props) {
           : error.response?.data?.message || "Algo salió mal",
       });
       setSubmitStatus(() =>
-        NewRegister.id ? "Editar mantenimiento" : "Registrar mantenimiento"
+        NewRegister.id ? "Editar mantenimiento" : "Registrar mantenimiento",
       );
     }
   };
@@ -809,9 +825,8 @@ export default function Mantenimiento(props) {
                     size="small"
                     className="bg-blue/0 py-1 font-bold"
                     onChange={(e) => {
-                      filterObject[
-                        "entityCode"
-                      ] = `&maintenances[entity_code]=${e.target.value}`;
+                      filterObject["entityCode"] =
+                        `&maintenances[entity_code]=${e.target.value}`;
                       setParametersURL((prev) => ({
                         ...prev,
                         filter: Object.values(filterObject).join(""),
@@ -823,6 +838,18 @@ export default function Mantenimiento(props) {
                         filterObject,
                       }));
                       localStorage.setItem("entityCode", e.target.value);
+                      const selectedEntity =
+                        props.userData.entities?.find(
+                          (opt) => String(opt.code) === String(e.target.value),
+                        ) ||
+                        generalData.entities?.find(
+                          (opt) => String(opt.code) === String(e.target.value),
+                        );
+                      setNewRegister((prev) => ({
+                        ...prev,
+                        entity_code: e.target.value,
+                        entity_name: selectedEntity?.name || "",
+                      }));
                     }}
                   >
                     {props.userData.entities?.map((option) => (
@@ -839,7 +866,7 @@ export default function Mantenimiento(props) {
         data={dataTable}
         options={options}
         columns={columns}
-      />
+      />,
     );
   }, [dataTable, generalData]);
 
@@ -860,17 +887,21 @@ export default function Mantenimiento(props) {
             icon={"add"}
             onClick={() => {
               if (submitStatus == "Editar mantenimiento") {
+                const currentEntityCode =
+                  parametersURL.filterObjectValues.entityCode ||
+                  props.userData.entityCode;
+                const currentEntityObj =
+                  props.userData.entities?.find(
+                    (opt) => String(opt.code) === String(currentEntityCode),
+                  ) ||
+                  generalData.entities?.find(
+                    (opt) => String(opt.code) === String(currentEntityCode),
+                  );
                 setNewRegister({
                   code: "",
                   id: null,
-                  entity_code: props.userData.entityCode,
-                  area: "",
-                  product_id: null,
-                  organization_id: null,
-                  machine_status_id: 1,
-                  components: {},
-                  description: "",
-                  type_maintenance_id: {},
+                  entity_code: currentEntityCode,
+                  entity_name: currentEntityObj?.name || "",
                 });
               }
               setOpen(true);
@@ -1003,7 +1034,7 @@ export default function Mantenimiento(props) {
                             <td className="p-2 px-6">
                               <ProductSummary product={product.productObj} />
                             </td>
-                           
+
                             <td className="p-2 px-6">
                               {product.serial_number}
                             </td>
@@ -1041,8 +1072,6 @@ export default function Mantenimiento(props) {
                 </thead>
                 {/* <div className="body px-2 grid grid-cols-subgrid px-30  items-center text-sm justify-between"> */}
                 {NewRegister.inventory_general_id ? (
-
-
                   <tbody className="">
                     <tr
                       key={NewRegister.inventoryDetailID}
@@ -1113,7 +1142,9 @@ export default function Mantenimiento(props) {
                       </td>
                     </tr>
                   </tbody>
-                ) : ""}
+                ) : (
+                  ""
+                )}
               </table>
             </div>
 
@@ -1141,7 +1172,6 @@ export default function Mantenimiento(props) {
             </Input>
 
             <div className="col-span-2">
-
               <Input
                 label={"Descripción"}
                 value={NewRegister.description}
@@ -1149,9 +1179,10 @@ export default function Mantenimiento(props) {
                 onChange={handleChange}
                 size="small"
                 multiline={true}
-
               />
             </div>
+
+            <p className="col-span-4">Mantenimiento de {NewRegister.entity_name}</p>
 
             <Button3D
               className="mt-2 col-span-4"
@@ -1159,7 +1190,7 @@ export default function Mantenimiento(props) {
                 submitStatus == "Registrar mantenimiento" ? "blue1" : "blue2"
               }
               text={submitStatus}
-              onClick={() => { }}
+              onClick={() => {}}
             />
           </form>
         }

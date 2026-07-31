@@ -120,6 +120,8 @@ export default function Salidas(props) {
     description: "",
     organizationObject: { name: "", organizationId: null },
     departure_date: new Date().toISOString().split("T")[0],
+    entity_code: existingEntityCode || props.userData.entityCode,
+    entity_name: "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchHidden, setIsSearchHidden] = useState("hidden");
@@ -431,7 +433,7 @@ export default function Salidas(props) {
   const handleSearchForSelect = useDebounce(async (searchText) => {
     try {
       const response = await axios.get(
-        `dashboard/inventories?search[all]=${searchText}&rowsPerPage=15&entity=${props.userData.entityCode}`
+        `dashboard/inventories?search[all]=${searchText}&rowsPerPage=15&entity=${parametersURL.filterObjectValues.entityCode}`
       );
       const responseSearch = response.data.inventories;
       if (responseSearch.length > 0) {
@@ -839,6 +841,9 @@ export default function Salidas(props) {
       setSearchProductText("");
       setProductsSearched([]);
 
+      const currentEntityCode = parametersURL.filterObjectValues.entityCode || props.userData.entityCode;
+      const currentEntityObj = props.userData.entities?.find(opt => String(opt.code) === String(currentEntityCode)) || generalData.entities?.find(opt => String(opt.code) === String(currentEntityCode));
+
       setNewRegister({
         id: null,
         area: "",
@@ -847,6 +852,8 @@ export default function Salidas(props) {
         description: "",
         organizationObject: { name: "", organizationId: null },
         departure_date: new Date().toISOString().split("T")[0],
+        entity_code: currentEntityCode,
+        entity_name: currentEntityObj?.name || "",
       });
     } catch (error) {
       setAlert({
@@ -885,6 +892,17 @@ export default function Salidas(props) {
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
 
+  // Sync NewRegister.entity_code and entity_name with selected entity filter
+  useEffect(() => {
+    const code = parametersURL.filterObjectValues.entityCode;
+    if (!code) return;
+    const entityObj =
+      generalData.entities?.find((opt) => String(opt.code) === String(code)) ||
+      props.userData.entities?.find((opt) => String(opt.code) === String(code));
+    const name = entityObj?.name || "";
+    setNewRegister((prev) => ({ ...prev, entity_code: code, entity_name: name }));
+  }, [parametersURL.filterObjectValues.entityCode, generalData.entities]);
+
   const [tabla, setTabla] = useState();
   useEffect(() => {
     setTabla(
@@ -922,7 +940,12 @@ export default function Salidas(props) {
                         filterObject,
                       }));
                       localStorage.setItem("entityCode", e.target.value);
-
+                      const selectedEntity = props.userData.entities?.find(opt => String(opt.code) === String(e.target.value)) || generalData.entities?.find(opt => String(opt.code) === String(e.target.value));
+                      setNewRegister(prev => ({
+                        ...prev,
+                        entity_code: e.target.value,
+                        entity_name: selectedEntity?.name || "",
+                      }));
                     }}
                   // value={user_type_selected}
                   >
@@ -976,6 +999,8 @@ export default function Salidas(props) {
                 departure_time: getCurrentTime(),
               }));
               if (submitStatus == "Editar") {
+                const currentEntityCode = parametersURL.filterObjectValues.entityCode || props.userData.entityCode;
+                const currentEntityObj = props.userData.entities?.find(opt => String(opt.code) === String(currentEntityCode)) || generalData.entities?.find(opt => String(opt.code) === String(currentEntityCode));
                 setNewRegister({
                   id: null,
                   area: "",
@@ -984,6 +1009,8 @@ export default function Salidas(props) {
                   description: "",
                   organizationObject: { name: "", organizationId: null },
                   departure_date: new Date().toISOString().split("T")[0],
+                  entity_code: currentEntityCode,
+                  entity_name: currentEntityObj?.name || "",
                 });
               }
               setOpen(true);
@@ -1306,6 +1333,8 @@ export default function Salidas(props) {
               name={"description"}
               onChange={handleChange}
             />
+
+            <p className="col-span-4">Salida del inventario de {NewRegister.entity_name}</p>
 
             <Button3D
               className="mt-2 col-span-3"

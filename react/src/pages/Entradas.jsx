@@ -40,7 +40,7 @@ function limitObjectSize(obj, maxSize = 6) {
   const entries = Object.entries(obj);
   if (entries.length > maxSize) {
     const sortedEntries = entries.sort(
-      (a, b) => b[1]._timestamp - a[1]._timestamp
+      (a, b) => b[1]._timestamp - a[1]._timestamp,
     );
     return sortedEntries.slice(0, maxSize);
   }
@@ -48,7 +48,7 @@ function limitObjectSize(obj, maxSize = 6) {
 }
 
 function shortTimestamp() {
-  return "N/P_"+Date.now().toString().slice(2); // Remove "17" from beginning
+  return "N/P_" + Date.now().toString().slice(2); // Remove "17" from beginning
 }
 
 const filterConfiguration = {
@@ -78,55 +78,17 @@ export default function Entradas(props) {
   const [localStorageForm, setLocalStorageForm] = useState(false);
   const [hasLoadedRelations, setHasLoadedRelations] = useState(false);
   useEffect(() => {
-
-      document.title = "SIGEM | Entradas";
+    document.title = "SIGEM | Entradas";
     if (localStorage.getItem("entryForm")) {
       setLocalStorageForm(JSON.parse(localStorage.getItem("entryForm")));
     }
   }, []);
 
-  const [organizations, setOrganizations] = useState([]);
-
-  const handleSearchOrganizations = useDebounce(async (searchText) => {
-    if (searchText.trim().length > 0) {
-      try {
-        const response = await axios.get(
-          `dashboard/organizations?search[all]=${searchText}`
-        );
-        const responseSearch = response.data.data;
-        setOrganizations(responseSearch);
-      } catch (error) {
-        // Maneja los errores de la solicitud
-      }
-    }
-  }, 290);
-
-  const handleOptionSelectOrganizations = (event, value) => {
-   
-
-    if (value) {
-      setNewRegister((prev) => ({
-        ...prev,
-        organization_id: value.id,
-        organizationName: value?.name,
-        organizationObject: {
-          organizationId: value.id,
-          id: value.id,
-          name: value?.name,
-          code: value?.code,
-        },
-        municipalityId: value?.municipalityId,
-        parishId: value?.parishId,
-      }));
-    } else {
-      // Si se limpia la selección
-      setNewRegister((prev) => ({
-        ...prev,
-        organization_id: null,
-        organizationName: "",
-        organizationObject: null,
-      }));
-    }
+  const handleOptionSelectOrganizations = (value) => {
+    setNewRegister((prev) => ({
+      ...prev,
+      organization_id: value ? value.id : null,
+    }));
   };
 
   const [dataTable, setDataTable] = useState([]);
@@ -148,28 +110,6 @@ export default function Entradas(props) {
     content: <></>,
   });
 
-  const [NewRegister, setNewRegister] = useState({
-    code: "",
-    id: "",
-    entity_code: props.userData.entityCode,
-    area: "",
-    product_id: null,
-    quantity: 1,
-    serial_number: "",
-    national_code: "",
-    organization_id: null,
-    machine_status_id: 1,
-    components: {},
-    arrival_time: getCurrentTime(),
-    arrival_date: new Date().toISOString().split("T")[0],
-    status: 1,
-  });
-  useEffect(() => {
-    if (NewRegister?.product_id) {
-      localStorage.setItem("entryForm", JSON.stringify(NewRegister));
-    }
-  }, [NewRegister]);
-
   const existingEntityCode = localStorage.getItem("entityCode");
 
   const [parametersURL, setParametersURL] = useState({
@@ -185,6 +125,49 @@ export default function Entradas(props) {
       entityCode: existingEntityCode || props.userData.entityCode,
     },
   });
+
+  const getDefaultOrganizationSelection = useCallback(
+    () => ({
+      organization_id:
+        parametersURL.filterObjectValues.entityCode == 1 ? 2218 : 1,
+    }),
+    [props.userData.entityCode, parametersURL.filterObjectValues.entityCode],
+  );
+
+  const defaultOrganizationSelection = getDefaultOrganizationSelection();
+
+  const [NewRegister, setNewRegister] = useState({
+    code: "",
+    id: "",
+    entity_code: props.userData.entityCode,
+    area: "",
+    product_id: null,
+    quantity: 1,
+    serial_number: "",
+    national_code: "",
+    organization_id: defaultOrganizationSelection.organization_id,
+    machine_status_id: 1,
+    components: {},
+    arrival_time: getCurrentTime(),
+    arrival_date: new Date().toISOString().split("T")[0],
+    status: 1,
+  });
+  useEffect(() => {
+    if (NewRegister?.product_id) {
+      localStorage.setItem("entryForm", JSON.stringify(NewRegister));
+    }
+  }, [NewRegister]);
+
+  // Sync NewRegister.entity_code and entity_name with the currently selected entity filter
+  useEffect(() => {
+    const code = parametersURL.filterObjectValues.entityCode;
+    if (!code) return;
+    const entityObj =
+      generalData.entities?.find((opt) => String(opt.code) === String(code)) ||
+      props.userData.entities?.find((opt) => String(opt.code) === String(code));
+    const name = entityObj?.name || "";
+    setNewRegister((prev) => ({ ...prev, entity_code: code, entity_name: name }));
+  }, [parametersURL.filterObjectValues.entityCode, generalData.entities]);
 
   const columns = [
     {
@@ -355,7 +338,7 @@ export default function Entradas(props) {
                       e.stopPropagation();
                       document
                         .getElementById(
-                          `missing-components-${tableMeta.rowIndex}`
+                          `missing-components-${tableMeta.rowIndex}`,
                         )
                         .classList.toggle("hidden");
                     }}
@@ -424,8 +407,9 @@ export default function Entradas(props) {
     document.querySelector("#searchInput").focus();
     setProductsSearched("Buscando...");
 
-    const recognition = new (window.SpeechRecognition ||
-      window.webkitSpeechRecognition)();
+    const recognition = new (
+      window.SpeechRecognition || window.webkitSpeechRecognition
+    )();
     recognition.lang = "es-ES";
     recognition.start();
 
@@ -434,11 +418,11 @@ export default function Entradas(props) {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setSearchProductText(
-        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
       );
       setIsListening(false);
       handleSearchForSelect(
-        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        transcript.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
       );
       if (isSearchHidden == "hidden") {
         setIsSearchHidden("absolute");
@@ -468,7 +452,7 @@ export default function Entradas(props) {
 
     try {
       const response = await axios.get(
-        `dashboard/products?search[all]=${searchText}&rowsPerPage=15`
+        `dashboard/products?search[all]=${searchText}&rowsPerPage=15`,
       );
       const responseSearch = response.data.products;
       if (responseSearch.length > 0) {
@@ -491,18 +475,13 @@ export default function Entradas(props) {
     if (!hasLoadedRelations) {
       axios
         .get(
-          `/dashboard/relation?entities=true&machine_status=true&entriesYears=true`
+          `/dashboard/relation?organizations=true&machine_status=true&entriesYears=true`,
         )
         .then((res) => {
-          if (res.data.entities) {
-            const entitiesObject = {};
-            res.data.entities.forEach((obj) => {
-              entitiesObject[obj.name] = obj.name;
-            });
+          if (res.data.organizations) {
             setGeneralData((prev) => ({
               ...prev,
-              entitiesObject,
-              entities: res.data.entities,
+              entities: res.data.organizations,
               machine_status: res.data.machine_status,
               years: res.data.entriesYears,
               // conditions: res.data.conditions || prev.conditions,
@@ -515,7 +494,8 @@ export default function Entradas(props) {
         });
     }
   }, [hasLoadedRelations, parametersURL.filterObjectValues.entityCode]);
-  
+
+  console.log(generalData);
   useEffect(() => {
     setDataTable([]);
     setIsLoading(true);
@@ -575,6 +555,8 @@ export default function Entradas(props) {
     }
   };
 
+
+
   const options = {
     count: totalData,
     selectToolbarPlacement: "above",
@@ -608,7 +590,7 @@ export default function Entradas(props) {
       filterList,
       typeFilter,
       columnIndex,
-      displayData
+      displayData,
     ) => {
       let arrValues = filterList[columnIndex];
       // let newFilterObject = { ...filterObject }; // Copia el objeto de filtro actual
@@ -697,7 +679,7 @@ export default function Entradas(props) {
                   editIconClick(
                     dataTable[selectedRows.data[0].dataIndex],
                     "Crear entrada",
-                    true
+                    true,
                   );
                 }}
               >
@@ -709,7 +691,7 @@ export default function Entradas(props) {
                   editIconClick(
                     dataTable[selectedRows.data[0].dataIndex],
                     "Editar entrada",
-                    false
+                    false,
                   );
                 }}
               >
@@ -757,7 +739,6 @@ export default function Entradas(props) {
     },
   };
 
-
   function editIconClick(selectedRows, submitText, isJustForCopy = false) {
     const copySelectedRowRquest = structuredClone(selectedRows);
     if (isJustForCopy) {
@@ -765,13 +746,6 @@ export default function Entradas(props) {
       copySelectedRowRquest.components =
         copySelectedRowRquest?.components || {};
     }
-
-    setOrganizations([
-      {
-        id: copySelectedRowRquest.organization_id,
-        name: copySelectedRowRquest.organization_name,
-      },
-    ]);
 
     setNewRegister({
       ...copySelectedRowRquest,
@@ -789,14 +763,7 @@ export default function Entradas(props) {
         national_code: copySelectedRowRquest.national_code,
         level: copySelectedRowRquest.product_level,
       },
-      organizationObject: {
-        organizationId: copySelectedRowRquest.organization_id,
-        id: copySelectedRowRquest.organization_id,
-        name: copySelectedRowRquest?.organization_name,
-        code: copySelectedRowRquest?.organization_code,
-      },
       organization_id: copySelectedRowRquest.organization_id,
-      organizationName: copySelectedRowRquest.organization_name,
       arrival_date: new Date(copySelectedRowRquest.arrival_date)
         .toISOString()
         .split("T")[0],
@@ -815,6 +782,7 @@ export default function Entradas(props) {
     });
   };
 
+  console.log({ NewRegister });
   const [submitStatus, setSubmitStatus] = useState("Crear entrada");
 
   const handleSubmit = async (e) => {
@@ -852,27 +820,26 @@ export default function Entradas(props) {
       }));
       setOpen(false);
 
+      const defaultSelection = getDefaultOrganizationSelection();
+      const currentEntityCode = parametersURL.filterObjectValues.entityCode || props.userData.entityCode;
+      const currentEntityObj = props.userData.entities?.find(opt => String(opt.code) === String(currentEntityCode)) || generalData.entities?.find(opt => String(opt.code) === String(currentEntityCode));
       setNewRegister({
         code: "",
         id: "",
-        entity_code: props.userData.entityCode,
+        entity_code: currentEntityCode,
+        entity_name: currentEntityObj?.name || "",
         area: "",
         product_id: null,
         quantity: 1,
         serial_number: "",
         national_code: "",
-        organization_id: null,
+        organization_id: defaultSelection.organization_id,
         machine_status_id: 1,
         components: {},
-        organizationObject: null,
-        organization_id: null,
-
-        organizationName: "",
         arrival_time: getCurrentTime(),
         arrival_date: new Date().toISOString().split("T")[0],
         status: 1,
       });
-      setOrganizations([]);
     } catch (error) {
       if (error.response.status == 403) {
         localStorage.removeItem("userData");
@@ -888,7 +855,7 @@ export default function Entradas(props) {
           : error.response?.data?.message || "Algo salió mal",
       });
       setSubmitStatus(() =>
-        NewRegister.code ? "Editar entrada" : "Crear entrada"
+        NewRegister.code ? "Editar entrada" : "Crear entrada",
       );
     }
   };
@@ -905,50 +872,55 @@ export default function Entradas(props) {
                 Entradas {props.userData.entityCode == 1 && "de"}
               </h1>
 
-              
-                <span className="relative -top-2">
-                  <Input
-                    name="user_type"
-                    id=""
-                    select
-                    value={parametersURL.filterObjectValues.entityCode}
-                    size="small"
-                    className="bg-blue/0 py-1 font-bold"
-                    onChange={(e) => {
-                      filterObject[
-                        "entityCode"
-                      ] = `&entries[entity_code]=${e.target.value}`;
-                      setParametersURL((prev) => ({
-                        ...prev,
-                        filter: Object.values(filterObject).join(""),
-                        page: 1,
-                        filterObjectValues: {
-                          ...prev.filterObjectValues,
-                          entityCode: e.target.value,
-                        },
-                        filterObject,
-                      }));
-                      localStorage.setItem("entityCode", e.target.value);
-                    }}
-                  >
-                    {props.userData.entities?.map((option) => (
-                      <MenuItem key={option.code} value={option.code}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
-                  </Input>
-                </span>
-              
+              <span className="relative -top-2">
+                <Input
+                  name="user_type"
+                  id=""
+                  select
+                  value={parametersURL.filterObjectValues.entityCode}
+                  size="small"
+                  className="bg-blue/0 py-1 font-bold"
+                  onChange={(e) => {
+                    filterObject["entityCode"] =
+                      `&entries[entity_code]=${e.target.value}`;
+                    setParametersURL((prev) => ({
+                      ...prev,
+                      filter: Object.values(filterObject).join(""),
+                      page: 1,
+                      filterObjectValues: {
+                        ...prev.filterObjectValues,
+                        entityCode: e.target.value,
+                      },
+                      filterObject,
+                    }));
+                    localStorage.setItem("entityCode", e.target.value);
+                    getDefaultOrganizationSelection();
+                    
+                    const selectedEntity = props.userData.entities?.find(opt => String(opt.code) === String(e.target.value)) || generalData.entities?.find(opt => String(opt.code) === String(e.target.value));
+                    setNewRegister(prev => ({
+                      ...prev,
+                      entity_code: e.target.value,
+                      entity_name: selectedEntity?.name || "",
+                      organization_id: e.target.value == 1 ? 2218 : 1,
+                    }))
+                  }}
+                >
+                  {props.userData.entities?.map((option) => (
+                    <MenuItem key={option.code} value={option.code}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Input>
+              </span>
             </div>
           </div>
         }
         data={dataTable}
         options={options}
         columns={columns}
-      />
+      />,
     );
   }, [dataTable, generalData]);
-
 
   const [alert, setAlert] = useState({
     open: false,
@@ -956,6 +928,8 @@ export default function Entradas(props) {
     message: "",
   });
 
+  
+console.log(generalData?.organizations?.find(obj => obj.id == parametersURL.filterObjectValues.entityCode))
   return (
     <>
       <div className="md:flex gap-10 justify-between">
@@ -967,6 +941,7 @@ export default function Entradas(props) {
             icon={"add"}
             onClick={() => {
               if (submitStatus == "Editar entrada") {
+                const defaultSelection = getDefaultOrganizationSelection();
                 setNewRegister({
                   code: "",
                   id: "",
@@ -976,23 +951,14 @@ export default function Entradas(props) {
                   quantity: 1,
                   serial_number: "",
                   national_code: "",
-                  organization_id: null,
+                  organization_id: defaultSelection.organization_id,
                   machine_status_id: 1,
                   components: {},
-                  organizationObject: {
-                    organizationId: null,
-                    name: "",
-                    code: "",
-                  },
-                  organization_id: null,
-                  organizationName: "",
                   arrival_time: getCurrentTime(),
                   arrival_date: new Date().toISOString().split("T")[0],
                   status: 1,
                 });
               }
-              // Resetear organizaciones para nueva entrada
-              setOrganizations([]);
               setOpen(true);
               setSubmitStatus("Crear entrada");
             }}
@@ -1012,7 +978,6 @@ export default function Entradas(props) {
             </div>
           )}
         </div>
-      
       </div>
 
       <Modal
@@ -1110,13 +1075,13 @@ export default function Entradas(props) {
                                     ...acc,
                                     [component]: true,
                                   }),
-                                  {}
+                                  {},
                                 ),
                               }));
                               setTimeout(() => {
                                 // Buscar el último campo serial agregado (el del producto recién agregado)
                                 const serialInputs = document.querySelectorAll(
-                                  'input[name^="serial_"]'
+                                  'input[name^="serial_"]',
                                 );
                                 const lastSerialInput =
                                   serialInputs[serialInputs.length - 1];
@@ -1184,8 +1149,7 @@ export default function Entradas(props) {
                             name={`serial_number`}
                             size="small"
                             onChange={handleChange}
-                            onFocus={(e)=> e.target.select()}
-
+                            onFocus={(e) => e.target.select()}
                           />
                         </td>
                         <td className="p-4 px-2 w-[200px]">
@@ -1195,8 +1159,7 @@ export default function Entradas(props) {
                             name={`national_code`}
                             size="small"
                             onChange={handleChange}
-                            onFocus={(e)=> e.target.select()}
-
+                            onFocus={(e) => e.target.select()}
                           />
                         </td>
                         <td className="p-4 px-2 w-[200px]">
@@ -1259,54 +1222,31 @@ export default function Entradas(props) {
               name={"arrival_time"}
               onChange={handleChange}
             />
-            <>
-              <Autocomplete
-                options={organizations}
-                getOptionLabel={(option) => option?.name || ""}
-                value={NewRegister?.organizationObject || null}
-                isOptionEqualToValue={(option, value) => {
-                  return (
-                    option?.id === value?.organizationId ||
-                    option?.id === value?.id
-                  );
-                }}
-                filterOptions={(options) => options}
-
-                onChange={(e, newValue) => {
-                  handleOptionSelectOrganizations(e, newValue);
-                }}
-                renderOption={(propsAutocomplete, option) => {
-                  const { key, ...optionProps } = propsAutocomplete;
-                  return (
-                    <Box
-                      key={option.name + option.id}
-                      component="li"
-                      sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                      {...optionProps}
-                    >
-                      {option.code !== props?.userData?.entityCode && (
-                        <p>
-                          <span
-                            style={{ color: "#011140", marginRight: "5px" }}
-                          >
-                            {option.code !== "nocode" && <StoreIcon />}
-                          </span>
-                          {option.name}
-                        </p>
-                      )}
-                    </Box>
-                  );
-                }}
-                onInputChange={(_, newValue) => {
-                  if (newValue && newValue.trim().length > 0) {
-                    handleSearchOrganizations(newValue);
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField required {...params} label="Origen" />
-                )}
-              />
-            </>
+            <Input
+              select
+              label="Origen"
+              required
+              value={NewRegister.organization_id ?? ""}
+              name="organization_id"
+              onChange={(e) => {
+                const selectedEntity = generalData.entities.find(
+                  (option) => Number(option.id) === Number(e.target.value),
+                );
+                handleOptionSelectOrganizations(selectedEntity);
+              }}
+            >
+              {generalData.entities.length > 0 ? (
+                generalData.entities.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.name}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="" disabled>
+                  No hay opciones disponibles
+                </MenuItem>
+              )}
+            </Input>
 
             <Input
               label={"Área"}
@@ -1321,6 +1261,7 @@ export default function Entradas(props) {
                 nueva
               </p>
             )}
+            <p className="col-span-4">Entrada al inventario de {NewRegister.entity_name}</p>
             <Button3D
               className="mt-2 col-span-4"
               color={submitStatus == "Crear entrada" ? "blue1" : "blue2"}
