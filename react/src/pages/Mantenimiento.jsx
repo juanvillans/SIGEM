@@ -342,6 +342,30 @@ export default function Mantenimiento(props) {
     {
       name: "description",
       label: "Descripción",
+      options: {
+        filter: false,
+        sort: false,
+        customBodyRender: (value) => {
+          if (!value) return "N/A";
+
+          const maxLength = 50; // Adjust this value as needed
+          const truncated =
+            value.length > maxLength
+              ? value.substring(0, maxLength) + "..."
+              : value;
+
+          return (
+            <div className="relative group">
+              <span className="cursor-help">{truncated}</span>
+              {value.length > maxLength && (
+                <div className="absolute z-10 hidden group-hover:block bg-gray-800 text-white bg-blue1 text-sm rounded-lg p-2 w-64 max-w-xs -mt-1 left-0 shadow-lg">
+                  {value}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
     },
   ];
 
@@ -1182,7 +1206,9 @@ export default function Mantenimiento(props) {
               />
             </div>
 
-            <p className="col-span-4">Mantenimiento de {NewRegister.entity_name}</p>
+            <p className="col-span-4">
+              Mantenimiento de {NewRegister.entity_name}
+            </p>
 
             <Button3D
               className="mt-2 col-span-4"
