@@ -11,6 +11,7 @@ use App\Models\OutputGeneral;
 use App\Models\RequestProduct;
 use App\Models\ServiceRequest;
 use App\Models\TypeMaintenance;
+use App\Models\Organization;
 
 class RelationController extends Controller
 {
@@ -86,6 +87,11 @@ class RelationController extends Controller
                 ->pluck('year');
 
             $response['serviceRequestYears'] = $years;
+        }
+
+        if($request->input('organizations')){
+            $organizations = Organization::get();
+            $response['organizations'] = $organizations;
         }
 
 
