@@ -44,7 +44,9 @@ class EntryToConfirmService extends ApiService
 
     public function getData()
     {
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $entriesToConfirmed = EntryToConfirmed::with(
             'entity',
@@ -55,7 +57,15 @@ class EntryToConfirmService extends ApiService
             'outputGeneral'
 
         )
-            ->where('entity_code', $userEntityCode)
+            ->when($isSuperAdmin, function ($query) {
+                $entity = request()->input('entity');
+
+                if ($entity && $entity != '*')
+                    $query->where('entity_code', $entity);
+            })
+            ->when(!$isSuperAdmin, function ($query) use ($accessibleCodes) {
+                $query->whereIn('entity_code', $accessibleCodes);
+            })
             ->when(request()->input('entryToConfirm'), function ($query, $param) {
 
                 if (isset($param['status'])) {
@@ -203,6 +213,8 @@ class EntryToConfirmService extends ApiService
 
         try {
 
+            $user = auth()->user();
+
             $entryToConfirm = EntryToConfirmed::where('id', $data['entryToConfirmID'])
                 ->where('status', InventoryMoveStatus::SIN_CONFIRMAR->value)
                 ->first();
@@ -210,6 +222,11 @@ class EntryToConfirmService extends ApiService
 
             if (!isset($entryToConfirm->id))
                 throw new Exception('No se ha conseguido entrada valida para confirmar', 404);
+
+            $user->ensureCanAccessEntity($data['entity_code']);
+
+            if ($entryToConfirm->entity_code != $data['entity_code'])
+                throw new Exception('La entrada no pertenece a la entidad seleccionada', 403);
 
             $entryService = new EntryService;
 
@@ -246,6 +263,14 @@ class EntryToConfirmService extends ApiService
                 $entryToConfirm = EntryToConfirmed::where('id', $data['entryToConfirmID'])
                     ->where('status', InventoryMoveStatus::SIN_CONFIRMAR->value)->first();
 
+                if (!isset($entryToConfirm->id))
+                    throw new Exception('No se ha conseguido entrada valida para rechazar', 404);
+
+                $user->ensureCanAccessEntity($data['entity_code']);
+
+                if ($entryToConfirm->entity_code != $data['entity_code'])
+                    throw new Exception('La entrada no pertenece a la entidad seleccionada', 403);
+
                 $entryToConfirm->update(['status' => InventoryMoveStatus::ELIMINADO]);
 
                 $this->sendNotificationToOrigin($entryToConfirm, false);
@@ -268,7 +293,12 @@ class EntryToConfirmService extends ApiService
 
         $organization = Organization::where('id', $entriesToConfirmed->organization_id)->first();
         $ability = '5';
-        $users = User::where('entity_code', $organization->code)
+        $users = User::where(function ($query) use ($organization) {
+            $query->where('entity_code', $organization->code)
+                ->orWhereHas('hierarchies', function ($query) use ($organization) {
+                    $query->where('code', $organization->code);
+                });
+        })
             ->whereHas('tokens', function ($query) use ($ability) {
                 $query->whereJsonContains('abilities', $ability);
             })->get();

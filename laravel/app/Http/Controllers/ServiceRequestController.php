@@ -108,6 +108,14 @@ class ServiceRequestController extends Controller
     {
         try {
 
+            $user = auth()->user();
+            $entityCode = request('entity') ?? $serviceRequest->entity_code;
+
+            $user->ensureCanAccessEntity($entityCode);
+
+            if ($serviceRequest->entity_code != $entityCode)
+                throw new Exception('La solicitud no pertenece a la entidad seleccionada', 403);
+
             $serviceRequest->delete();
 
             return response()->json([

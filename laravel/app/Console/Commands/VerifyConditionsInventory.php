@@ -115,13 +115,18 @@ class VerifyConditionsInventory extends Command
         $abilities = ["4", "5", "6"]; 
 
 
-        $users = User::where('entity_code', $entityCode)
-        ->where(function ($query) use ($abilities) {
-            foreach ($abilities as $ability) {
-                $query->orWhere(function ($subQuery) use ($ability) {
-                    $subQuery->whereJsonContains('abilities', $ability);
+        $users = User::where(function ($query) use ($entityCode) {
+            $query->where('entity_code', $entityCode)
+                ->orWhereHas('hierarchies', function ($query) use ($entityCode) {
+                    $query->where('code', $entityCode);
                 });
-            }
+        })
+        ->whereHas('tokens', function ($query) use ($abilities) {
+            $query->where(function ($query) use ($abilities) {
+                foreach ($abilities as $ability) {
+                    $query->orWhereJsonContains('abilities', $ability);
+                }
+            });
         })
         ->get();
 

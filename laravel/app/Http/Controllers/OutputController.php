@@ -32,7 +32,7 @@ class OutputController extends Controller
 
         $total = $outputs->total();
 
-        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
+        $canSeeOthers = auth()->user()->isSuperAdmin();
 
 
 
@@ -92,7 +92,7 @@ class OutputController extends Controller
 
         try {
 
-            $response = $this->outputService->delete($output);
+            $response = $this->outputService->delete($output, request('entity'));
 
             return $response;
         } catch (Exception $e) {

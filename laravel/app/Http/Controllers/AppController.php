@@ -14,30 +14,33 @@ public function index(Request $request)
 {
     $user = Auth::user();
 
-    // Determinar el código de entidad a filtrar
-    if ($user->entity_code == '1') {
-        // Usuario con permisos especiales (código 1)
-        if ($request->has('entity_code') && $request->entity_code == '*') {
-            // Si solicitan '*', no aplicar filtro por entidad
-            $targetEntityCode = null;
-        } elseif ($request->has('entity_code') && $request->entity_code != $user->entity_code) {
-            // Si solicitan otra entidad específica, usar esa
-            $targetEntityCode = $request->entity_code;
-        } else {
-            // Por defecto, ver su propia entidad
-            $targetEntityCode = $user->entity_code;
-        }
-    } else {
-        // Usuario normal solo puede ver su propia entidad
-        $targetEntityCode = $user->entity_code;
-    }
-
     // Construir la consulta base
     $maintenanceQuery = Maintenance::query();
 
-    // Aplicar filtro de entidad solo si $targetEntityCode no es null
-    if ($targetEntityCode !== null) {
-        $maintenanceQuery->where('entity_code', $targetEntityCode);
+    $isSuperAdmin = $user->isSuperAdmin();
+    $targetEntityCode = null;
+
+    if ($isSuperAdmin) {
+        // Usuario con permisos especiales (código 1)
+        if ($request->has('entity_code') && $request->entity_code != '*' && $request->entity_code != '') {
+            // Si solicitan una entidad específica, usar esa
+            $targetEntityCode = $request->entity_code;
+            $maintenanceQuery->where('entity_code', $targetEntityCode);
+        } else {
+            // Si solicitan '*' o nada, ver todos
+            $targetEntityCode = null;
+        }
+    } else {
+        $accessibleCodes = $user->getAllEntityCodes();
+
+        if ($request->has('entity_code') && $request->entity_code != '*' && in_array($request->entity_code, $accessibleCodes)) {
+            $targetEntityCode = $request->entity_code;
+            $maintenanceQuery->where('entity_code', $targetEntityCode);
+        } else {
+            // Usuario normal ve sus entidades accesibles
+            $targetEntityCode = null;
+            $maintenanceQuery->whereIn('entity_code', $accessibleCodes);
+        }
     }
 
     // Obtener los conteos por tipo de mantenimiento

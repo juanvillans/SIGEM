@@ -30,7 +30,7 @@ class EntryController extends Controller
 
         $total = $entries->total();
 
-        $canSeeOthers = auth()->user()->entity_code == '1'?true:false;
+        $canSeeOthers = auth()->user()->isSuperAdmin();
 
 
         return [
@@ -93,7 +93,7 @@ class EntryController extends Controller
 
         try {
 
-            $response = $this->entryService->delete($entry);
+            $response = $this->entryService->delete($entry, request('entity'));
 
             return ['message' => $response['message']];
 

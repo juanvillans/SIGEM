@@ -26,11 +26,9 @@ class MaintenanceController extends Controller
     public function index()
     {
         $maintenances = $this->maintenanceService->getData();
-        Log::info('Que fastidio esta vaina');
-        Log::info($maintenances);
 
         $maintenanceCollection = new MaintenanceCollection($maintenances);
-        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
+        $canSeeOthers = auth()->user()->isSuperAdmin();
 
         $total = $maintenances->total();
 
@@ -48,8 +46,6 @@ class MaintenanceController extends Controller
     public function store(MaintenanceRequest $request)
     {
         try {
-
-            Log::info('Mantenimiento:', $request->validated());
 
             $response = $this->maintenanceService->create($request->validated());
 
@@ -95,7 +91,7 @@ class MaintenanceController extends Controller
     {
         try {
 
-            $response = $this->maintenanceService->delete($maintenance);
+            $response = $this->maintenanceService->delete($maintenance, request('entity'));
 
             return $response;
         } catch (Exception $e) {

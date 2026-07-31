@@ -21,8 +21,9 @@ class MaintenanceService extends ApiService
     public function getData()
     {
 
-        $userEntityCode = auth()->user()->entity_code;
-
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $maintenances = Maintenance::with(
             'entity',
@@ -32,18 +33,22 @@ class MaintenanceService extends ApiService
             'typeMaintenance',
             'machineStatus'
         )
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($accessibleCodes, $isSuperAdmin) {
 
                 $entity = $param;
 
-                if (!$userEntityCode == '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+
+                    if ($entity != '*' && in_array($entity, $accessibleCodes)) {
+                        $query->where('entity_code', $entity);
+                    }
                 } else {
                     if ($entity != '*')
                         $query->where('entity_code', $entity);
                 }
             })
-            ->when(request()->input('maintenances'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('maintenances'), function ($query, $param) {
 
                 if (isset($param['type_maintenance_id'])) {
                     $status = $param['type_maintenance_id'];
@@ -143,10 +148,11 @@ class MaintenanceService extends ApiService
 
                 $query->orderBy('created_at', $orderDirection);
             })
-            ->unless(request()->input('entity'), function ($query) use ($userEntityCode) {
+            ->unless(request()->input('entity'), function ($query) use ($accessibleCodes, $isSuperAdmin) {
 
-                // $entity = auth()->user()->entity_code;
-                $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+                }
             })
             ->unless(request()->input('orderBy'), function ($query, $param) {
                 $query->orderBy('id', 'desc');
@@ -165,6 +171,15 @@ class MaintenanceService extends ApiService
         return DB::transaction(function () use ($data, $user) {
 
             try {
+
+                $entityCode = $data['entity_code'];
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                $inventoryGeneral = InventoryGeneral::where('id', $data['inventory_general_id'])->first();
+
+                if ($inventoryGeneral->entity_code != $entityCode)
+                    throw new Exception('El inventario no pertenece a la entidad seleccionada', 403);
 
                 $newMaintenance = Maintenance::create($data);
 
@@ -198,6 +213,19 @@ class MaintenanceService extends ApiService
         return DB::transaction(function () use ($data, $maintenance) {
 
             try {
+
+                $user = auth()->user();
+                $entityCode = $data['entity_code'] ?? $maintenance->entity_code;
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                if ($maintenance->entity_code != $entityCode)
+                    throw new Exception('El mantenimiento no pertenece a la entidad seleccionada', 403);
+
+                $inventoryGeneral = InventoryGeneral::where('id', $maintenance->inventory_general_id)->first();
+
+                if ($inventoryGeneral->entity_code != $entityCode)
+                    throw new Exception('El inventario no pertenece a la entidad seleccionada', 403);
 
                 $maintenance->update($data);
 
@@ -233,15 +261,21 @@ class MaintenanceService extends ApiService
         });
     }
 
-    public function delete(Maintenance $maintenance)
+    public function delete(Maintenance $maintenance, ?string $entityCode = null)
     {
 
         $user = auth()->user();
 
-        return DB::transaction(function () use ($maintenance, $user) {
+        return DB::transaction(function () use ($maintenance, $user, $entityCode) {
 
             try {
 
+                $entityCode = $entityCode ?? $maintenance->entity_code;
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                if ($maintenance->entity_code != $entityCode)
+                    throw new Exception('El mantenimiento no pertenece a la entidad seleccionada', 403);
 
                 $inventoryGeneralID = $maintenance->inventory_general_id;
                 $maitenanceIdToDelete = $maintenance->id;
@@ -258,9 +292,6 @@ class MaintenanceService extends ApiService
                     $lastMaintenance = Maintenance::where('inventory_general_id', $inventoryGeneralID)
                         ->latest()
                         ->first();
-
-                    Log::info('Esta de esta lado');
-                    Log::info($lastMaintenance->id);
 
                     $entryGeneral = EntryGeneral::where('id', $inventoryGeneral->entry_general_id)->first();
 

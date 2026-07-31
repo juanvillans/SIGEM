@@ -102,7 +102,7 @@ class RequestProductController extends Controller
 
         try {
 
-            $this->requestProductService->delete($requestProduct);
+            $this->requestProductService->delete($requestProduct, request('entity'));
 
             return ['message' => 'Solicitud eliminada correctamente' ];
 
@@ -155,6 +155,8 @@ class RequestProductController extends Controller
         return DB::transaction(function() use ($status, $requestProduct, $outputGeneralID) {
 
             try{
+
+                auth()->user()->ensureCanAccessEntity($requestProduct->entity_code_destiny);
 
                 $requestProduct->status = $status;
                 $requestProduct->output_general_id = $outputGeneralID;

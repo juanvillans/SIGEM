@@ -21,7 +21,9 @@ class RequestProductService extends ApiService
 
     public function getData()
     {
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $requestProducts = RequestProduct::with(
             'entity',
@@ -29,8 +31,16 @@ class RequestProductService extends ApiService
             'user',
             'outputGeneral'
         )
-            ->where('entity_code', $userEntityCode)
-            ->when(request()->input('requestProduct'), function ($query, $param) use ($userEntityCode) {
+            ->when($isSuperAdmin, function ($query) {
+                $entity = request()->input('entity');
+
+                if ($entity && $entity != '*')
+                    $query->where('entity_code', $entity);
+            })
+            ->when(!$isSuperAdmin, function ($query) use ($accessibleCodes) {
+                $query->whereIn('entity_code', $accessibleCodes);
+            })
+            ->when(request()->input('requestProduct'), function ($query, $param) {
 
                 if (isset($param['status'])) {
                     $status = $param['status'];
@@ -144,10 +154,12 @@ class RequestProductService extends ApiService
     public function create($data)
     {
 
-
         return DB::transaction(function () use ($data) {
 
             try {
+
+                $user = auth()->user();
+                $user->ensureCanAccessEntity($data['entity_code']);
 
                 $requestProduct = RequestProduct::create($data);
                 ProductsRequested::dispatch($requestProduct);
@@ -173,6 +185,12 @@ class RequestProductService extends ApiService
 
             try {
 
+                $user = auth()->user();
+                $user->ensureCanAccessEntity($data['entity_code']);
+
+                if ($requestProduct->entity_code != $data['entity_code'])
+                    throw new Exception('La solicitud no pertenece a la entidad seleccionada', 403);
+
                 if ($requestProduct->status != InventoryMoveStatus::SIN_CONFIRMAR->value)
                     throw new Exception("Esta solicitud ya ha sido respondida, no puede actualizar esta solicitud", 403);
 
@@ -193,12 +211,21 @@ class RequestProductService extends ApiService
         });
     }
 
-    public function delete($requestProduct)
+    public function delete($requestProduct, ?string $entityCode = null)
     {
 
-        return DB::transaction(function () use ($requestProduct) {
+        return DB::transaction(function () use ($requestProduct, $entityCode) {
 
             try {
+
+                $user = auth()->user();
+                $entityCode = $entityCode ?? $requestProduct->entity_code;
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                if ($requestProduct->entity_code != $entityCode)
+                    throw new Exception('La solicitud no pertenece a la entidad seleccionada', 403);
+
                 if ($requestProduct->status != InventoryMoveStatus::SIN_CONFIRMAR->value)
                     throw new Exception("Esta solicitud ya ha sido respondida, no puede eliminar esta solicitud", 403);
 
@@ -227,7 +254,9 @@ class RequestProductService extends ApiService
     public function getMyRequests()
     {
 
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $requestProducts = RequestProduct::with(
             'entity',
@@ -235,8 +264,16 @@ class RequestProductService extends ApiService
             'user',
             'outputGeneral'
         )
-            ->where('entity_code_destiny', $userEntityCode)
-            ->when(request()->input('requestMyInventory'), function ($query, $param) use ($userEntityCode) {
+            ->when($isSuperAdmin, function ($query) {
+                $entity = request()->input('entity');
+
+                if ($entity && $entity != '*')
+                    $query->where('entity_code_destiny', $entity);
+            })
+            ->when(!$isSuperAdmin, function ($query) use ($accessibleCodes) {
+                $query->whereIn('entity_code_destiny', $accessibleCodes);
+            })
+            ->when(request()->input('requestMyInventory'), function ($query, $param) {
 
                 if (isset($param['status'])) {
                     $status = $param['status'];

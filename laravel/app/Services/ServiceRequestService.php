@@ -4,30 +4,37 @@ namespace App\Services;
 
 use App\Enums\ServiceRequestEnum;
 use App\Models\ServiceRequest;
+use Exception;
 
 class ServiceRequestService extends ApiService
 {
 
     public function get()
     {
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $services = ServiceRequest::with(
             'entity',
         )
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($accessibleCodes, $isSuperAdmin) {
 
                 $entity = $param;
 
-                if (!$userEntityCode == '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+
+                    if ($entity != '*' && in_array($entity, $accessibleCodes)) {
+                        $query->where('entity_code', $entity);
+                    }
                 } else {
                     if ($entity != '*') {
                         $query->where('entity_code', $entity);
                     }
                 }
             })
-            ->when(request()->input('serviceRequest'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('serviceRequest'), function ($query, $param) {
 
                 if (isset($param['status'])) {
                     $status = $param['status'];
@@ -119,8 +126,10 @@ class ServiceRequestService extends ApiService
                         break;
                 }
             })
-            ->unless(request()->input('entity'), function ($query) use ($userEntityCode) {
-                $query->where('entity_code', $userEntityCode);
+            ->unless(request()->input('entity'), function ($query) use ($accessibleCodes, $isSuperAdmin) {
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+                }
             })
             ->unless(request()->input('orderBy'), function ($query) {
                 $query->orderBy('id', 'desc');
@@ -132,6 +141,8 @@ class ServiceRequestService extends ApiService
 
     public function store($data)
     {
+        auth()->user()->ensureCanAccessEntity($data['entity_code']);
+
         ServiceRequest::create($data);
 
         return 0;
@@ -139,6 +150,13 @@ class ServiceRequestService extends ApiService
 
     public function update($data, $serviceRequest)
     {
+        $user = auth()->user();
+
+        $user->ensureCanAccessEntity($data['entity_code']);
+
+        if ($serviceRequest->entity_code != $data['entity_code'])
+            throw new Exception('La solicitud no pertenece a la entidad seleccionada', 403);
+
         $serviceRequest->update($data);
 
         return 0;

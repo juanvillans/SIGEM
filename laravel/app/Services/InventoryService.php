@@ -10,21 +10,27 @@ class InventoryService extends ApiService
 
     public function getData()
     {
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $query = InventoryGeneral::where('quantity', '>', 0)
             ->with('entity', 'product', 'machineStatus', 'maintenance.typeMaintenance')
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($accessibleCodes, $isSuperAdmin) {
                 $entity = $param;
 
-                if (!$userEntityCode == '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+
+                    if ($entity != '*' && in_array($entity, $accessibleCodes)) {
+                        $query->where('entity_code', $entity);
+                    }
                 } else {
                     if ($entity != '*')
                         $query->where('entity_code', $entity);
                 }
             })
-            ->when(request()->input('inventories'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('inventories'), function ($query, $param) {
 
                 if (isset($param['last_type_maintenance_id'])) {
 
@@ -84,9 +90,10 @@ class InventoryService extends ApiService
                         });
                 });
             })
-            ->unless(request()->input('entity'), function ($query) {
-                $entity = auth()->user()->entity_code;
-                $query->where('entity_code', $entity);
+            ->unless(request()->input('entity'), function ($query) use ($accessibleCodes, $isSuperAdmin) {
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+                }
             })
             ->unless(request()->input('orderBy'), function ($query) {
                 $query->orderBy('id', 'desc');

@@ -62,7 +62,6 @@ class RequestProductRequest extends FormRequest
     {
         $this->merge([
             'status' => InventoryMoveStatus::SIN_CONFIRMAR->value,
-            'entity_code' => auth()->user()->entity_code,
         ]);
     }
 }

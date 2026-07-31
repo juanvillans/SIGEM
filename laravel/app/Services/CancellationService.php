@@ -9,7 +9,6 @@ use App\Events\InventoryLoteDeleted;
 use App\Events\NewActivity;
 use App\Events\OutputDeleted;
 use App\Events\OutputDetailDeleted;
-use App\Exceptions\GeneralExceptions;
 use App\Http\Resources\EntryCollection;
 use App\Http\Resources\EntryResource;
 use App\Models\Cancellation;
@@ -39,7 +38,10 @@ class CancellationService
     public function create($request,$type)
     {   
 
-        $this->entityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $this->entityCode = $request->entity_code;
+
+        $user->ensureCanAccessEntity($this->entityCode);
 
         if($type == $this->TYPE_ENTRY)
             $this->handleEntryCancellation($request->ID);
@@ -60,7 +62,10 @@ class CancellationService
         
         if(!isset($entryGeneral->id))
             throw new Exception('Esta entrada ya ha sido cancelada',404);
-        
+
+        if ($entryGeneral->entity_code != $this->entityCode)
+            throw new Exception('La entrada no pertenece a la entidad seleccionada', 403);
+
         $entryGeneral->update(['status' => 2]);
 
         $userID = auth()->user()->id;
@@ -71,12 +76,13 @@ class CancellationService
 
     public function handleOutputCancellation($outputGeneralID)
     {   
-        $this->entityCode = auth()->user()->entity_code;
-
         $outputGeneral = OutputGeneral::where('id',$outputGeneralID)->where('status',1)->first();
                     
         if(!isset($outputGeneral->id))
-            throw new GeneralExceptions('Esta salida ya ha sido cancelada',404);
+            throw new Exception('Esta salida ya ha sido cancelada',404);
+
+        if ($outputGeneral->entity_code != $this->entityCode)
+            throw new Exception('La salida no pertenece a la entidad seleccionada', 403);
 
         $outputGeneral->update(['status' => 2]);
         $outputGeneral->touch();

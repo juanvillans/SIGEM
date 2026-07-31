@@ -18,7 +18,6 @@ use App\Enums\InventoryMoveStatus;
 use App\Events\EntryDetailCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 use App\Exceptions\GeneralExceptions;
 
 class EntryService extends ApiService
@@ -30,22 +29,28 @@ class EntryService extends ApiService
     public function getData()
     {
 
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
 
         $entries = EntryGeneral::with('organization', 'user', 'product', 'machineStatus')
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($accessibleCodes, $isSuperAdmin) {
 
                 $entity = $param;
 
-                if (!$userEntityCode == '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+
+                    if ($entity != '*' && in_array($entity, $accessibleCodes)) {
+                        $query->where('entity_code', $entity);
+                    }
                 } else {
                     if ($entity != '*')
                         $query->where('entity_code', $entity);
                 }
             })
-            ->when(request()->input('entries'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entries'), function ($query, $param) {
 
                 if (isset($param['status'])) {
                     $status = $param['status'];
@@ -186,10 +191,11 @@ class EntryService extends ApiService
                     );
                 }
             })
-            ->unless(request()->input('entity'), function ($query) use ($userEntityCode) {
+            ->unless(request()->input('entity'), function ($query) use ($accessibleCodes, $isSuperAdmin) {
 
-                // $entity = auth()->user()->entity_code;
-                $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+                }
             })
             ->unless(request()->input('orderBy'), function ($query, $param) {
                 $query->orderBy('id', 'desc');
@@ -209,15 +215,17 @@ class EntryService extends ApiService
 
             try {
 
+                $entityCode = $data['entity_code'] ?? $user->entity_code;
+                $user->ensureCanAccessEntity($entityCode);
+                $data['entity_code'] = $entityCode;
 
                 $this->validateSerialNumberAndNationalCode($data);
 
-                $this->validateEntityFromOrganization($data);
+                $this->validateEntityFromOrganization($data, $entityCode);
 
-                $newEntryCode = $this->generateNewEntryCode($user->entity_code);
+                $newEntryCode = $this->generateNewEntryCode($entityCode);
 
                 $data['code'] = $newEntryCode;
-                $data['entity_code'] = $user->entity_code;
                 $data['status'] = 1;
                 $data['updated_at'] = Carbon::parse($data['arrival_date']);
                 $data['user_id'] = $user->id;
@@ -244,18 +252,20 @@ class EntryService extends ApiService
     public function update($data, $entryGeneral)
     {
 
+        $user = auth()->user();
+
         try {
 
-            return DB::transaction(function () use ($data, $entryGeneral) {
+            return DB::transaction(function () use ($data, $entryGeneral, $user) {
 
+                $entityCode = $data['entity_code'] ?? $entryGeneral->entity_code;
 
-                $this->delete($entryGeneral);
+                $this->delete($entryGeneral, $entityCode);
 
                 $this->validateSerialNumberAndNationalCode($data);
 
                 $this->create($data);
 
-                $user = auth()->user();
                 NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_ENTRADA->value, $entryGeneral->id);
 
                 return ['message' => 'Entrada Actualizada exitosamente'];
@@ -271,14 +281,20 @@ class EntryService extends ApiService
         }
     }
 
-    public function delete(EntryGeneral $entryGeneral)
+    public function delete(EntryGeneral $entryGeneral, ?string $entityCode = null)
     {
 
         $user = auth()->user();
 
-        return DB::transaction(function () use ($entryGeneral, $user) {
+        return DB::transaction(function () use ($entryGeneral, $user, $entityCode) {
 
             try {
+
+                $entityCode = $entityCode ?? $entryGeneral->entity_code;
+                $user->ensureCanAccessEntity($entityCode);
+
+                if ($entryGeneral->entity_code !== $entityCode)
+                    throw new Exception("La entrada no pertenece al inventario seleccionado", 403);
 
                 $inventory = InventoryGeneral::where('entry_general_id', $entryGeneral->id)->first();
                 if ($inventory->quantity == 0)
@@ -316,10 +332,13 @@ class EntryService extends ApiService
     {
 
         $user = auth()->user();
+
+        $user->ensureCanAccessEntity($entryToConfirm->entity_code);
+
         return DB::transaction(function () use ($entryToConfirm, $user) {
 
             try {
-                $newEntryCode = $this->generateNewEntryCode($user->entity_code);
+                $newEntryCode = $this->generateNewEntryCode($entryToConfirm->entity_code);
 
                 $data = [
                     'entity_code' => $entryToConfirm->entity_code,
@@ -390,12 +409,14 @@ class EntryService extends ApiService
             throw new Exception("El bien nacional: " . $register2->national_code . ' ya existe en el inventario ' . $register2->entity->name, 400);
     }
 
-    protected function validateEntityFromOrganization($data)
+    protected function validateEntityFromOrganization($data, ?string $entityCode = null)
     {
+        $entityCode = $entityCode ?? auth()->user()->entity_code;
+
         $organization = Organization::where('id', $data['organization_id'])->first();
 
         if ($organization->code != 'nocode' && $organization->code != 'NOCODE') {
-            if ($organization->code == Auth::user()->entity_code)
+            if ($organization->code == $entityCode)
                 throw new Exception("No se puede realizar una entrada como origen de si mismo", 400);
         }
     }

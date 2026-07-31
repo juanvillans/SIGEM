@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EntryRequest extends FormRequest
 {
@@ -22,6 +23,12 @@ class EntryRequest extends FormRequest
     public function rules(): array
     {
         return [
+
+            'entity_code' => [
+                'required',
+                'string',
+                Rule::exists('hierarchy_entities', 'code')
+            ],
 
             'area' => [
                 'nullable',
@@ -82,6 +89,8 @@ class EntryRequest extends FormRequest
     public function messages()
     {
         return [
+            'entity_code.required' => 'El inventario es requerido',
+            'entity_code.exists' => 'El inventario especificado no existe',
             'product_id.required' => 'El producto es requerido',
             'product_id.exists' => 'El producto especificado no existe',
             'serial_number.required' => 'El número de serie es requerido',

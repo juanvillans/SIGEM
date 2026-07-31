@@ -35,6 +35,11 @@ class CancellationRequest extends FormRequest
 
             'ID'=> ['required'],
             'cancelDescription'=> ['required','max:250'],
+            'entity_code' => [
+                'required',
+                'string',
+                Rule::exists('hierarchy_entities', 'code')
+            ],
         ];
     }
 

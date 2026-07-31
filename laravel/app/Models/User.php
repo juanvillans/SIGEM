@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Exceptions\GeneralExceptions;
 use App\Models\HierarchyEntity;
+use Exception;
 use App\Models\Module;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -64,6 +65,27 @@ class User extends Authenticatable
             $codes[] = $hierarchy->code;
         }
         return array_unique($codes);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return in_array('1', $this->getAllEntityCodes());
+    }
+
+    public function canAccessEntity(string $code): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return in_array($code, $this->getAllEntityCodes());
+    }
+
+    public function ensureCanAccessEntity(string $code): void
+    {
+        if (!$this->canAccessEntity($code)) {
+            throw new Exception('No tiene acceso al inventario solicitado', 403);
+        }
     }
 
     public function hasEntityCode(string $code): bool

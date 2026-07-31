@@ -27,7 +27,12 @@ class SendNewEntryToConfirmNotification
         $ability = "7"; // El permiso que estás buscando
 
 
-        $users = User::where('entity_code', $entityCode)
+        $users = User::where(function ($query) use ($entityCode) {
+            $query->where('entity_code', $entityCode)
+                ->orWhereHas('hierarchies', function ($query) use ($entityCode) {
+                    $query->where('code', $entityCode);
+                });
+        })
         ->whereHas('tokens', function ($query) use ($ability) {
             $query->whereJsonContains('abilities', $ability);
         })

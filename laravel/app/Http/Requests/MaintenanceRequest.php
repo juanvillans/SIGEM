@@ -48,7 +48,9 @@ class MaintenanceRequest extends FormRequest
                 'max:3000'
             ],
             'entity_code' => [
-                'nullable'
+                'required',
+                'string',
+                Rule::exists('hierarchy_entities', 'code')
             ]
         ];
     }
@@ -61,7 +63,7 @@ class MaintenanceRequest extends FormRequest
     public function messages()
     {
         return [
-            'entity_code.required' => 'El código de entidad es obligatorio.',
+            'entity_code.required' => 'El inventario es requerido',
             'entity_code.exists' => 'El código de entidad no existe en el sistema.',
             'inventory_general_id.required' => 'El ID de inventario general es obligatorio.',
             'inventory_general_id.exists' => 'El ID de inventario general no existe en el sistema.',
@@ -70,12 +72,5 @@ class MaintenanceRequest extends FormRequest
             'description.required' => 'La descripción del mantenimiento es obligatoria.',
             'description.max' => 'La descripción no debe exceder los 1000 caracteres.',
         ];
-    }
-
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'entity_code' => auth()->user()->entity_code,
-        ]);
     }
 }

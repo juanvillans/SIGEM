@@ -26,6 +26,11 @@ class OutputRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'entity_code' => [
+                'required',
+                'string',
+                Rule::exists('hierarchy_entities', 'code')
+            ],
             'departure_date' => ['required','string'],
             'departure_time'=> [
                 'required',
@@ -59,6 +64,8 @@ class OutputRequest extends FormRequest
     public function messages()
     {
         return [
+            'entity_code.required' => 'El inventario es requerido',
+            'entity_code.exists' => 'El inventario especificado no existe',
             'inventory_general_id.required' => 'El producto es requerido',
             'inventory_general_id.exists' => 'El producto especificado no existe en inventario',
             'organization_id.required' => 'La organizacion de destino es requerido',

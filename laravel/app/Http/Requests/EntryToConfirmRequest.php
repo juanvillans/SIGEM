@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EntryToConfirmRequest extends FormRequest
 {
@@ -25,7 +26,12 @@ class EntryToConfirmRequest extends FormRequest
             'entryToConfirmID' => [
                 'required',
                 'exists:entry_to_confirmeds,id'
-        ],
+            ],
+            'entity_code' => [
+                'required',
+                'string',
+                Rule::exists('hierarchy_entities', 'code')
+            ],
         ];
     }
 
@@ -34,6 +40,8 @@ class EntryToConfirmRequest extends FormRequest
         return [
             'entryToConfirmID.required' => 'La entrada a confirmar es requerido',
             'entryToConfirmID.exists' => 'La entrada a confirmar no existe',
+            'entity_code.required' => 'El inventario es requerido',
+            'entity_code.exists' => 'El inventario especificado no existe',
         ];
     }
 }

@@ -14,7 +14,6 @@ use App\Enums\InventoryMoveStatus;
 use App\Models\EntryToConfirmed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
 
 class OutputService extends ApiService
 {
@@ -22,7 +21,9 @@ class OutputService extends ApiService
     public function getData()
     {
 
-        $userEntityCode = auth()->user()->entity_code;
+        $user = auth()->user();
+        $accessibleCodes = $user->getAllEntityCodes();
+        $isSuperAdmin = $user->isSuperAdmin();
 
         $outputs = OutputGeneral::with(
             'entity',
@@ -33,19 +34,23 @@ class OutputService extends ApiService
             'inventoryGeneral.maintenance',
 
         )
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($accessibleCodes, $isSuperAdmin) {
 
                 $entity = $param;
 
-                if (!$userEntityCode == '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+
+                    if ($entity != '*' && in_array($entity, $accessibleCodes)) {
+                        $query->where('entity_code', $entity);
+                    }
                 } else {
                     if ($entity != '*')
                         $query->where('entity_code', $entity);
                 }
             })
 
-            ->when(request()->input('outputs'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('outputs'), function ($query, $param) {
 
 
 
@@ -205,9 +210,10 @@ class OutputService extends ApiService
                 }
             })
 
-            ->unless(request()->input('entity'), function ($query) {
-                $entity = auth()->user()->entity_code;
-                $query->where('entity_code', $entity);
+            ->unless(request()->input('entity'), function ($query) use ($accessibleCodes, $isSuperAdmin) {
+                if (!$isSuperAdmin) {
+                    $query->whereIn('entity_code', $accessibleCodes);
+                }
             })
 
             ->unless(request()->input('orderBy'), function ($query) {
@@ -226,12 +232,16 @@ class OutputService extends ApiService
 
             try {
 
-                $newOutputCode = $this->generateNewOutputCode($user->entity_code);
-                $this->validateEntityFromOrganization($data);
+                $entityCode = $data['entity_code'] ?? $user->entity_code;
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                $newOutputCode = $this->generateNewOutputCode($entityCode);
+                $this->validateEntityFromOrganization($data, $entityCode);
 
 
                 $data['code'] = $newOutputCode;
-                $data['entity_code'] = $user->entity_code;
+                $data['entity_code'] = $entityCode;
                 $data['status'] = 1;
                 $data['updated_at'] = Carbon::parse($data['departure_date']);
                 $data['user_id'] = $user->id;
@@ -280,10 +290,12 @@ class OutputService extends ApiService
 
         try {
 
-            $this->delete($outputGeneral);
+            $user = auth()->user();
+            $entityCode = $data['entity_code'] ?? $outputGeneral->entity_code;
+
+            $this->delete($outputGeneral, $entityCode);
             $this->create($data);
 
-            $user = auth()->user();
             NewActivity::dispatch($user->id, TypeActivity::ACTUALIZAR_SALIDA->value, $outputGeneral->id);
 
             return ['message' => 'Salida Actualizada exitosamente'];
@@ -298,14 +310,21 @@ class OutputService extends ApiService
         }
     }
 
-    public function delete(OutputGeneral $outputGeneral)
+    public function delete(OutputGeneral $outputGeneral, ?string $entityCode = null)
     {
 
         $user = auth()->user();
 
-        return DB::transaction(function () use ($outputGeneral, $user) {
+        return DB::transaction(function () use ($outputGeneral, $user, $entityCode) {
 
             try {
+
+                $entityCode = $entityCode ?? $outputGeneral->entity_code;
+
+                $user->ensureCanAccessEntity($entityCode);
+
+                if ($outputGeneral->entity_code !== $entityCode)
+                    throw new Exception('La salida no pertenece a la entidad seleccionada', 403);
 
                 $entryToConfirmed = EntryToConfirmed::where('output_general_id', $outputGeneral->id)->first();
                 if (isset($entryToConfirmed->id)) {
@@ -356,12 +375,14 @@ class OutputService extends ApiService
         return $lastOutputCode + 1;
     }
 
-    protected function validateEntityFromOrganization($data)
+    protected function validateEntityFromOrganization($data, ?string $entityCode = null)
     {
+        $entityCode = $entityCode ?? auth()->user()->entity_code;
+
         $organization = Organization::where('id', $data['organization_id'])->first();
 
         if ($organization->code != 'nocode' && $organization->code != 'NOCODE') {
-            if ($organization->code == Auth::user()->entity_code)
+            if ($organization->code == $entityCode)
                 throw new Exception("No se puede realizar una salida como destino a si mismo", 400);
         }
     }

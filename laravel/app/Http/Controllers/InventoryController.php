@@ -41,7 +41,7 @@ class InventoryController extends Controller
         }
 
 
-        $canSeeOthers = auth()->user()->entity_code == '1' ? true : false;
+        $canSeeOthers = auth()->user()->isSuperAdmin();
 
 
         return [
