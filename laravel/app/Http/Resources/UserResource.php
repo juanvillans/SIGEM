@@ -17,11 +17,20 @@ class UserResource extends JsonResource
 
     public function toArray(Request $request): array
     {   
+        $entities = collect([['code' => $this->hierarchy->code, 'name' => $this->hierarchy->name]]);
+        if ($this->relationLoaded('hierarchies')) {
+            foreach ($this->hierarchies as $he) {
+                if ($he->code !== $this->entity_code) {
+                    $entities->push(['code' => $he->code, 'name' => $he->name]);
+                }
+            }
+        }
 
         return [
             'id' => $this->id,
             'entityCode' => $this->hierarchy->code, 
             'entityName' => $this->hierarchy->name,
+            'entities' => $entities->values()->all(),
             'charge'=> $this->charge,
             'username'=> $this->username,
             'name'=> $this->name,

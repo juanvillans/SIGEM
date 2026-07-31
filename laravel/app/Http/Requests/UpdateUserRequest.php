@@ -29,7 +29,8 @@ class UpdateUserRequest extends FormRequest
     {
         $userId = $this->route('user');
         return [
-            'entityCode' => ['required', Rule::exists('hierarchy_entities', 'code')],
+            'entityCode' => ['required', 'array', 'min:1'],
+            'entityCode.*' => ['required', Rule::exists('hierarchy_entities', 'code')],
             'charge' => ['required', 'max:100'],
             'name' => ['required', 'max:20'],
             'lastName' => ['required', 'max:20'],

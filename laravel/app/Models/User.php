@@ -47,9 +47,31 @@ class User extends Authenticatable
         return $this->belongsTo(HierarchyEntity::class, 'entity_code', 'code');
     }
 
+    public function hierarchies()
+    {
+        return $this->belongsToMany(HierarchyEntity::class, 'user_hierarchy_entities', 'user_id', 'entity_code', 'id', 'code');
+    }
+
     public function modules()
     {
         return $this->belongsToMany(Module::class, 'user_modules');
+    }
+
+    public function getAllEntityCodes(): array
+    {
+        $codes = [$this->entity_code];
+        foreach ($this->hierarchies as $hierarchy) {
+            $codes[] = $hierarchy->code;
+        }
+        return array_unique($codes);
+    }
+
+    public function hasEntityCode(string $code): bool
+    {
+        if ($this->entity_code === $code) {
+            return true;
+        }
+        return $this->hierarchies()->where('entity_code', $code)->exists();
     }
 
     public function findForUsername($username)
@@ -68,7 +90,8 @@ class User extends Authenticatable
             $permissions[] = strval($module->id);
         }
 
-        $permissions[] = $user->entity_code == '1'?'origin':'branch';
+        $hasOrigin = $user->entity_code === '1' || $user->hierarchies()->where('entity_code', '1')->exists();
+        $permissions[] = $hasOrigin ? 'origin' : 'branch';
 
         return $permissions;
     }

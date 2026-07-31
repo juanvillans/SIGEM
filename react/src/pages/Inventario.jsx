@@ -81,6 +81,9 @@ export default function Inventario(props) {
   const [reportData, setReportData] = useState([]);
 
   const [relation, setRelation] = useState(true);
+
+  const existingEntityCode = localStorage.getItem("entityCode");
+  
   const [parametersURL, setParametersURL] = useState({
     page: 1,
     rowsPerPage: 25,
@@ -90,7 +93,7 @@ export default function Inventario(props) {
     filter: "",
     total: 0,
     filterList: [],
-    filterObjectValues: { entityCode: props.userData.entityCode },
+    filterObjectValues: { entityCode: existingEntityCode || props.userData.entityCode },
   });
 
   const columns = [
@@ -484,47 +487,50 @@ export default function Inventario(props) {
           <div>
             <div className="flex flex-col md:flex-row gap-3 min-h-[55px]  pt-3">
               <h1 className="text-grey md:text-xl relative top-1 ">
-                Inventario {props.userData.entityCode == 1 && "de"}
+                Inventario de
               </h1>
-              {props.userData.entityCode == 1 && (
-                <span className="relative -top-2">
-                  <Input
-                    name="user_type"
-                    id=""
-                    select
-                    value={parametersURL.filterObjectValues.entityCode}
-                    // value={props.userData.entityCode}
-                    size="small"
-                    className=" bg-blue/0 py-1 font-bold"
-                    onChange={(e) => {
-                      filterObject[
-                        "entityCode"
-                      ] = `&inventories[entityCode]=${e.target.value}`;
-                      setParametersURL((prev) => ({
-                        ...prev,
-                        filter: Object.values(filterObject).join(""),
-                        page: 1,
-                        filterObjectValues: {
-                          ...prev.filterObjectValues,
-                          entityCode: e.target.value,
-                        },
-                        filterObject,
-                      }));
-                    }}
-                    // value={user_type_selected}
-                  >
-                    {generalData.entities?.map((option) => (
-                      <MenuItem key={option.code} value={option.code}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
 
+              <span className="relative -top-2">
+                <Input
+                  name="user_type"
+                  id=""
+                  select
+                  value={parametersURL.filterObjectValues.entityCode}
+                  // value={props.userData.entityCode}
+                  size="small"
+                  className=" bg-blue/0 py-1 font-bold"
+                  onChange={(e) => {
+                    filterObject[
+                      "entityCode"
+                    ] = `&inventories[entityCode]=${e.target.value}`;
+                    setParametersURL((prev) => ({
+                      ...prev,
+                      filter: Object.values(filterObject).join(""),
+                      page: 1,
+                      filterObjectValues: {
+                        ...prev.filterObjectValues,
+                        entityCode: e.target.value,
+                      },
+                      filterObject,
+                    }));
+                    localStorage.setItem("entityCode", e.target.value);
+
+                  }}
+                  // value={user_type_selected}
+                >
+                  {props.userData.entities?.map((option) => (
+                    <MenuItem key={option.code} value={option.code}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+
+                  {props.userData.entityCode == 1 && (
                     <MenuItem key={"todos"} value={"*"}>
                       Todos
                     </MenuItem>
-                  </Input>
-                </span>
-              )}
+                  )}
+                </Input>
+              </span>
             </div>
           </div>
         }

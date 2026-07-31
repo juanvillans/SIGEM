@@ -15,7 +15,15 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import Add from "@mui/icons-material/Add";
 // import Chip from '@material-ui/core/Chip';
-import { IconButton, TextField, Autocomplete, MenuItem } from "@mui/material";
+import {
+  IconButton,
+  TextField,
+  Autocomplete,
+  MenuItem,
+  Box,
+  Chip,
+  
+} from "@mui/material";
 import Modal from "../components/Modal";
 import ConfirmModal from "../components/ConfimModal";
 import Alert from "../components/Alert";
@@ -45,6 +53,8 @@ export default function Usuarios(props) {
   const [usuarios, setUsuarios] = useState([]);
   const [totalData, setTotalData] = useState(0);
 
+  const existingEntityCode = localStorage.getItem("entityCode");
+
   const [parametersURL, setParametersURL] = useState({
     page: 1,
     rowsPerPage: 25,
@@ -54,23 +64,22 @@ export default function Usuarios(props) {
     filter: "",
     total: 0,
     filterList: [],
-    filterObjectValues: { entityCode: props.userData.entityCode },
+    filterObjectValues: { entityCode: existingEntityCode || props.userData.entityCode },
   });
 
   const [entities, setEntities] = useState([]);
   const [modules, setModules] = useState([]);
 
   const columns = [
-    {
-      name: "entityName",
-      label: "Institución",
-      options: {
-        filter: false,
-        filterList: parametersURL?.filterList?.[0] || [],
-        sort: true,
-
-      },
-    },
+    // {
+    //   name: "entityName",
+    //   label: "Institución",
+    //   options: {
+    //     filter: false,
+    //     filterList: parametersURL?.filterList?.[0] || [],
+    //     sort: true,
+    //   },
+    // },
 
     {
       name: "name",
@@ -205,8 +214,8 @@ export default function Usuarios(props) {
     viewColumns: false,
     filter: false,
     print: false,
-    count: totalData,   
-    selectToolbarPlacement: 'above',
+    count: totalData,
+    selectToolbarPlacement: "above",
     rowsExpanded: [],
     rowsSelected: [],
     rowsPerPage: parametersURL.rowsPerPage,
@@ -218,7 +227,11 @@ export default function Usuarios(props) {
     },
 
     onChangeRowsPerPage: (numberOfRows) => {
-      setParametersURL((prev) => ({ ...prev, rowsPerPage: numberOfRows, page:  (totalData / numberOfRows ) < prev.page ? 1 : prev.page }));
+      setParametersURL((prev) => ({
+        ...prev,
+        rowsPerPage: numberOfRows,
+        page: totalData / numberOfRows < prev.page ? 1 : prev.page,
+      }));
     },
 
     onFilterChange: (
@@ -274,7 +287,7 @@ export default function Usuarios(props) {
     selectableRows: "single",
     fixedHeader: true,
     textLabels: {
-        body: {
+      body: {
         noMatch: isLoading ? (
           <CircularProgress color="inherit" size={33} />
         ) : (
@@ -312,50 +325,58 @@ export default function Usuarios(props) {
 
     // customSearchRender: debounceSearchRender(500),
     rowsPerPageOptions: [10, 25, 50, 100],
-        customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
-          const dataIndex = selectedRows.data[0].dataIndex;
-          
-          const rowData = usuarios[dataIndex];
-          console.log({ dataIndex }, {usuarios});
+    customToolbarSelect: (selectedRows, displayData, setSelectedRows) => {
+      const dataIndex = selectedRows.data[0].dataIndex;
+
+      const rowData = usuarios[dataIndex];
+      console.log({ dataIndex }, { usuarios });
       return (
-      <div>
-        <IconButton
-          title="Editar"
-          onClick={() =>
-                    editIconClick(rowData, "Editar", true)
+        <div>
+          <IconButton
+            title="Editar"
+            onClick={
+              () => editIconClick(rowData, "Editar", true)
 
-            // editIconClick(selectedRows, displayData, setSelectedRows)
-          }
-        >
-          <EditIcon />
-        </IconButton>
+              // editIconClick(selectedRows, displayData, setSelectedRows)
+            }
+          >
+            <EditIcon />
+          </IconButton>
 
-        <IconButton
-          title="Eliminar"
-          onClick={() => {
-            setModalConfirm({
-              isOpen: true,
-              modalInfo: "¿Quiere eliminar a este usuario?",
-              aceptFunction: () =>
-                deleteUser(
-                  usuarios[selectedRows.data[0].dataIndex].id,
-                  setSelectedRows
-                ),
-            });
-          }}
-        >
-          <DeleteIcon />
-        </IconButton>
-      </div>
-    );},
+          <IconButton
+            title="Eliminar"
+            onClick={() => {
+              setModalConfirm({
+                isOpen: true,
+                modalInfo: "¿Quiere eliminar a este usuario?",
+                aceptFunction: () =>
+                  deleteUser(
+                    usuarios[selectedRows.data[0].dataIndex].id,
+                    setSelectedRows
+                  ),
+              });
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        </div>
+      );
+    },
   };
 
   function editIconClick(rowData, displayData, setSelectedRows) {
+    const entityCodes = rowData.entities
+      ? rowData.entities.map((e) => e.code)
+      : rowData.entityCode
+      ? [rowData.entityCode]
+      : [];
+
     setNewUserData({
       ...rowData,
+      entityCode: entityCodes,
       permissions: Object.keys(rowData.permissions),
     });
-    
+
     setOpen(true);
     setSubmitStatus("Editar");
   }
@@ -366,7 +387,7 @@ export default function Usuarios(props) {
     modalInfo: false,
   });
   const [newUserData, setNewUserData] = useState({
-    entityCode: "",
+    entityCode: [],
     charge: "",
     name: "",
     lastName: "",
@@ -392,7 +413,8 @@ export default function Usuarios(props) {
         setAlert({
           open: true,
           status: "Exito",
-          message: "Es posible que necesite cerrar sesión e iniciar nuevamente para ver los cambios"
+          message:
+            "Es posible que necesite cerrar sesión e iniciar nuevamente para ver los cambios",
         });
         setSubmitStatus("Crear");
       }
@@ -405,8 +427,8 @@ export default function Usuarios(props) {
             setAlert({
               open: true,
               status: "Exito",
-           message: "Es posible que necesite cerrar sesión e iniciar nuevamente para ver los cambios"
-
+              message:
+                "Es posible que necesite cerrar sesión e iniciar nuevamente para ver los cambios",
             });
             // setUsuarios((prev) =>
             //   // prev.map((user) => (user.id === newUserEdit.id ? newUserEdit : user))
@@ -415,7 +437,7 @@ export default function Usuarios(props) {
       }
 
       setNewUserData({
-        entityCode: "",
+        entityCode: [],
         charge: "",
         name: "",
         lastName: "",
@@ -463,53 +485,49 @@ export default function Usuarios(props) {
       <MUIDataTable
         isRowSelectable={true}
         title={
-         
-            <div>
-              <div className="flex flex-col md:flex-row gap-3 min-h-[55px]  pt-3">
-                <h1 className="text-grey md:text-xl relative top-1 ">
-                  Usuarios  {props.userData.entityCode == 1 && ('de')}
-                </h1>
-                {props.userData.entityCode == 1 && (
-                  <span className="relative -top-2">
-                    <Input
-                      name="user_type"
-                      id=""
-                      select
-                      value={parametersURL.filterObjectValues.entityCode}
-                      // value={props.userData.entityCode}
-                      size="small"
-                      className="bg-blue/0 py-1 font-bold"
-                      onChange={(e) => {
-                        filterObject[
-                          "entityCode"
-                        ] = `&user[entityCode]=${e.target.value}`;
-                        setParametersURL((prev) => ({
-                          ...prev,
-                          filter: Object.values(filterObject).join(""),
-                          filterObjectValues: {
-                            ...prev.filterObjectValues,
-                            entityCode: e.target.value,
-                          },
-                          filterObject,
-                          page: 1,
-                        }));
-                      }}
-                      // value={user_type_selected}
-                    >
-                      {entities?.map((option) => (
-                        <MenuItem key={`${option.code}-${option.value}}`} value={option.code}>
-                          {option.name}
-                        </MenuItem>
-                      ))}
-                      {/* <MenuItem key={"*"} value={"*"}>
+          <div>
+            <div className="flex flex-col md:flex-row gap-3 min-h-[55px]  pt-3">
+              <h1 className="text-grey md:text-xl relative top-1 ">
+                Usuarios {props.userData.entityCode == 1 && "de"}
+              </h1>
+                <span className="relative -top-2">
+                  <Input
+                    name="user_type"
+                    id=""
+                    select
+                    value={parametersURL.filterObjectValues.entityCode}
+                    // value={props.userData.entityCode}
+                    size="small"
+                    className="bg-blue/0 py-1 font-bold"
+                    onChange={(e) => {
+                      setParametersURL((prev) => ({
+                        ...prev,
+                        filterObjectValues: {
+                          ...prev.filterObjectValues,
+                          entityCode: e.target.value,
+                        },
+                        page: 1,
+                      }));
+                      localStorage.setItem("entityCode", e.target.value);
+
+                    }}
+                    // value={user_type_selected}
+                  >
+                    {props.userData.entities?.map((option) => (
+                      <MenuItem
+                        key={`${option.code}-${option.value}}`}
+                        value={option.code}
+                      >
+                        {option.name}
+                      </MenuItem>
+                    ))}
+                    {/* <MenuItem key={"*"} value={"*"}>
                         Todos
                       </MenuItem> */}
-                    </Input>
-                  </span>
-                )}
-              </div>
+                  </Input>
+                </span>
             </div>
-          
+          </div>
         }
         data={usuarios}
         columns={columns}
@@ -560,7 +578,7 @@ export default function Usuarios(props) {
           onClick={(e) => {
             if (submitStatus == "Editar") {
               setNewUserData({
-                entityCode: "",
+                entityCode: [],
                 charge: "",
                 name: "",
                 lastName: "",
@@ -585,18 +603,44 @@ export default function Usuarios(props) {
             onSubmit={handleSubmit}
             className=" md:w-[500px] gap-4 grid grid-cols-2 "
           >
+            
+
             <Input
               select
+              SelectProps={{
+                multiple: true,
+                // This renders the selected values as wrapped chips inside the input
+                renderValue: (selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => {
+                      // Find the name of the entity so the Chip shows the name, not just the code
+                      const selectedEntity = entities.find(
+                        (e) => e.code === value
+                      );
+
+                      return (
+                        <Chip
+                          key={value}
+                          label={selectedEntity ? selectedEntity.name : value}
+                          size="small"
+                        />
+                      );
+                    })}
+                  </Box>
+                ),
+              }}
               label="Institución"
               value={newUserData.entityCode}
-              defaultValue=""
               width={"100%"}
               required
               name={"entityCode"}
               onChange={handleChange}
             >
               {entities.map((option) => (
-                <MenuItem key={`${option.code}-${option.name}}`} value={option.code}>
+                <MenuItem
+                  key={`${option.code}-${option.name}`}
+                  value={option.code}
+                >
                   {option.name}
                 </MenuItem>
               ))}
@@ -632,6 +676,7 @@ export default function Usuarios(props) {
               name={"ci"}
               onChange={handleChange}
               value={newUserData?.ci}
+              maxLength={9}
             />
             <Input
               key={5}
@@ -667,7 +712,10 @@ export default function Usuarios(props) {
             <div className="col-span-2">
               {Object.entries(modules)?.map(([key, value]) => {
                 return (
-                  <label  key={value+key} className="block py-1 cursor-pointer hover:text-blue1 hover:font-bold">
+                  <label
+                    key={value + key}
+                    className="block py-1 cursor-pointer hover:text-blue1 hover:font-bold"
+                  >
                     <input
                       type="checkbox"
                       value={key}

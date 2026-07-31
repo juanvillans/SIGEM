@@ -127,6 +127,9 @@ export default function Mantenimiento(props) {
     }
   }, [NewRegister]);
 
+  const existingEntityCode = localStorage.getItem("entityCode");
+
+
   const [parametersURL, setParametersURL] = useState({
     page: 1,
     rowsPerPage: 25,
@@ -137,7 +140,7 @@ export default function Mantenimiento(props) {
     total: 0,
     filterList: [],
     filterObjectValues: {
-      entityCode: props.userData.entityCode,
+      entityCode: existingEntityCode || props.userData.entityCode,
     },
   });
 
@@ -819,9 +822,10 @@ export default function Mantenimiento(props) {
                         },
                         filterObject,
                       }));
+                      localStorage.setItem("entityCode", e.target.value);
                     }}
                   >
-                    {generalData.entities?.map((option) => (
+                    {props.userData.entities?.map((option) => (
                       <MenuItem key={option.code} value={option.code}>
                         {option.name}
                       </MenuItem>

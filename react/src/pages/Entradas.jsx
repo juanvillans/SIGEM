@@ -170,6 +170,8 @@ export default function Entradas(props) {
     }
   }, [NewRegister]);
 
+  const existingEntityCode = localStorage.getItem("entityCode");
+
   const [parametersURL, setParametersURL] = useState({
     page: 1,
     rowsPerPage: 25,
@@ -180,7 +182,7 @@ export default function Entradas(props) {
     total: 0,
     filterList: [],
     filterObjectValues: {
-      entityCode: props.userData.entityCode,
+      entityCode: existingEntityCode || props.userData.entityCode,
     },
   });
 
@@ -903,7 +905,7 @@ export default function Entradas(props) {
                 Entradas {props.userData.entityCode == 1 && "de"}
               </h1>
 
-              {props.userData.entityCode == 1 && (
+              
                 <span className="relative -top-2">
                   <Input
                     name="user_type"
@@ -926,16 +928,17 @@ export default function Entradas(props) {
                         },
                         filterObject,
                       }));
+                      localStorage.setItem("entityCode", e.target.value);
                     }}
                   >
-                    {generalData.entities?.map((option) => (
+                    {props.userData.entities?.map((option) => (
                       <MenuItem key={option.code} value={option.code}>
                         {option.name}
                       </MenuItem>
                     ))}
                   </Input>
                 </span>
-              )}
+              
             </div>
           </div>
         }
@@ -1009,84 +1012,7 @@ export default function Entradas(props) {
             </div>
           )}
         </div>
-        <Autocomplete
-          className="md:min-w-[290px] md:mr-28"
-          size={"small"}
-          id="destinyFilter"
-          options={organizations}
-          getOptionLabel={(option) => option?.name || ""} // Ensure a string is always returned
-          value={parametersURL?.filterObjectValues?.organizationObj || null} // Use null for empty value
-          filterOptions={(options) => options}
-          onChange={(e, newValue) => {
-            // console.log(newValue);
-
-            // Update the filter object and parametersURL state
-            if (newValue) {
-              filterObject[
-                "organizationObj"
-              ] = `&entries[organizationId]=${newValue.id}`;
-            } else {
-              delete filterObject["organizationObj"]; // Remove the organization filter if newValue is null
-            }
-
-            setParametersURL((prev) => ({
-              ...prev,
-              filter: Object.values(filterObject).join(""),
-              page: 1,
-              filterObjectValues: {
-                ...prev.filterObjectValues,
-                organizationObj: newValue, // Set to null if cleared
-              },
-              filterObject,
-            }));
-          }}
-          onInputChange={(e, newValue, reason) => {
-            if (reason === "clear") {
-              // Handle the clear action explicitly
-              setParametersURL((prev) => ({
-                ...prev,
-                filterObjectValues: {
-                  ...prev.filterObjectValues,
-                  organizationObj: null, // Clear the value
-                },
-              }));
-            } else {
-              // Handle search input changes
-              handleSearchOrganizations(
-                e?.target?.value || NewRegister?.organizationObject?.name || ""
-              );
-            }
-          }}
-          renderOption={(propsAutocomplete, option) => {
-            const { key, ...optionProps } = propsAutocomplete;
-            return (
-              <Box
-                key={option.name + option.id}
-                component="li"
-                sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                {...optionProps}
-              >
-                {option.code !== props?.userData?.entityCode && (
-                  <p className="text-xs" style={{ fontSize: "14px" }}>
-                    <span style={{ color: "#011140", marginRight: "5px" }}>
-                      {option.code !== "nocode" && <StoreIcon />}
-                    </span>
-                    {option.name}
-                  </p>
-                )}
-              </Box>
-            );
-          }}
-          renderInput={(params) => (
-            <TextField
-              className="text-xs"
-              required
-              key={params}
-              {...params}
-              label="Filtrar por origen"
-            />
-          )}
-        />
+      
       </div>
 
       <Modal

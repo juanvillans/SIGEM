@@ -23,6 +23,7 @@ use Laravel\Sanctum\PersonalAccessToken;
 use App\Http\Resources\HierarchyResource;
 use App\Http\Resources\HierarchyCollection;
 use App\Http\Requests\UpdatePasswordRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -46,24 +47,24 @@ class UserController extends Controller
 
         $paginateArray = $this->queryFilter->getPaginateValues($request, 'users');
 
-        $userEntityCode = auth()->user()->entity_code;
+        /** @var \App\Models\User $authUser */
+        $authUser = auth()->user();
+        $userEntityCodes = $authUser->getAllEntityCodes();
 
-        $users = $this->userService->getData($paginateArray, $queryArray, $userEntityCode);
+        $users = $this->userService->getData($paginateArray, $queryArray, $userEntityCodes);
 
         $userCollection = new UserCollection($users);
 
         $total = $users->total();
 
-        $canSeeOthers = $userEntityCode == '1' ? true : false;
+        $hasOrigin = in_array('1', $userEntityCodes);
 
         $hierarchies = [];
 
-
-        if ($canSeeOthers) {
+        if ($hasOrigin) {
             $hierarchies = new HierarchyCollection(HierarchyEntity::all());
         } else {
-            $hierarchy = new HierarchyResource(HierarchyEntity::where('code', $userEntityCode)->first());
-            array_push($hierarchies, $hierarchy);
+            $hierarchies = new HierarchyCollection(HierarchyEntity::whereIn('code', $userEntityCodes)->get());
         }
 
 
@@ -99,7 +100,8 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return new UserResource($user->with('hierarchy')->first());
+        $user->load('hierarchy', 'hierarchies');
+        return new UserResource($user);
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -156,11 +158,18 @@ class UserController extends Controller
 
             /** @var \App\Models\User $user */
             $user = auth()->user();
-            $user->load('hierarchy');
+            $user->load('hierarchy', 'hierarchies');
 
             $permissionsArray = $this->userService->getPermissions($user->id);
 
             $permissionsWithFormat = $this->userService->formatToPermissions($permissionsArray);
+
+            $entities = collect([['code' => $user->hierarchy->code, 'name' => $user->hierarchy->name]]);
+            foreach ($user->hierarchies as $he) {
+                if ($he->code !== $user->entity_code) {
+                    $entities->push(['code' => $he->code, 'name' => $he->name]);
+                }
+            }
 
             return response()->json([
                 'status' => true,
@@ -171,6 +180,7 @@ class UserController extends Controller
                     'lastName' => $user->last_name,
                     'entityCode' => $user->entity_code,
                     'entityName' => $user->hierarchy->name,
+                    'entities' => $entities->values()->all(),
                     'username' => $user->username,
                     'ci' => $user->ci,
                     'address' => $user->address,
@@ -189,7 +199,20 @@ class UserController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+
+        $user = $request->user();
+        $token = $user->currentAccessToken();
+
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        } else {
+            Auth::guard('web')->logout();
+
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+        }
 
         return response()->json(['message' => 'Session eliminada']);
     }

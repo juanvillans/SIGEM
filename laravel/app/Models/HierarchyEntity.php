@@ -23,6 +23,11 @@ class HierarchyEntity extends Model
         return $this->hasMany(User::class, 'entity_code', 'code');
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_hierarchy_entities', 'entity_code', 'user_id', 'code', 'id');
+    }
+
     public function findCode($id)
     {
         return self::where('id',$id)->first()->code;

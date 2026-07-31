@@ -33,30 +33,40 @@ class UserService extends ApiService
         $this->hierarchyModel = new HierarchyEntity;
     }
 
-    public function getData($paginateArray, $queryArray, $userEntityCode)
+    public function getData($paginateArray, $queryArray, array $userEntityCodes)
     {
         $this->wantSeeOtherEntity = false;
-        $this->codeToSee = $userEntityCode;
+        $this->codeToSee = $userEntityCodes[0];
 
-        $users = User::select(['users.*', 'hierarchy_entities.name as entity_name', DB::raw('string_agg(modules.id::text, \',\') as module_ids'), DB::raw('string_agg(modules.name, \',\') as module_names')])
+        $users = User::with('hierarchies')
+            ->select(['users.*', 'hierarchy_entities.name as entity_name', DB::raw('string_agg(modules.id::text, \',\') as module_ids'), DB::raw('string_agg(modules.name, \',\') as module_names')])
             ->join('hierarchy_entities', 'users.entity_code', '=', 'hierarchy_entities.code')
             ->leftJoin('user_modules', 'users.id', '=', 'user_modules.user_id')
             ->leftJoin('modules', 'user_modules.module_id', '=', 'modules.id')
             ->groupBy('users.id', 'hierarchy_entities.name')
-            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCode) {
+            ->when(request()->input('entity'), function ($query, $param) use ($userEntityCodes) {
 
                 $entity = $param;
 
-                if ($userEntityCode != '1') {
-                    $query->where('entity_code', $userEntityCode);
+                if (!in_array('1', $userEntityCodes)) {
+                    $query->whereIn('entity_code', $userEntityCodes);
                 } else {
                     if ($entity != '*')
-                        $query->where('entity_code', $entity);
+                        $query->where(function ($q) use ($entity) {
+                            $q->where('users.entity_code', $entity)
+                              ->orWhereExists(function ($q) use ($entity) {
+                                  $q->select(DB::raw(1))
+                                    ->from('user_hierarchy_entities')
+                                    ->whereColumn('user_hierarchy_entities.user_id', 'users.id')
+                                    ->where('user_hierarchy_entities.entity_code', $entity);
+                              });
+                        });
                 }
             })
-            ->unless(request()->input('entity'), function ($query) {
-                $entity = auth()->user()->entity_code;
-                $query->where('entity_code', $entity);
+            ->unless(request()->input('entity'), function ($query) use ($userEntityCodes) {
+                if (!in_array('1', $userEntityCodes)) {
+                    $query->whereIn('entity_code', $userEntityCodes);
+                }
             });
 
         $users = $users->where('status', 1);
@@ -90,9 +100,14 @@ class UserService extends ApiService
 
     public function createUser($dataToCreateUser)
     {
+        $entityCodes = $dataToCreateUser['entity_code'];
+        if (is_string($entityCodes)) {
+            $entityCodes = [$entityCodes];
+        }
+        $primaryEntityCode = $entityCodes[0];
 
-        // $password = $this->userModel->generateNewRandomPassword();
-        $entity = $this->hierarchyModel->where('code', $dataToCreateUser['entity_code'])->first();
+        $entity = $this->hierarchyModel->where('code', $primaryEntityCode)->first();
+        $dataToCreateUser['entity_code'] = $primaryEntityCode;
         $dataToCreateUser['username'] = $dataToCreateUser['ci'];
 
         $search = $dataToCreateUser['name'] . ' ' . $dataToCreateUser['last_name'] . ' ' . $entity->name . ' ' . $dataToCreateUser['charge'] . ' ' . $dataToCreateUser['username'] . ' ' . $dataToCreateUser['ci'] . ' ' . $dataToCreateUser['phone_number'] . ' ' . $dataToCreateUser['address'] . ' ' . $dataToCreateUser['email'];
@@ -104,6 +119,7 @@ class UserService extends ApiService
         $this->userModel->fill($dataToCreateUser);
         $this->userModel->save();
         $this->userModel->modules()->attach($dataToCreateUser['permissions']);
+        $this->userModel->hierarchies()->sync($entityCodes);
         $this->userModel->fresh();
 
         $userWithFormat = new UserResource($this->userModel);
@@ -123,8 +139,14 @@ class UserService extends ApiService
 
     public function updateUser($dataToUpdateUser, $user)
     {
+        $entityCodes = $dataToUpdateUser['entity_code'];
+        if (is_string($entityCodes)) {
+            $entityCodes = [$entityCodes];
+        }
+        $primaryEntityCode = $entityCodes[0];
 
-        $entity = $this->hierarchyModel->where('code', $dataToUpdateUser['entity_code'])->first();
+        $entity = $this->hierarchyModel->where('code', $primaryEntityCode)->first();
+        $dataToUpdateUser['entity_code'] = $primaryEntityCode;
         $dataToUpdateUser['username'] = $dataToUpdateUser['ci'];
 
 
@@ -135,11 +157,13 @@ class UserService extends ApiService
         $permissions = $dataToUpdateUser['permissions'];
         $permissionsFormat = $this->transformToStringPermissions($permissions);
 
-        $permissionsFormat[] = $user->entity_code == '1' ? 'origin' : 'branch';
+        $hasOrigin = $primaryEntityCode === '1' || in_array('1', $entityCodes);
+        $permissionsFormat[] = $hasOrigin ? 'origin' : 'branch';
 
         $user->fill($dataToUpdateUser);
         $user->save();
         $user->modules()->sync($permissions);
+        $user->hierarchies()->sync($entityCodes);
 
         $user->tokens->each(function ($token) use ($permissionsFormat) {
             $newAbilities = $permissionsFormat;
