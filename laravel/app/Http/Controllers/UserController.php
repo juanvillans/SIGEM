@@ -160,6 +160,10 @@ class UserController extends Controller
             $user = auth()->user();
             $user->load('hierarchy', 'hierarchies');
 
+            if ($user->entity_code === '1') {
+                $user->setRelation('hierarchies', HierarchyEntity::all());
+            }
+
             $permissionsArray = $this->userService->getPermissions($user->id);
 
             $permissionsWithFormat = $this->userService->formatToPermissions($permissionsArray);
